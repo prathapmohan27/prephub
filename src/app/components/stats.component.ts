@@ -3,64 +3,140 @@ import { Component, input, computed } from '@angular/core';
 @Component({
   selector: 'app-stats',
   template: `
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
-
+    <div class="stats-grid">
       <!-- Total Questions -->
-      <div class="glass-panel" style="border-radius:14px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;">
+      <div class="glass-panel stat-card">
         <div>
-          <p style="font-size:0.65rem;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">
-            Question Pool
-          </p>
-          <div style="display:flex;align-items:baseline;gap:6px;">
-            <span style="font-size:1.625rem;font-weight:800;color:#f4f4f5;line-height:1;">{{ totalQuestions() }}</span>
-            <span style="font-size:0.65rem;color:#71717a;font-family:monospace;">total</span>
+          <p class="section-label mb-1.5">Question Pool</p>
+          <div class="flex-baseline">
+            <span class="stat-val stat-val-total">{{ totalQuestions() }}</span>
+            <span class="subtitle-main">total</span>
           </div>
         </div>
-        <div style="width:40px;height:40px;border-radius:10px;background:rgba(39,39,42,0.5);display:flex;align-items:center;justify-content:center;color:#71717a;font-size:18px;">
+        <div class="stat-icon stat-icon-total">
           <i class="ti ti-database"></i>
         </div>
       </div>
 
       <!-- Progress -->
-      <div class="glass-panel" style="border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;gap:10px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-          <p style="font-size:0.65rem;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.07em;">
-            Preparation
-          </p>
-          <span style="font-size:0.75rem;font-weight:700;color:#34d399;font-family:monospace;">{{ preparedPercentage() }}%</span>
+      <div class="glass-panel stat-card stat-card-col">
+        <div class="flex-between">
+          <p class="section-label">Preparation</p>
+          <span class="stat-progress-pct">{{ preparedPercentage() }}%</span>
         </div>
         <div>
-          <div style="width:100%;height:5px;border-radius:999px;background:rgba(63,63,70,0.5);overflow:hidden;">
-            <div
-              [style.width.%]="preparedPercentage()"
-              style="height:100%;border-radius:999px;background:linear-gradient(90deg,#10b981,#34d399);transition:width 0.5s ease;box-shadow:0 0 8px rgba(16,185,129,0.3);"
-            ></div>
+          <div class="progress-bar-bg">
+            <div class="progress-fill" [style.width.%]="preparedPercentage()"></div>
           </div>
-          <p style="font-size:0.65rem;color:#71717a;margin-top:6px;font-family:monospace;">
+          <p class="stat-progress-label">
             {{ preparedQuestions() }} of {{ totalQuestions() }} mastered
           </p>
         </div>
       </div>
 
       <!-- Starred -->
-      <div class="glass-panel" style="border-radius:14px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;">
+      <div class="glass-panel stat-card">
         <div>
-          <p style="font-size:0.65rem;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">
-            Starred
-          </p>
-          <div style="display:flex;align-items:baseline;gap:6px;">
-            <span style="font-size:1.625rem;font-weight:800;color:#fbbf24;line-height:1;">{{ starredQuestions() }}</span>
-            <span style="font-size:0.65rem;color:#71717a;font-family:monospace;">saved</span>
+          <p class="section-label mb-1.5">Starred</p>
+          <div class="flex-baseline">
+            <span class="stat-val stat-val-starred">{{ starredQuestions() }}</span>
+            <span class="subtitle-main">saved</span>
           </div>
         </div>
-        <div style="width:40px;height:40px;border-radius:10px;background:rgba(245,158,11,0.1);display:flex;align-items:center;justify-content:center;color:#fbbf24;font-size:18px;border:1px solid rgba(245,158,11,0.15);">
+        <div class="stat-icon stat-icon-starred">
           <i class="ti ti-star-filled"></i>
         </div>
       </div>
-
     </div>
   `,
-  styles: [`:host { display: block; }`],
+  styles: `
+    :host {
+      display: block;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .stat-card {
+      border-radius: var(--radius-xl);
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .stat-card-col {
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .stat-icon-total {
+      background: rgba(39, 39, 42, 0.5);
+      color: var(--color-text-subtle);
+    }
+
+    .stat-icon-starred {
+      background: var(--color-warning-bg);
+      color: var(--color-warning-light);
+      border: 1px solid var(--color-warning-border);
+    }
+
+    .stat-val {
+      font-size: 1.625rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .stat-val-total {
+      color: var(--color-text-primary);
+    }
+    .stat-val-starred {
+      color: var(--color-warning-light);
+    }
+
+    .stat-progress-pct {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--color-success-light);
+      font-family: var(--font-mono);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 5px;
+      border-radius: var(--radius-pill);
+      background: rgba(63, 63, 70, 0.5);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: var(--radius-pill);
+      background: linear-gradient(90deg, var(--color-success), var(--color-success-light));
+      transition: width 0.5s ease;
+      box-shadow: var(--shadow-success-glow);
+    }
+
+    .stat-progress-label {
+      font-size: 0.65rem;
+      margin-top: 6px;
+      color: var(--color-text-subtle);
+      font-family: var(--font-mono);
+    }
+  `,
 })
 export class StatsComponent {
   totalQuestions = input<number>(0);

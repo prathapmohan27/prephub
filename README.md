@@ -1,4 +1,4 @@
-# 🅰️ InterviewPrepHub
+# InterviewPrepHub
 
 > **A premium, interactive interview preparation dashboard** — built with a modern web framework, featuring progress tracking, personal study notes, smart filtering, and a mock interview mode.
 

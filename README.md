@@ -2,7 +2,7 @@
 
 > **A premium, interactive interview preparation dashboard** — built with a modern web framework, featuring progress tracking, personal study notes, smart filtering, and a mock interview mode.
 
-🌐 **Live Demo:** [https://yourusername.github.io/prephub/](https://yourusername.github.io/prephub/)
+🌐 **Live Demo:** [https://prathapmohan27.github.io/prephub/](https://prathapmohan27.github.io/prephub/)
 
 ---
 
@@ -106,7 +106,7 @@ npm install -g <your-framework-cli>
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/prephub.git
+git clone https://github.com/prathapmohan27/prephub.git
 cd prephub
 
 # Install dependencies
@@ -146,7 +146,7 @@ npm run build
 npx gh-pages -d dist
 ```
 
-**Live URL:** `https://yourusername.github.io/prephub/`
+**Live URL:** `https://prathapmohan27.github.io/prephub/`
 
 ---
 
@@ -207,4 +207,4 @@ This project is open source and available under the [MIT License](LICENSE).
 
 Built with ❤️ for developers preparing for their next interview — in any language or framework.
 
-[🌐 Live Demo](https://yourusername.github.io/prephub/) • [🐛 Report Bug](https://github.com/yourusername/prephub/issues) • [💡 Request Feature](https://github.com/yourusername/prephub/issues)
+[🌐 Live Demo](https://prathapmohan27.github.io/prephub/) • [🐛 Report Bug](https://github.com/prathapmohan27/prephub/issues) • [💡 Request Feature](https://github.com/prathapmohan27/prephub/issues)

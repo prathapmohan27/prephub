@@ -1,14 +1,14 @@
-# 🅰️ Angular Interview PrepHub
+# 🅰️ InterviewPrepHub
 
-> **A premium, interactive Angular interview preparation dashboard** — built with Angular 22, featuring progress tracking, personal study notes, smart filtering, and a mock interview mode.
+> **A premium, interactive interview preparation dashboard** — built with a modern web framework, featuring progress tracking, personal study notes, smart filtering, and a mock interview mode.
 
-🌐 **Live Demo:** [https://prathapmohan27.github.io/angular-interview/](https://prathapmohan27.github.io/angular-interview/)
+🌐 **Live Demo:** [https://yourusername.github.io/prephub/](https://yourusername.github.io/prephub/)
 
 ---
 
 ## 📸 Overview
 
-**Angular Interview PrepHub** is a fully-featured study companion for developers preparing for Angular technical interviews. It organises 200+ carefully curated interview questions across 14 topic categories — from core fundamentals to advanced architectural patterns.
+**InterviewPrepHub** is a fully-featured study companion for developers preparing for technical interviews in **any language, framework, or domain**. It organises a curated bank of interview questions across topic categories you define — from core fundamentals to advanced architectural patterns. Swap in questions for JavaScript, Python, Java, system design, data structures & algorithms, DevOps, SQL, or any other subject — the dashboard itself doesn't care what it's teaching you.
 
 ---
 
@@ -34,76 +34,80 @@
 ### 🎲 Mock Interview Mode
 - Hit **Mock Me** to get a randomly selected question from the current view
 - Instantly mark it as mastered or shuffle to the next one
-- Links directly to Angular docs search for that topic
+- Links directly to official docs (or a reference site of your choice) for that topic
 
 ### 🔗 Quick Actions on Every Question
 - **Copy** question text to clipboard
-- **Angular Docs** — Google search scoped to `angular.dev`
-- **Search Google** — full web search with "Angular" prefixed
+- **Docs Search** — Google search scoped to a documentation domain you configure
+- **Search Google** — full web search with your subject prefixed
 
 ---
 
 ## 📚 Question Categories
 
-| # | Category | Topics Covered |
+The categories below are just a starting template — replace them with whatever subject you're studying. Each category is simply a label plus an array of question strings, so it works equally well for a language, a framework, or a general CS topic.
+
+| # | Category | Example Topics Covered |
 |---|----------|----------------|
-| 1 | **TypeScript** | Types, Interfaces, Generics, ES6+ |
-| 2 | **JavaScript Fundamentals** | Event Loop, Closures, Debounce, Throttle |
-| 3 | **Signals & Reactivity** | Signals, Computed, Effect, BehaviorSubject |
-| 4 | **Change Detection** | Default vs OnPush, Zone-less, markForCheck |
-| 5 | **RxJS & Observables** | Operators, switchMap, shareReplay, Schedulers |
-| 6 | **Scenario-Based** | Real-world problem solving with RxJS |
-| 7 | **Components & Templates** | Lifecycle hooks, ViewChild, ng-content |
-| 8 | **Directives & Decorators** | Custom directives, HostListener |
-| 9 | **Forms** | Reactive Forms, FormArray, Dynamic Forms |
-| 10 | **Routing & Guards** | Lazy Loading, Guards, Resolvers |
-| 11 | **State Management & Architecture** | NgRx, Interceptors, DI, Micro Frontends |
-| 12 | **Performance, Testing & Tooling** | SSR/CSR, Virtual Scrolling, CI/CD, AI Tools |
-| 13 | **Interview Round: Live Q&A** | Real interview session questions |
-| 14 | **Coding Round** | Palindrome, Debounce, Flatten, Duplicates |
+| 1 | **Language Fundamentals** | Types, syntax, core language features |
+| 2 | **Core Concepts** | Runtime behavior, memory model, execution flow |
+| 3 | **State & Reactivity** | State management patterns, reactive primitives |
+| 4 | **Performance & Optimization** | Rendering/compute efficiency, profiling |
+| 5 | **Asynchronous Programming** | Promises, streams, concurrency patterns |
+| 6 | **Scenario-Based** | Real-world problem solving |
+| 7 | **Components / Modules** | Lifecycle, composition, encapsulation |
+| 8 | **Extensibility Patterns** | Plugins, decorators, custom extensions |
+| 9 | **Data Handling** | Forms, validation, data structures |
+| 10 | **Navigation & Access Control** | Routing, guards, permissions |
+| 11 | **Architecture** | Design patterns, dependency injection, scaling |
+| 12 | **Testing & Tooling** | Unit/integration testing, CI/CD, tooling |
+| 13 | **Live Interview Q&A** | Real interview session questions |
+| 14 | **Coding Round** | Algorithms, data structure challenges |
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **Angular** | 22 | Core framework (Standalone components, Signals) |
-| **TypeScript** | ~6.0 | Type safety |
-| **Tailwind CSS** | 4.x | Utility classes + PostCSS |
-| **RxJS** | ~7.8 | Reactive utilities |
-| **Vitest** | 4.x | Unit testing |
-| **Tabler Icons** | Latest | Icon set (CDN) |
-| **Google Fonts** | — | Inter + Plus Jakarta Sans typography |
-| **angular-cli-ghpages** | 3.x | GitHub Pages deployment |
+The dashboard shell can be built with any modern frontend stack. A typical setup looks like this — substitute your framework of choice:
 
-### Angular Patterns Used
-- ✅ **Standalone Components** — no NgModules
-- ✅ **Signals** (`signal`, `computed`, `effect`) — reactive state
-- ✅ **Input/Output signals** — modern component API
-- ✅ **`@for` / `@if` control flow** — Angular 17+ template syntax
-- ✅ **`inject()`** — functional dependency injection
-- ✅ **Custom Pipe** — `HighlightPipe` for search term highlighting
+| Technology | Purpose |
+|------------|---------|
+| **Frontend Framework** | React, Vue, Angular, Svelte, or plain JS — your choice |
+| **TypeScript** | Type safety (optional but recommended) |
+| **Tailwind CSS** (or similar) | Utility classes for styling |
+| **State/Reactive Library** | RxJS, Signals, Redux, Zustand, Pinia, etc. |
+| **Test Runner** | Vitest, Jest, Jasmine, or your preferred framework |
+| **Icon Set** | Tabler Icons, Lucide, Font Awesome, etc. |
+| **Web Fonts** | Any Google Fonts pairing |
+| **Static Hosting / Deploy Tool** | GitHub Pages, Netlify, Vercel, etc. |
+
+### Design Patterns Used
+- ✅ **Component-based architecture** — modular, composable UI
+- ✅ **Reactive state primitives** — signals, observables, or store-based state
+- ✅ **Declarative rendering / control flow** — whatever your framework's modern syntax offers
+- ✅ **Dependency injection or equivalent composition pattern**
+- ✅ **Custom highlight/formatting utility** — for search term highlighting
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- [Node.js](https://nodejs.org/) `v20+`
-- [npm](https://www.npmjs.com/) `v11+`
-- Angular CLI `v22`
+- A recent Node.js LTS release
+- npm, pnpm, or yarn
+- The CLI for whichever framework you choose (if any)
 
 ```bash
-npm install -g @angular/cli
+# Example: install a framework CLI
+npm install -g <your-framework-cli>
 ```
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/prathapmohan27/angular-interview.git
-cd angular-interview
+git clone https://github.com/yourusername/prephub.git
+cd prephub
 
 # Install dependencies
 npm install
@@ -113,40 +117,36 @@ npm install
 
 ```bash
 npm start
-# or
-ng serve
+# or your framework's dev-server command
 ```
 
-Navigate to `http://localhost:4200/`. The app hot-reloads on any file save.
+Navigate to `http://localhost:4200/` (or whatever port your dev server uses). The app hot-reloads on any file save.
 
 ### Production Build
 
 ```bash
 npm run build
-# Output: dist/angular-interview/
+# Output: dist/ (path varies by framework)
 ```
 
 ### Run Tests
 
 ```bash
 npm test
-# or
-ng test
 ```
 
 ---
 
-## 🌐 Deployment (GitHub Pages)
+## 🌐 Deployment
 
-This project is configured to deploy automatically to GitHub Pages using [`angular-cli-ghpages`](https://github.com/angular-schule/angular-cli-ghpages).
+This project can be deployed to any static host — GitHub Pages, Netlify, Vercel, Cloudflare Pages, or an S3 bucket. A GitHub Pages example:
 
 ```bash
-ng deploy
+npm run build
+npx gh-pages -d dist
 ```
 
-This builds the app in production mode and pushes it to the `gh-pages` branch of the repository.
-
-**Live URL:** `https://prathapmohan27.github.io/angular-interview/`
+**Live URL:** `https://yourusername.github.io/prephub/`
 
 ---
 
@@ -154,39 +154,46 @@ This builds the app in production mode and pushes it to the `gh-pages` branch of
 
 ```
 src/
-├── app/
+├── app/ (or src/)
 │   ├── components/
-│   │   ├── questions.component.ts    # Main dashboard layout (sidebar + main panel)
-│   │   ├── header.component.ts       # Search bar, filters, Mock Me button
-│   │   ├── stats.component.ts        # Progress metric cards
-│   │   ├── category.component.ts     # Accordion category card with progress bar
-│   │   └── question-item.component.ts # Question card with notes, star, mastery toggle
-│   ├── pipes/
-│   │   └── highlight.pipe.ts         # Search term highlighting
-│   ├── services/
-│   │   └── question.service.ts       # All interview questions data
-│   ├── app.ts                        # Root component
-│   ├── app.config.ts                 # App bootstrap configuration
-│   └── app.routes.ts                 # Router configuration
-├── styles.css                        # Global styles, glassmorphism, animations
-└── index.html                        # Fonts & Tabler Icons CDN
+│   │   ├── questions/           # Main dashboard layout (sidebar + main panel)
+│   │   ├── header/              # Search bar, filters, Mock Me button
+│   │   ├── stats/                # Progress metric cards
+│   │   ├── category/             # Accordion category card with progress bar
+│   │   └── question-item/        # Question card with notes, star, mastery toggle
+│   ├── utils/
+│   │   └── highlight.ts          # Search term highlighting helper
+│   ├── data/
+│   │   └── questions.ts          # All interview questions data — this is the file you edit to change subjects
+│   ├── app entry point
+│   └── routing configuration
+├── styles/                       # Global styles, glassmorphism, animations
+└── index.html                    # Fonts & icon set CDN links
 ```
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you'd like to add more questions, fix bugs, or improve the UI:
+Contributions are welcome! If you'd like to add more questions (for any subject), fix bugs, or improve the UI:
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feat/add-questions`
-3. Commit your changes: `git commit -m "feat: add more NgRx questions"`
+3. Commit your changes: `git commit -m "feat: add more questions"`
 4. Push to the branch: `git push origin feat/add-questions`
 5. Open a Pull Request
 
 ### Adding Questions
 
-All questions live in [`src/app/services/question.service.ts`](./src/app/services/question.service.ts). Simply add new strings to the relevant category's `questions` array.
+All questions live in `src/app/data/questions.ts` (or equivalent). Simply add new strings to the relevant category's `questions` array — the dashboard doesn't need any code changes to support a new subject, only new data.
+
+### Adapting to a New Subject
+
+To repurpose this dashboard for a different technology or topic:
+1. Replace the category list with your own topic breakdown
+2. Populate each category's question array
+3. Update the "docs search" link to point at the relevant documentation domain
+4. (Optional) Update branding, colors, and the emoji in the title
 
 ---
 
@@ -196,11 +203,8 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-<div align="center">
-  <p>Built with ❤️ for Angular developers preparing for their next interview.</p>
-  <p>
-    <a href="https://prathapmohan27.github.io/angular-interview/">🌐 Live Demo</a> •
-    <a href="https://github.com/prathapmohan27/angular-interview/issues">🐛 Report Bug</a> •
-    <a href="https://github.com/prathapmohan27/angular-interview/issues">💡 Request Feature</a>
-  </p>
-</div>
+---
+
+Built with ❤️ for developers preparing for their next interview — in any language or framework.
+
+[🌐 Live Demo](https://yourusername.github.io/prephub/) • [🐛 Report Bug](https://github.com/yourusername/prephub/issues) • [💡 Request Feature](https://github.com/yourusername/prephub/issues)

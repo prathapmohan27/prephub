@@ -6,14 +6,13 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "angular-interview": {
+    "prephup": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
-          "inlineStyle": true,
+          "inlineStyle": false,
           "inlineTemplate": true,
-          "skipTests": true,
-          "flat": true
+          "skipTests": true
         },
         "@schematics/angular:pipe": {
           "skipTests": true
@@ -69,10 +68,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "angular-interview:build:production"
+              "buildTarget": "prephup:build:production"
             },
             "development": {
-              "buildTarget": "angular-interview:build:development"
+              "buildTarget": "prephup:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -83,7 +82,7 @@
         "deploy": {
           "builder": "angular-cli-ghpages:deploy",
           "options": {
-            "baseHref": "https://prathapmohan27.github.io/angular-interview/"
+            "baseHref": "https://prathapmohan27.github.io/prephup/"
           }
         }
       }

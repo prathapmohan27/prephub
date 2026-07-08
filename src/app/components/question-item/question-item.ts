@@ -1,9 +1,9 @@
 import { Component, input, output, signal } from '@angular/core';
-import { HighlightPipe } from '../pipes/highlight.pipe';
+import { Highlight } from '@pipes/highlight';
 
 @Component({
   selector: 'app-question-item',
-  imports: [HighlightPipe],
+  imports: [Highlight],
   template: `
     <div class="glass-card question-card" [class.question-card--prepared]="isPrepared()">
       <!-- Question row -->
@@ -103,162 +103,9 @@ import { HighlightPipe } from '../pipes/highlight.pipe';
       }
     </div>
   `,
-  styles: `
-    :host {
-      display: block;
-    }
-    .question-card {
-      border-radius: var(--radius-lg);
-      padding: 14px 16px;
-      display: flex;
-      flex-direction: column;
-      transition: border-color 0.2s;
-    }
-
-    .question-card--prepared {
-      border-color: var(--color-success-border) !important;
-      background: rgba(16, 185, 129, 0.03) !important;
-    }
-
-    .question-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-    }
-
-    /* Question text block */
-    .q-text-block {
-      flex: 1;
-      font-size: 0.875rem;
-      line-height: 1.6;
-      cursor: pointer;
-    }
-
-    .q-num {
-      font-size: 0.72rem;
-      color: var(--color-text-subtle);
-      font-family: var(--font-mono);
-      margin-right: 6px;
-    }
-
-    .line-through-text {
-      text-decoration: line-through;
-    }
-
-    /* Prepare / star / expand icon sizes */
-    .q-check-icon {
-      font-size: 18px;
-      color: var(--color-success);
-    }
-    .q-circle-icon {
-      font-size: 18px;
-      color: var(--color-text-faint);
-    }
-    .q-star-icon {
-      font-size: 15px;
-      color: var(--color-warning);
-    }
-    .q-unstar-icon {
-      font-size: 15px;
-      color: var(--color-text-faint);
-    }
-    .q-chevron {
-      font-size: 14px;
-      transition: transform 0.25s ease;
-    }
-
-    /* Small spacing per button type */
-    .q-btn-prepare {
-      margin-top: 2px;
-    }
-    .q-btn-star {
-      padding: 2px 4px;
-    }
-    .q-btn-expand {
-      padding: 2px 4px;
-      color: var(--color-text-faint);
-    }
-
-    /* Expandable drawer */
-    .question-drawer {
-      border-top: 1px solid var(--color-border);
-      margin-top: 12px;
-      padding-top: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    /* Notes section */
-    .notes-textarea {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 8px;
-      border: 1px solid rgba(63, 63, 70, 0.45);
-      background: rgba(9, 9, 11, 0.7);
-      color: #d4d4d8;
-      font-size: 0.8rem;
-      font-family: var(--font-sans);
-      line-height: 1.6;
-      resize: vertical;
-      min-height: 88px;
-      outline: none;
-      transition: border-color 0.15s;
-    }
-
-    .notes-label-row {
-      gap: 4px;
-      font-size: 0.68rem;
-    }
-    .notes-edit-icon {
-      font-size: 12px;
-      color: var(--color-text-muted);
-    }
-    .notes-saved-label {
-      font-size: 0.62rem;
-      gap: 4px;
-    }
-    .notes-autosave-icon {
-      color: var(--color-success);
-      font-size: 11px;
-    }
-
-    /* Action buttons row */
-    .btn-action {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      padding: 7px 12px;
-      border-radius: 8px;
-      background: rgba(39, 39, 42, 0.6);
-      border: 1px solid rgba(63, 63, 70, 0.45);
-      color: #d4d4d8;
-      font-size: 0.72rem;
-      font-weight: 500;
-      cursor: pointer;
-      font-family: var(--font-sans);
-      transition: background 0.15s;
-      text-decoration: none;
-    }
-    .btn-action:hover {
-      background: rgba(63, 63, 70, 0.8);
-    }
-
-    .btn-action-icon {
-      color: var(--color-text-muted);
-      font-size: 11px;
-    }
-    .copy-done-icon {
-      color: var(--color-success);
-    }
-    .mark-hint {
-      font-size: 0.62rem;
-      color: var(--color-text-faint);
-      font-family: var(--font-mono);
-    }
-  `,
+  styleUrl: './question-item.css',
 })
-export class QuestionItemComponent {
+export class QuestionItem {
   questionText = input.required<string>();
   questionNumber = input.required<number>();
   searchFilter = input<string>('');

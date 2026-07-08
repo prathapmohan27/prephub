@@ -1,14 +1,14 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
-import { HeaderComponent } from './header.component';
-import { StatsComponent } from './stats.component';
-import { CategoryComponent } from './category.component';
-import { QuestionService, Category } from '../services/question.service';
+import { Header } from '@components/header';
+import { Stats } from '@components/stats';
+import { Category } from '@components/category';
+import { Question, CategoryModel } from '@services/question';
 
 type AppMode = 'angular' | 'nodejs';
 
 @Component({
   selector: 'app-questions',
-  imports: [HeaderComponent, StatsComponent, CategoryComponent],
+  imports: [Header, Stats, Category],
   template: `
     <div class="page-shell">
       <div class="radial-glow radial-glow-overlay"></div>
@@ -207,318 +207,10 @@ type AppMode = 'angular' | 'nodejs';
       </div>
     </div>
   `,
-  styles: `
-    :host {
-      display: block;
-    }
-    .page-shell {
-      min-height: 100vh;
-      background: var(--color-page-bg);
-      color: var(--color-text-primary);
-      position: relative;
-    }
-
-    .radial-glow-overlay {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    .page-wrapper {
-      position: relative;
-      z-index: 1;
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 32px 24px;
-    }
-
-    /* ---- Header Strip ---- */
-    .header-strip {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 32px;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .logo-gap {
-      gap: 14px;
-    }
-
-    .logo-box {
-      width: 44px;
-      height: 44px;
-      border-radius: var(--radius-lg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-size: 22px;
-      flex-shrink: 0;
-      box-shadow: var(--shadow-logo);
-      transition: background 0.3s;
-    }
-    .logo-box--angular {
-      background: linear-gradient(135deg, var(--color-angular), var(--color-angular-dark));
-    }
-    .logo-box--node {
-      background: linear-gradient(135deg, var(--color-node), var(--color-node-dark));
-    }
-
-    .title-main {
-      font-family: var(--font-display);
-      font-size: 1.125rem;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      background: linear-gradient(90deg, #fff, #a1a1aa);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-transform: uppercase;
-      line-height: 1.2;
-    }
-
-    /* ---- Mode Switcher Pill ---- */
-    .mode-pill {
-      display: flex;
-      align-items: center;
-      background: rgba(24, 24, 27, 0.8);
-      border: 1px solid var(--color-border-strong);
-      border-radius: var(--radius-xl);
-      padding: 4px;
-      gap: 3px;
-      backdrop-filter: blur(8px);
-    }
-
-    .btn-mode-tab {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 18px;
-      border-radius: var(--radius-md);
-      border: none;
-      cursor: pointer;
-      font-size: 0.8rem;
-      font-weight: 700;
-      font-family: var(--font-display);
-      transition: all 0.2s ease;
-    }
-    .btn-mode-tab--active-angular {
-      background: linear-gradient(135deg, var(--color-angular-glow), rgba(225, 29, 72, 0.1));
-      color: var(--color-angular-text);
-      box-shadow: 0 0 0 1px var(--color-angular-ring);
-    }
-    .btn-mode-tab--active-node {
-      background: linear-gradient(135deg, var(--color-node-glow), rgba(21, 128, 61, 0.1));
-      color: var(--color-node-text);
-      box-shadow: 0 0 0 1px var(--color-node-ring);
-    }
-    .btn-mode-tab--inactive {
-      background: transparent;
-      color: var(--color-text-subtle);
-    }
-
-    .divider-vt {
-      width: 1px;
-      height: 20px;
-      background: var(--color-border-strong);
-    }
-
-    /* ---- Two-column Layout ---- */
-    .grid-sidebar-main {
-      display: flex;
-      gap: 24px;
-      align-items: flex-start;
-    }
-
-    /* ---- Sidebar ---- */
-    .sidebar {
-      width: 264px;
-      flex-shrink: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      position: sticky;
-      top: 24px;
-    }
-
-    .sidebar-panel {
-      border-radius: var(--radius-2xl);
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .sidebar-label {
-      padding: 0 8px;
-      margin-bottom: 6px;
-    }
-
-    .divider-hz {
-      height: 1px;
-      background: rgba(63, 63, 70, 0.35);
-      margin: 6px 0;
-    }
-
-    .sidebar-list {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      max-height: calc(100vh - 260px);
-      overflow-y: auto;
-      padding-right: 2px;
-    }
-
-    .btn-tab {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      padding: 9px 10px;
-      border-radius: var(--radius-md);
-      border: none;
-      cursor: pointer;
-      transition:
-        background 0.15s,
-        color 0.15s;
-      text-align: left;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--color-text-muted);
-      background: transparent;
-    }
-    .btn-tab--active {
-      background: rgba(63, 63, 70, 0.6);
-      color: var(--color-text-primary);
-    }
-
-    .icon-box {
-      width: 22px;
-      height: 22px;
-      border-radius: var(--radius-sm);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      flex-shrink: 0;
-    }
-    .icon-box-default {
-      background: rgba(63, 63, 70, 0.5);
-      color: var(--color-text-muted);
-    }
-
-    /* ---- Main Content ---- */
-    .main-content {
-      flex: 1;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    /* ---- Spotlight Card ---- */
-    .spotlight-card {
-      border-radius: var(--radius-2xl);
-      padding: 24px;
-      border-color: rgba(244, 63, 94, 0.2);
-      background: rgba(120, 10, 30, 0.06);
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .spotlight-label {
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: var(--color-danger-text);
-      gap: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      display: flex;
-      align-items: center;
-    }
-
-    .spotlight-q-box {
-      padding: 16px;
-      border-radius: var(--radius-lg);
-      background: rgba(9, 9, 11, 0.7);
-      border: 1px solid var(--color-border);
-    }
-
-    .spotlight-q-text {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--color-text-primary);
-      line-height: 1.6;
-      font-family: var(--font-display);
-    }
-
-    .spotlight-cat-tag {
-      display: inline-block;
-      margin-top: 10px;
-      padding: 2px 10px;
-      border-radius: var(--radius-sm);
-      font-size: var(--text-xs, 0.65rem);
-      font-family: var(--font-mono);
-    }
-
-    .btn-mastered {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 9px 16px;
-      border-radius: var(--radius-md);
-      font-size: 0.75rem;
-      font-weight: 600;
-      background: var(--color-success-bg);
-      color: var(--color-success-light);
-      border: 1px solid var(--color-success-border);
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-
-    /* ---- Category list gap ---- */
-    .categories-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    /* ---- Empty State ---- */
-    .empty-state-panel {
-      border-radius: var(--radius-2xl);
-      padding: 48px 24px;
-      text-align: center;
-    }
-    .empty-state-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: rgba(39, 39, 42, 0.6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 12px;
-      font-size: 20px;
-      color: var(--color-text-faint);
-    }
-    .empty-headline {
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--color-text-muted);
-    }
-    .empty-sub {
-      font-size: 0.75rem;
-      color: var(--color-text-subtle);
-      margin-top: 4px;
-    }
-  `,
+  styleUrl: './questions.css',
 })
-export class QuestionsComponent implements OnInit {
-  categories = signal<Category[]>([]);
+export class Questions implements OnInit {
+  categories = signal<CategoryModel[]>([]);
   searchFilter = signal<string>('');
   allOpen = signal<boolean>(false);
 
@@ -527,13 +219,13 @@ export class QuestionsComponent implements OnInit {
   notesMap = signal<Record<string, string>>({});
 
   activeFilter = signal<string>('all');
-  selectedCategory = signal<Category | null>(null);
+  selectedCategory = signal<CategoryModel | null>(null);
   mode = signal<AppMode>('angular');
 
   spotlightQuestion = signal<string | null>(null);
-  spotlightCategory = signal<Category | null>(null);
+  spotlightCategory = signal<CategoryModel | null>(null);
 
-  private questionService: QuestionService = inject(QuestionService);
+  private questionService: Question = inject(Question);
 
   modeCategories = computed(() => {
     const m = this.mode();
@@ -597,7 +289,7 @@ export class QuestionsComponent implements OnInit {
   onFilterChange(filter: string) {
     this.activeFilter.set(filter);
   }
-  selectCategory(cat: Category | null) {
+  selectCategory(cat: CategoryModel | null) {
     this.selectedCategory.set(cat);
   }
 
@@ -635,7 +327,7 @@ export class QuestionsComponent implements OnInit {
   }
 
   triggerSpotlight() {
-    const pool = this.visibleCategories().reduce<Array<{ q: string; cat: Category }>>(
+    const pool = this.visibleCategories().reduce<Array<{ q: string; cat: CategoryModel }>>(
       (acc, cat) => {
         const origCat = this.modeCategories().find((c) => c.id === cat.id);
         if (origCat) cat.questions.forEach((q) => acc.push({ q, cat: origCat }));

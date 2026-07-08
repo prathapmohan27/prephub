@@ -1,10 +1,10 @@
 import { Component, input, signal, computed, output, effect } from '@angular/core';
-import { QuestionItemComponent } from './question-item.component';
-import { Category } from '../services/question.service';
+import { QuestionItem } from '@components/question-item';
+import { CategoryModel } from '@services/question';
 
 @Component({
   selector: 'app-category',
-  imports: [QuestionItemComponent],
+  imports: [QuestionItem],
   template: `
     <div class="glass-panel cat-panel">
       <!-- Category Header -->
@@ -82,103 +82,10 @@ import { Category } from '../services/question.service';
       }
     </div>
   `,
-  styles: `
-    :host {
-      display: block;
-    }
-    .cat-panel {
-      border-radius: var(--radius-2xl);
-      overflow: hidden;
-    }
-
-    .category-header-btn {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 16px 20px;
-      background: rgba(24, 24, 27, 0.5);
-      border: none;
-      cursor: pointer;
-      text-align: left;
-      transition: background 0.15s;
-    }
-    .category-header-btn:hover {
-      background: rgba(24, 24, 27, 0.7);
-    }
-
-    .cat-icon-md {
-      width: 34px;
-      height: 34px;
-      border-radius: 9px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      flex-shrink: 0;
-    }
-
-    .cat-title {
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--color-text-primary);
-      margin: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .cat-count-badge {
-      padding: 3px 10px;
-      border-radius: var(--radius-pill);
-      font-size: 0.68rem;
-      font-weight: 700;
-      font-family: var(--font-mono);
-    }
-
-    .cat-chevron {
-      font-size: 14px;
-      transition: transform 0.25s ease;
-      color: var(--color-text-subtle);
-    }
-
-    .progress-bar-sm {
-      width: 60px;
-      height: 3px;
-      border-radius: var(--radius-pill);
-      background: rgba(63, 63, 70, 0.5);
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-
-    .progress-fill-sm {
-      height: 100%;
-      border-radius: var(--radius-pill);
-      transition: width 0.4s ease;
-    }
-
-    .category-body {
-      border-top: 1px solid var(--color-border);
-      background: rgba(9, 9, 11, 0.25);
-      padding: 16px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      max-height: 480px;
-      overflow-y: auto;
-    }
-
-    .cat-no-match {
-      text-align: center;
-      font-size: 0.75rem;
-      color: var(--color-text-subtle);
-      padding: 24px 0;
-    }
-  `,
+  styleUrl: './category.css',
 })
-export class CategoryComponent {
-  category = input.required<Category>();
+export class Category {
+  category = input.required<CategoryModel>();
   searchFilter = input<string>('');
   forceOpen = input<boolean>(false);
   preparedSet = input<Set<string>>(new Set());

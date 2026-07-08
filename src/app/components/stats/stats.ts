@@ -49,96 +49,9 @@ import { Component, input, computed } from '@angular/core';
       </div>
     </div>
   `,
-  styles: `
-    :host {
-      display: block;
-    }
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-    }
-
-    .stat-card {
-      border-radius: var(--radius-xl);
-      padding: 18px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .stat-card-col {
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: stretch;
-    }
-
-    .stat-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: var(--radius-md);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-    }
-
-    .stat-icon-total {
-      background: rgba(39, 39, 42, 0.5);
-      color: var(--color-text-subtle);
-    }
-
-    .stat-icon-starred {
-      background: var(--color-warning-bg);
-      color: var(--color-warning-light);
-      border: 1px solid var(--color-warning-border);
-    }
-
-    .stat-val {
-      font-size: 1.625rem;
-      font-weight: 800;
-      line-height: 1;
-    }
-    .stat-val-total {
-      color: var(--color-text-primary);
-    }
-    .stat-val-starred {
-      color: var(--color-warning-light);
-    }
-
-    .stat-progress-pct {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--color-success-light);
-      font-family: var(--font-mono);
-    }
-
-    .progress-bar-bg {
-      width: 100%;
-      height: 5px;
-      border-radius: var(--radius-pill);
-      background: rgba(63, 63, 70, 0.5);
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      border-radius: var(--radius-pill);
-      background: linear-gradient(90deg, var(--color-success), var(--color-success-light));
-      transition: width 0.5s ease;
-      box-shadow: var(--shadow-success-glow);
-    }
-
-    .stat-progress-label {
-      font-size: 0.65rem;
-      margin-top: 6px;
-      color: var(--color-text-subtle);
-      font-family: var(--font-mono);
-    }
-  `,
+  styleUrl: './stats.css',
 })
-export class StatsComponent {
+export class Stats {
   totalQuestions = input<number>(0);
   preparedQuestions = input<number>(0);
   starredQuestions = input<number>(0);

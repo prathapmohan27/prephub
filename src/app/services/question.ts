@@ -1,6 +1,6 @@
 import { Service } from '@angular/core';
 
-export interface Category {
+export interface CategoryModel {
   id: string;
   icon: string;
   title: string;
@@ -10,8 +10,8 @@ export interface Category {
 }
 
 @Service()
-export class QuestionService {
-  private categories: Category[] = [
+export class Question {
+  private categories: CategoryModel[] = [
     {
       id: 'typescript',
       icon: 'ti-brand-typescript',
@@ -643,7 +643,7 @@ export class QuestionService {
     },
   ];
 
-  getCategories(): Category[] {
+  getCategories(): CategoryModel[] {
     return this.categories;
   }
 

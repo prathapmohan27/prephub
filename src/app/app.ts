@@ -1,9 +1,9 @@
 import { Component, signal } from '@angular/core';
-import { QuestionsComponent } from './components/questions.component';
+import { Questions } from '@components/questions';
 
 @Component({
   selector: 'app-root',
-  imports: [QuestionsComponent],
+  imports: [Questions],
   template: `<app-questions />`,
   styles: [
     `
@@ -14,5 +14,5 @@ import { QuestionsComponent } from './components/questions.component';
   ],
 })
 export class App {
-  protected readonly title = signal('angular-interview');
+  protected readonly title = signal('prepHup');
 }

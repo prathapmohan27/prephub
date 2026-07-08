@@ -91,97 +91,9 @@ import { Component, output, input } from '@angular/core';
       </div>
     </div>
   `,
-  styles: `
-    :host {
-      display: block;
-    }
-    .search-box {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 16px;
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--color-border-strong);
-      background: rgba(24, 24, 27, 0.6);
-    }
-
-    .search-input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      font-size: 0.875rem;
-      color: var(--color-text-primary);
-      font-family: var(--font-sans);
-    }
-
-    .filter-strip {
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      padding: 4px;
-      border-radius: var(--radius-md);
-      background: rgba(24, 24, 27, 0.7);
-      border: 1px solid var(--color-border);
-    }
-
-    .btn-filter-tab {
-      padding: 7px 14px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-size: 0.75rem;
-      font-weight: 600;
-      transition:
-        background 0.15s,
-        color 0.15s;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-family: var(--font-sans);
-    }
-
-    .btn-primary-gradient {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      padding: 9px 18px;
-      border-radius: var(--radius-md);
-      border: none;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #fff;
-      background: linear-gradient(135deg, var(--color-angular), var(--color-angular-dark));
-      cursor: pointer;
-      box-shadow: var(--shadow-btn-danger);
-      flex-shrink: 0;
-      font-family: var(--font-sans);
-    }
-
-    .btn-icon {
-      width: 38px;
-      height: 38px;
-      border-radius: var(--radius-md);
-      border: 1px solid rgba(63, 63, 70, 0.45);
-      background: rgba(24, 24, 27, 0.6);
-      color: var(--color-text-muted);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 15px;
-      flex-shrink: 0;
-    }
-
-    .text-success {
-      color: var(--color-success-light);
-    }
-    .text-warning {
-      color: var(--color-warning-light);
-    }
-  `,
+  styleUrl: './header.css',
 })
-export class HeaderComponent {
+export class Header {
   isExpanded = input<boolean>(false);
   activeFilter = input<string>('all');
 

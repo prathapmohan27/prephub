@@ -75,7 +75,7 @@ export class Question {
     },
     {
       id: 'rxjs',
-      icon: 'ti-waves',
+      icon: 'ti-wave-sine',
       title: 'RxJS & Observables',
       color: '#534AB7',
       bg: '#EEEDFE',
@@ -380,7 +380,7 @@ export class Question {
     },
     {
       id: 'nodejs-streams',
-      icon: 'ti-waves',
+      icon: 'ti-wave-sine',
       title: 'Streams & Buffers (Advanced)',
       color: '#0284C7',
       bg: '#E0F2FE',

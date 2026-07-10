@@ -22,7 +22,13 @@ import { Highlight } from '@pipes/highlight';
         </button>
 
         <!-- Question text -->
-        <div class="q-text-block" (click)="toggleExpand()">
+        <div
+          class="q-text-block"
+          role="button"
+          tabindex="0"
+          (click)="toggleExpand()"
+          (keydown.enter)="toggleExpand()"
+        >
           <span class="q-num">{{ questionNumber() }}.</span>
           <span
             [class.line-through-text]="isPrepared()"

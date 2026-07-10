@@ -308,14 +308,22 @@ export class Questions implements OnInit {
 
   togglePrepared(q: string) {
     const updated = new Set(this.preparedSet());
-    updated.has(q) ? updated.delete(q) : updated.add(q);
+    if (updated.has(q)) {
+      updated.delete(q);
+    } else {
+      updated.add(q);
+    }
     this.preparedSet.set(updated);
     localStorage.setItem('prep_prepared', JSON.stringify(Array.from(updated)));
   }
 
   toggleStarred(q: string) {
     const updated = new Set(this.starredSet());
-    updated.has(q) ? updated.delete(q) : updated.add(q);
+    if (updated.has(q)) {
+      updated.delete(q);
+    } else {
+      updated.add(q);
+    }
     this.starredSet.set(updated);
     localStorage.setItem('prep_starred', JSON.stringify(Array.from(updated)));
   }
@@ -327,7 +335,7 @@ export class Questions implements OnInit {
   }
 
   triggerSpotlight() {
-    const pool = this.visibleCategories().reduce<Array<{ q: string; cat: CategoryModel }>>(
+    const pool = this.visibleCategories().reduce<{ q: string; cat: CategoryModel }[]>(
       (acc, cat) => {
         const origCat = this.modeCategories().find((c) => c.id === cat.id);
         if (origCat) cat.questions.forEach((q) => acc.push({ q, cat: origCat }));
@@ -362,7 +370,5 @@ export class Questions implements OnInit {
   }
 
   /** Close icon button for spotlight */
-  get btn_icon_small_classes() {
-    return 'btn-icon-small';
-  }
+  readonly btn_icon_small_classes = 'btn-icon-small';
 }

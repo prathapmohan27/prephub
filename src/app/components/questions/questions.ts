@@ -155,7 +155,7 @@ type AppMode = 'angular' | 'nodejs';
                   <button (click)="togglePreparedSpotlight()" class="btn-mastered">
                     <i
                       class="ti"
-                      [class.ti-circle-check-filled]="isSpotlightPrepared()"
+                      [class.ti-circle-check]="isSpotlightPrepared()"
                       [class.ti-circle]="!isSpotlightPrepared()"
                     ></i>
                     {{ isSpotlightPrepared() ? 'Mastered ✓' : 'Mark as Mastered' }}

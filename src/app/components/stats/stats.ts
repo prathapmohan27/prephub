@@ -44,7 +44,7 @@ import { Component, input, computed } from '@angular/core';
           </div>
         </div>
         <div class="stat-icon stat-icon-starred">
-          <i class="ti ti-star-filled"></i>
+          <i class="ti ti-star"></i>
         </div>
       </div>
     </div>

@@ -42,7 +42,7 @@ import { Component, output, input } from '@angular/core';
                 : 'var(--color-text-subtle)'
             "
           >
-            <i class="ti ti-circle-check-filled text-success"></i> Mastered
+            <i class="ti ti-circle-check text-success"></i> Mastered
           </button>
 
           <button
@@ -55,7 +55,7 @@ import { Component, output, input } from '@angular/core';
                 : 'var(--color-text-subtle)'
             "
           >
-            <i class="ti ti-star-filled text-warning"></i> Starred
+            <i class="ti ti-star text-warning"></i> Starred
           </button>
 
           <button

@@ -15,7 +15,7 @@ import { Highlight } from '@pipes/highlight';
           [title]="isPrepared() ? 'Mark as unprepared' : 'Mark as prepared'"
         >
           @if (isPrepared()) {
-            <i class="ti ti-circle-check-filled q-check-icon"></i>
+            <i class="ti ti-circle-check q-check-icon"></i>
           } @else {
             <i class="ti ti-circle q-circle-icon"></i>
           }
@@ -45,7 +45,7 @@ import { Highlight } from '@pipes/highlight';
           [title]="isStarred() ? 'Remove star' : 'Star question'"
         >
           @if (isStarred()) {
-            <i class="ti ti-star-filled q-star-icon"></i>
+            <i class="ti ti-star q-star-icon"></i>
           } @else {
             <i class="ti ti-star q-unstar-icon"></i>
           }

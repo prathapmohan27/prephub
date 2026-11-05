@@ -53,7 +53,14 @@ export class AppNav {
   protected readonly subtree: IsActiveMatchOptions = { ...this.exactPath, paths: 'subset' };
 
   protected readonly items: NavItem[] = [
-    { path: '/', label: 'Interview Q&A', shortLabel: 'Q&A', icon: 'ti-list-check', exact: true },
+    { path: '/', label: 'Home', shortLabel: 'Home', icon: 'ti-home', exact: true },
+    {
+      path: '/questions',
+      label: 'Interview Q&A',
+      shortLabel: 'Q&A',
+      icon: 'ti-list-check',
+      exact: false,
+    },
     {
       path: '/daily',
       label: 'Daily Learning',

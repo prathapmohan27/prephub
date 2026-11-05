@@ -38,10 +38,10 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
               <div class="sd-page-icon"><i class="ti ti-school"></i></div>
               <h1 class="sd-page-title">System Design</h1>
               <p class="sd-page-sub">
-                11 carefully chosen systems — from your first single-server URL shortener and
-                distributed load balancer to a production-grade payment processor. Each system
-                builds on the last, taking you from zero to confident in real system design
-                interviews.
+                {{ sdService.systems.length }} carefully chosen systems — from your first
+                single-server URL shortener and ID generator to flash-sale ticketing and a
+                production-grade payment processor. Each system builds on the last, taking you from
+                zero to confident in real system design interviews.
               </p>
             </div>
 
@@ -423,14 +423,17 @@ export class SystemDesign {
   learningPath = [
     { label: 'Fundamentals' },
     { label: 'Rate Limiting' },
+    { label: 'Unique IDs' },
     { label: 'Load Balancing' },
     { label: 'Caching' },
+    { label: 'Search' },
     { label: 'Real-time' },
     { label: 'Async' },
     { label: 'Storage' },
     { label: 'Social Scale' },
     { label: 'Streaming' },
     { label: 'Distributed' },
+    { label: 'Flash Sales' },
     { label: 'Production-Grade' },
   ];
 

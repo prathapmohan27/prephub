@@ -75,7 +75,7 @@
 }
 .cb-pre ::ng-deep .hljs-comment,
 .cb-pre ::ng-deep .hljs-quote {
-  color: #71717a;
+  color: #8b8b94;
   font-style: italic;
 }
 .cb-pre ::ng-deep .hljs-title,

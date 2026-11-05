@@ -28,8 +28,8 @@
   --color-text-primary: #f4f4f5;
   --color-text-secondary: #e4e4e7;
   --color-text-muted: #a1a1aa;
-  --color-text-subtle: #71717a;
-  --color-text-faint: #52525b;
+  --color-text-subtle: #8b8b94; /* 5.2:1 on cards — meets WCAG AA for small text */
+  --color-text-faint: #82828b; /* 4.6:1 on cards — lowest tier that is still readable */
 
   /* ---- Borders ---- */
   --color-border: rgba(63, 63, 70, 0.3);

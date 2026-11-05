@@ -41,7 +41,8 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
               <p class="cc-page-sub">
                 The behind-the-scenes mental model every software engineer needs. Zero → Hero guides
                 explaining how the Internet, DNS, browsers, protocols, web servers, APIs, backends,
-                databases, and file systems actually work.
+                databases, storage, caching, scaling and message queues actually work — plus how to
+                estimate capacity like a senior engineer.
               </p>
             </div>
 
@@ -562,6 +563,10 @@ export class CoreConcepts {
     { label: 'Backend' },
     { label: 'Database' },
     { label: 'Storage' },
+    { label: 'Caching' },
+    { label: 'Scaling' },
+    { label: 'Queues' },
+    { label: 'Estimation' },
   ];
 
   calloutIconMap = CALLOUT_ICONS;

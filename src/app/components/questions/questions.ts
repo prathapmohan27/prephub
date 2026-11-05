@@ -427,7 +427,7 @@ export class Questions implements OnInit {
       const q = this.selectedKey() ? this.active()?.q : undefined;
       this.urlSync(); // re-run after Back pops to an entry holding an older URL
       if (!this.urlReady()) return;
-      const tree = this.router.createUrlTree([], { queryParams: { topic, q } });
+      const tree = this.router.createUrlTree(['/questions'], { queryParams: { topic, q } });
       // Keep the router's history state (navigationId) so its scroll restoration still works
       this.location.replaceState(this.router.serializeUrl(tree), '', this.location.getState());
     });

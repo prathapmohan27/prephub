@@ -1,5 +1,6 @@
 import { ActivatedRouteSnapshot, Routes } from '@angular/router';
 import { Questions } from '@components/questions';
+import { Home } from './components/home/home';
 
 const APP_NAME = 'PrepHub';
 
@@ -9,7 +10,8 @@ const loadCoreConcepts = () =>
   import('./components/core-concepts/core-concepts').then((m) => m.CoreConcepts);
 
 export const routes: Routes = [
-  { path: '', component: Questions, title: `Interview Q&A · ${APP_NAME}` },
+  { path: '', component: Home, title: APP_NAME },
+  { path: 'questions', component: Questions, title: `Interview Q&A · ${APP_NAME}` },
   {
     path: 'daily',
     title: `Daily Learning · ${APP_NAME}`,

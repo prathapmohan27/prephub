@@ -50,6 +50,11 @@ export class DailyLearningService {
     return new Date().toISOString().slice(0, 10);
   }
 
+  /** Re-reads the streak from storage (it is otherwise only refreshed with today's session). */
+  refreshStreak() {
+    this._streak.set(this.computeStreak());
+  }
+
   /** Load existing session from localStorage if present */
   loadTodaySession(): DailySession | null {
     try {

@@ -140,6 +140,55 @@
   transition: width 0.3s ease;
 }
 
+/* Section label inside the topic list */
+.sidebar-group {
+  margin: 12px 10px 4px;
+  font: 700 0.62rem var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-faint);
+}
+
+.sidebar-group:first-child {
+  margin-top: 2px;
+}
+
+/* All levels · Core · Senior */
+.level-filter {
+  display: flex;
+  gap: 2px;
+  margin: 10px 2px 2px;
+  padding: 3px;
+  border-radius: var(--radius-md);
+  background: rgb(var(--n-950) / 0.6);
+  border: 1px solid var(--color-border);
+}
+
+.level-btn {
+  flex: 1;
+  padding: 5px 6px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--color-text-subtle);
+  font: 600 0.7rem var(--font-sans);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.level-btn:hover {
+  color: var(--color-text-secondary);
+}
+
+.level-btn--active {
+  background: var(--color-surface-2);
+  color: var(--color-text-primary);
+  box-shadow: 0 0 0 1px var(--color-border-strong);
+}
+
 .cat-badge--done {
   color: var(--color-success-light);
 }
@@ -204,6 +253,23 @@
     width: 34px;
     height: 34px;
     padding: 0;
+  }
+
+  .sidebar--collapsed .level-filter,
+  .sidebar--collapsed .sidebar-group-text {
+    display: none;
+  }
+
+  /* Sections become thin separators on the icon rail */
+  .sidebar--collapsed .sidebar-group {
+    width: 24px;
+    height: 1px;
+    margin: 8px auto;
+    background: var(--color-border-strong);
+  }
+
+  .sidebar--collapsed .sidebar-group:first-child {
+    display: none;
   }
 
   .sidebar--collapsed .mode-label,
@@ -351,6 +417,7 @@
     margin: 0 4px 0 0;
   }
 
+  .sidebar-group,
   .sidebar-toggle,
   .mode-label,
   .overall-progress,
@@ -362,6 +429,11 @@
     width: 34px;
     height: 30px;
     padding: 0;
+  }
+
+  .level-filter {
+    flex-shrink: 0;
+    margin: 0 4px 0 0;
   }
 
   .sidebar-list {

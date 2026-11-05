@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output, signal } f
 import { Highlight } from '@pipes/highlight';
 import { Answer } from '../answer/answer';
 import { QItem } from '../question-list/question-list';
-import { Track, isTrack, trackInfo } from '@services/question';
+import { Track, isTrack, levelOf, trackInfo } from '@services/question';
 
 /** Reading pane for the selected question: answer, mastered/star toggles and prev/next navigation. */
 @Component({
@@ -23,6 +23,11 @@ import { Track, isTrack, trackInfo } from '@services/question';
           <i [class]="'ti ' + item().cat.icon"></i>
           {{ item().cat.title }}
         </span>
+        @if (senior()) {
+          <span class="reader-level" title="Internals, trade-offs, design or production scenario"
+            >Senior</span
+          >
+        }
         <span class="reader-pos">{{ position() }} / {{ total() }}</span>
       </div>
 
@@ -133,6 +138,8 @@ export class QuestionReader {
   protected readonly track = computed(() =>
     trackInfo(isTrack(this.mode()) ? (this.mode() as Track) : 'angular'),
   );
+
+  protected readonly senior = computed(() => levelOf(this.item().q) === 'senior');
 
   protected readonly docsLink = computed(() => {
     const q = encodeURIComponent(this.item().q);

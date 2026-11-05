@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { Highlight } from '@pipes/highlight';
 import { CategoryModel } from '@services/question';
+import { levelOf } from '@services/question';
 
 /** One question in the flattened, filtered list; `key` is unique across categories. */
 export interface QItem {
@@ -76,6 +77,9 @@ export const questionKey = (categoryId: string, question: string) => `${category
                 >
                   <span class="ql-num">{{ it.num }}</span>
                   <span class="ql-text" [innerHTML]="it.q | highlight: searchFilter()"></span>
+                  @if (isSenior(it.q)) {
+                    <span class="ql-level" title="Senior-level question">Senior</span>
+                  }
                 </button>
 
                 @if (starredSet().has(it.q)) {
@@ -91,6 +95,10 @@ export const questionKey = (categoryId: string, question: string) => `${category
   styleUrl: './question-list.css',
 })
 export class QuestionList {
+  protected isSenior(q: string): boolean {
+    return levelOf(q) === 'senior';
+  }
+
   readonly groups = input.required<QGroup[]>();
   readonly activeKey = input<string | null>(null);
   readonly searchFilter = input('');

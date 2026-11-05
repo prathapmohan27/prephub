@@ -21,9 +21,12 @@ import {
   Question,
   CategoryModel,
   RENAMED_QUESTIONS,
+  Level,
+  TOPIC_GROUPS,
   TRACKS,
   Track,
   isTrack,
+  levelOf,
   trackOf,
 } from '@services/question';
 import { AnswerService } from '@services/answer.service';
@@ -44,6 +47,15 @@ function readFlag(key: string, fallback: boolean): boolean {
     return v === null ? fallback : v === '1';
   } catch {
     return fallback;
+  }
+}
+
+function readLevel(): 'all' | Level {
+  try {
+    const v = localStorage.getItem('prep_level');
+    return v === 'core' || v === 'senior' ? v : 'all';
+  } catch {
+    return 'all';
   }
 }
 
@@ -143,34 +155,54 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
                 <div class="overall-progress-fill" [style.width.%]="masteredPercent()"></div>
               </div>
 
+              <div class="level-filter" role="group" aria-label="Question level">
+                @for (l of levels; track l.id) {
+                  <button
+                    type="button"
+                    class="level-btn"
+                    [class.level-btn--active]="levelFilter() === l.id"
+                    [attr.aria-pressed]="levelFilter() === l.id"
+                    [title]="l.hint"
+                    (click)="setLevel(l.id)"
+                  >
+                    {{ l.label }}
+                  </button>
+                }
+              </div>
+
               <div class="divider-hz"></div>
 
-              <!-- Category list -->
+              <!-- Category list, in sections -->
               <div class="sidebar-list">
-                @for (cat of modeCategories(); track cat.id) {
-                  <button
-                    (click)="selectCategory(cat)"
-                    class="btn-tab"
-                    [class.btn-tab--active]="selectedCategory()?.id === cat.id"
-                    [title]="cat.title"
-                  >
-                    <span class="flex-row-center overflow-hidden-nowrap gap-2 flex-1 min-w-0">
-                      <span
-                        class="icon-box"
-                        [style.color]="cat.color"
-                        [style.background]="cat.color + '18'"
-                      >
-                        <i [class]="'ti ' + cat.icon"></i>
-                      </span>
-                      <span class="text-ellipsis tab-text">{{ cat.title }}</span>
-                    </span>
-                    <span
-                      class="cat-badge shrink-0"
-                      [class.cat-badge--done]="categoryDone(cat) === cat.questions.length"
-                      [title]="categoryDone(cat) + ' of ' + cat.questions.length + ' mastered'"
-                      >{{ categoryDone(cat) }}/{{ cat.questions.length }}</span
+                @for (group of sidebarGroups(); track group.title) {
+                  <p class="sidebar-group" [title]="group.title">
+                    <span class="sidebar-group-text">{{ group.title }}</span>
+                  </p>
+                  @for (cat of group.cats; track cat.id) {
+                    <button
+                      (click)="selectCategory(cat)"
+                      class="btn-tab"
+                      [class.btn-tab--active]="selectedCategory()?.id === cat.id"
+                      [title]="cat.title"
                     >
-                  </button>
+                      <span class="flex-row-center overflow-hidden-nowrap gap-2 flex-1 min-w-0">
+                        <span
+                          class="icon-box"
+                          [style.color]="cat.color"
+                          [style.background]="cat.color + '18'"
+                        >
+                          <i [class]="'ti ' + cat.icon"></i>
+                        </span>
+                        <span class="text-ellipsis tab-text">{{ cat.title }}</span>
+                      </span>
+                      <span
+                        class="cat-badge shrink-0"
+                        [class.cat-badge--done]="categoryDone(cat) === cat.questions.length"
+                        [title]="categoryDone(cat) + ' of ' + cat.questions.length + ' mastered'"
+                        >{{ categoryDone(cat) }}/{{ cat.questions.length }}</span
+                      >
+                    </button>
+                  }
                 }
               </div>
             </div>
@@ -314,6 +346,17 @@ export class Questions implements OnInit {
   selectedCategory = signal<CategoryModel | null>(null);
   mode = signal<AppMode>('angular');
   readonly tracks = TRACKS;
+  /** Core = fundamentals; Senior = internals, trade-offs, design and production scenarios. */
+  levelFilter = signal<'all' | Level>(readLevel());
+  readonly levels: { id: 'all' | Level; label: string; hint: string }[] = [
+    { id: 'all', label: 'All levels', hint: 'Show every question' },
+    { id: 'core', label: 'Core', hint: 'Fundamentals every candidate is expected to know' },
+    {
+      id: 'senior',
+      label: 'Senior',
+      hint: 'Internals, trade-offs, design and production scenarios',
+    },
+  ];
 
   mockOpen = signal(false);
   private mockCard = viewChild(MockInterview);
@@ -418,9 +461,23 @@ export class Questions implements OnInit {
     this.modeCategories().reduce((acc, cat) => acc + cat.questions.length, 0),
   );
 
+  /** Topics of the current track, in their sidebar sections. */
+  sidebarGroups = computed(() => {
+    const byId = new Map(this.modeCategories().map((c) => [c.id, c]));
+    const groups = TOPIC_GROUPS.filter((g) => g.track === this.mode()).map((g) => ({
+      title: g.title,
+      cats: g.topics.map((id) => byId.get(id)).filter((c): c is CategoryModel => !!c),
+    }));
+    // Any topic not yet assigned to a section still shows up, at the end
+    const placed = new Set(groups.flatMap((g) => g.cats.map((c) => c.id)));
+    const rest = this.modeCategories().filter((c) => !placed.has(c.id));
+    return rest.length ? [...groups, { title: 'More', cats: rest }] : groups;
+  });
+
   visibleCategories = computed(() => {
     const filter = this.searchFilter().toLowerCase();
     const activeF = this.activeFilter();
+    const level = this.levelFilter();
     const selectedCat = this.selectedCategory();
     const targetCats = selectedCat ? [selectedCat] : this.modeCategories();
 
@@ -429,6 +486,7 @@ export class Questions implements OnInit {
         ...cat,
         questions: cat.questions.filter((q) => {
           if (filter && !q.toLowerCase().includes(filter)) return false;
+          if (level !== 'all' && levelOf(q) !== level) return false;
           if (activeF === 'prepared') return this.preparedSet().has(q);
           if (activeF === 'starred') return this.starredSet().has(q);
           if (activeF === 'unprepared') return !this.preparedSet().has(q);
@@ -514,6 +572,8 @@ export class Questions implements OnInit {
     const parts = [this.selectedCategory()?.title ?? 'all topics'];
     const filter = this.activeFilter();
     if (filter !== 'all') parts.push(filter[0].toUpperCase() + filter.slice(1));
+    const level = this.levelFilter();
+    if (level !== 'all') parts.push(level === 'senior' ? 'Senior level' : 'Core level');
     const search = this.searchFilter().trim();
     if (search) parts.push(`"${search}"`);
     return parts.join(' · ');
@@ -820,6 +880,15 @@ export class Questions implements OnInit {
     }
     this.starredSet.set(updated);
     localStorage.setItem('prep_starred', JSON.stringify(Array.from(updated)));
+  }
+
+  setLevel(level: 'all' | Level) {
+    this.levelFilter.set(level);
+    try {
+      localStorage.setItem('prep_level', level);
+    } catch {
+      // Preference only; ignore blocked storage
+    }
   }
 
   setPrepared(q: string, prepared: boolean) {

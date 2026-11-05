@@ -19,6 +19,7 @@
 ## Interview Q&A
 
 - **Three tracks.** Foundations (shared JavaScript, TypeScript and browser topics), Angular and Node.js. Switch at the top of the topics sidebar; each track remembers the last question you opened.
+- **Core and Senior levels.** About 40% of questions are marked **Senior**: internals, trade-offs, design and production scenarios. Filter by level in the sidebar; topics are grouped into sections such as _Reactivity_ or _Data & state_.
 - **Track your progress.** Mark questions as **mastered** and **star** the ones to revisit. Every topic shows mastered/total, and the filter tabs (All · Mastered · Starred · Unprepared) show counts.
 - **List + reader.** Pick a question from the list and read the answer beside it. On phones, the reader opens full screen.
 - **Search** across all questions in the current track.
@@ -123,6 +124,7 @@ src/
 
 - **A question:** add the string to its topic's `questions` array in `src/app/services/question.ts`. The track comes from `trackOf()` in the same file: topics listed in `FOUNDATION_TOPICS` are Foundations, topics whose `id` starts with `nodejs-` are Node.js, and the rest are Angular.
 - **Its answer:** add an entry keyed by the exact question text to that topic's file in `src/app/services/answers/`, with a `summary` (the quick answer) and `details` (content blocks such as paragraphs, headings, bullets and code).
+- **Senior question?** Add its exact text to `SENIOR_QUESTIONS` in `question.ts`. New topics go into a section in `TOPIC_GROUPS` (otherwise they appear under "More").
 - **Renaming a question?** Add the old → new text to `RENAMED_QUESTIONS` in `question.ts` so people's saved progress carries over.
 
 ## Contributing

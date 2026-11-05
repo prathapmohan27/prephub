@@ -71,6 +71,282 @@ export function trackInfo(track: Track): TrackInfo {
 }
 
 /**
+ * Questions that go beyond fundamentals: internals, trade-offs, design and architecture,
+ * production debugging, and scenario questions. Everything else is "core".
+ * Keyed by exact question text, like progress; update this list when rewording a question.
+ */
+const SENIOR_QUESTIONS = new Set<string>([
+  // javascript-fundamentals
+  'Explain how the JavaScript Event Loop works',
+  'What are generator functions and async generators in JavaScript?',
+  'What is a Proxy object and how is it used?',
+  'What are WeakMap and WeakSet, and why do they allow garbage collection?',
+  // typescript
+  'What are discriminated unions, and how do they help model UI state like loading, success, and error?',
+  'What are mapped types and conditional types? Give a practical example.',
+  'What does the `satisfies` operator do, and how is it different from a type annotation or `as`?',
+  'How do you type HTTP responses with `HttpClient.get<T>()`, and why is that not runtime validation?',
+  // angular-cli-build
+  'How does the browser load an Angular application?',
+  // templates-styling
+  'How can you dynamically apply different styles or themes to the same CSS class across multiple component instances in Angular?',
+  // pipes
+  'Why is calling a method in a template bad for performance, and how do pure pipes or `computed()` fix it?',
+  "Why doesn't Angular ship `filter` or `orderBy` pipes, and how should you filter or sort lists instead?",
+  // dependency-injection
+  'How does Dependency Injection work internally?',
+  'What is Multi Provider Token?',
+  // change-detection
+  'Difference between markForCheck() and detectChanges()',
+  'Can you configure or trigger change detection strategies at the routing or module level in Angular?',
+  'How does Angular detect changes in a zone-less environment?',
+  // signals
+  'Difference between Signals and RxJS',
+  'Signals vs NgRx',
+  // modern-angular
+  'What is `linkedSignal()` and when would you use it instead of `computed()`?',
+  'What are `resource()` and `httpResource()`, and how do they load async data with signals?',
+  'How do you migrate an existing Angular app to zoneless change detection?',
+  'What is hydration in Angular? Explain event replay and incremental hydration.',
+  'How do you migrate an older Angular codebase to modern APIs (standalone, control flow, signal inputs, `inject()`)?',
+  // rxjs
+  'Explain the difference between cold and hot observables with examples',
+  'When would you use switchMap vs mergeMap vs concatMap vs exhaustMap? Give a real-world scenario for each',
+  'Explain the difference between combineLatest, forkJoin, zip, and withLatestFrom',
+  'What does shareReplay(1) do and when is it essential?',
+  'What are schedulers in RxJS and when would you use asyncScheduler vs queueScheduler?',
+  "You're building a type-ahead search — implement it using RxJS operators, handling debounce, cancellation of in-flight requests, and deduplication",
+  'A user clicks a button 10 times and 10 API calls are triggered. How would you handle this using RxJS?',
+  'You have a payment form where the user clicks Submit. How do you prevent duplicate submissions using RxJS? Which operator do you choose and why?',
+  "You need to poll an API every 10 seconds but stop polling when the component is destroyed. Show how you'd implement this",
+  'An observable chain emits an error and the entire stream terminates. How do you architect a resilient stream that recovers gracefully?',
+  // http-apis
+  'How do you design API calling from the UI? When do you use the async pipe, and when should you unsubscribe manually?',
+  'Global error handling vs component-level error handling',
+  'How do you prevent duplicate API requests in Angular?',
+  'An API response is required by multiple components. How would you avoid repeated API calls?',
+  // routing
+  'How would you track every route change to monitor user navigation?',
+  'Explain Lazy Loading and Preloading Strategies',
+  'Difference between canMatch and canLoad',
+  // forms
+  'How would you build a dynamic form using JSON configuration instead of hardcoding controls?',
+  'Your form has more than 50 fields. Will you keep the complete reactive form and template inside one component?',
+  'Your application has a stepper and each step is implemented in a different Angular component. How would you share the complete form across all steps?',
+  'Suppose a Reactive Form contains a dropdown that gets enabled/disabled from multiple events. A defect is reported where the dropdown behaves incorrectly. How would you debug which event is changing its state?',
+  // component-communication
+  'Is passing state and parameters through Angular routing preferred over using a shared service? When should each be used?',
+  'If admin updates data and changes need to reflect in multiple components simultaneously, how?',
+  // ngrx
+  'What are Selectors in NgRx? Explain memoization and why it matters for performance',
+  'Explain concatLatestFrom (formerly withLatestFrom in effects) and its use case',
+  'What is the NgRx Signal Store (introduced in NgRx 17)? How does it differ from the traditional store?',
+  'Design the NgRx state shape for a banking dashboard that shows account list, selected account details, and transaction history with pagination',
+  'An Effect makes an HTTP call, but you want to cancel the previous request if a new action arrives. Which operator do you use inside the effect and why?',
+  'Your selector is being called too frequently causing performance issues. How do you diagnose and fix this?',
+  'How would you implement optimistic updates using NgRx?',
+  'How would you implement undo/redo functionality using NgRx?',
+  // architecture
+  'How to implement SOLID principles in an Angular application?',
+  'Are you familiar with the facade pattern in Angular? Explain where you have used it.',
+  'Have you worked on Micro Frontend architecture?',
+  'If multiple applications need to share data, how would you design the communication?',
+  'Describe the architecture, tech stack, state management, and key modules of an enterprise Angular application you have worked on.',
+  // frontend-system-design
+  'How do you approach a frontend system design interview?',
+  'How would you design an autocomplete (type-ahead) search component?',
+  'How would you design an infinite-scrolling news feed?',
+  'How would you design a reusable component library or design system shared by several Angular apps?',
+  'How would you design a real-time dashboard that shows live data?',
+  'How would you design an offline-first Angular application?',
+  'How would you design a large multi-step form, such as a loan or insurance application?',
+  'How would you structure a large Angular codebase so that several teams can work on it independently?',
+  // performance
+  'How do you optimize an Angular application? Consider lazy loading, OnPush change detection, trackBy, and caching.',
+  'Handle bulk records using virtual scrolling and pagination, and limit API result per page',
+  // security-storage
+  'Where do you store authentication tokens? Session Storage vs Local Storage, and can tokens be stored in a service using RxJS Observables?',
+  'What is a Content Security Policy (CSP) and how do you use it with Angular?',
+  'What are Trusted Types and how does Angular support them?',
+  'How do the `HttpOnly`, `Secure`, and `SameSite` cookie attributes protect a session?',
+  'Why are route guards and hidden buttons not real security?',
+  "What is CORS, and why can't you fix a CORS error from the Angular app?",
+  // testing
+  'Your UI development is complete but backend APIs are still under development and API contracts are available. How will you test the application?',
+  'How do you test OnPush and zoneless components, and what does `fixture.whenStable()` do?',
+  'What are component harnesses (`ComponentHarness`) and why use them?',
+  'What should you cover with unit tests versus end-to-end tests (Playwright or Cypress)?',
+  'What makes a test flaky, and how do you avoid flaky Angular tests?',
+  // experience-behavioral
+  'What is the most challenging technical or performance bug you have solved in an Angular frontend application and how did you resolve it?',
+  'Have you worked with teams from different organizations where your module depended on parallel development teams? How did you manage communication and dependencies?',
+  'Tell me about a time you disagreed with a teammate or reviewer on a technical decision.',
+  'Tell me about a time you missed a deadline or a project went off track.',
+  'Tell me about a production bug you caused and how you handled it.',
+  'How do you give and receive code review feedback?',
+  'Tell me about a time you mentored or helped a junior developer.',
+  'How do you estimate a feature, and what do you do when your estimate turns out to be wrong?',
+  // coding-round
+  'Implement a debounce() function',
+  // nodejs-fundamentals
+  'What is libuv and what role does it play in Node.js?',
+  'What are the phases of the Node.js Event Loop?',
+  'What is the difference between process.nextTick() and setImmediate()?',
+  'What are Worker Threads in Node.js and when should you use them?',
+  'What is the difference between child_process.fork(), spawn(), and exec()?',
+  // nodejs-error-handling
+  'What is the difference between try/catch and process.on("uncaughtException")?',
+  'How do you implement graceful shutdown in Node.js?',
+  // nodejs-streams
+  'What is backpressure and how does Node.js handle it?',
+  'What is stream.pipeline() and why is it preferred over .pipe()?',
+  'How would you process a large CSV file efficiently in Node.js?',
+  // nodejs-memory
+  'What are common causes of memory leaks in Node.js applications?',
+  'How do you detect and diagnose memory leaks in a production Node.js app?',
+  'How do you test for memory leaks in Node.js?',
+  // nodejs-express-nestjs
+  'What is the difference between Fastify and Express?',
+  'What are Guards, Interceptors, and Pipes in NestJS?',
+  'How do you implement versioned APIs in NestJS?',
+  // nodejs-networking
+  'What is the difference between HTTP/1.1, HTTP/2, and HTTP/3?',
+  'How do you implement request timeouts in Node.js HTTP servers?',
+  'What is the difference between REST, GraphQL, and gRPC?',
+  'What is Server-Sent Events (SSE) and when should you use it over WebSockets?',
+  // nodejs-security
+  'What is OAuth 2.0 and how does it work?',
+  'How do you implement rate limiting in Node.js?',
+  // nodejs-sql
+  'What is the difference between clustered and non-clustered indexes?',
+  'What are database transaction isolation levels?',
+  'What is the N+1 query problem and how do you fix it?',
+  // nodejs-nosql
+  'What is the difference between embedding and referencing in MongoDB schema design?',
+  'What is a transaction in MongoDB, and when would you use it?',
+  'Suppose you need to update three MongoDB collections as part of a single business operation. If the third update fails, how would you ensure that the first two updates are rolled back?',
+  'What is sharding in MongoDB?',
+  // nodejs-caching
+  'What is cache invalidation and what are the strategies?',
+  'How do you implement rate limiting using Redis?',
+  'How do you implement distributed locks with Redis?',
+  'What is the difference between Redis Pub/Sub and Redis Streams?',
+  // nodejs-performance
+  'How do you profile and debug Node.js performance issues?',
+  'How does connection pooling work in Node.js database connections?',
+  'How do you implement pagination — offset vs cursor-based?',
+  // nodejs-clustering
+  'How does the primary process distribute requests among workers in cluster mode?',
+  'How do you share state between cluster workers?',
+  // nodejs-devops
+  'What is Kubernetes and what problem does it solve?',
+  'What are health checks and how do you implement them in Node.js?',
+  // nodejs-design-patterns
+  'What is CQRS (Command Query Responsibility Segregation)?',
+  'What is Event Sourcing?',
+  // nodejs-microservices
+  'What is the difference between synchronous and asynchronous communication in microservices?',
+  'What is the Circuit Breaker pattern?',
+  'What is the Saga pattern in microservices?',
+  'How do you handle distributed transactions in a microservices architecture?',
+  'What is the Strangler Fig pattern for migrating from monolith to microservices?',
+  // nodejs-system-design
+  'How do you design a rate limiter in Node.js?',
+  'How do you design a URL shortener service?',
+  'How would you design a notification system that sends emails, SMS, and push notifications?',
+  // nodejs-backend-operations
+  'An API that previously responded quickly is now taking around 30 seconds to complete. How would you debug the issue and identify the root cause?',
+  'Walk me through your process of taking a new feature from requirement gathering to production deployment.',
+  'A Node.js service is stuck at 100% CPU and requests are timing out. How do you find what is blocking the event loop?',
+  'Your API intermittently returns 502 or 504 errors behind Nginx or a load balancer. How do you troubleshoot it?',
+  'Requests start hanging because the database connection pool is exhausted. How do you diagnose and fix it?',
+  'Customers are charged twice when they retry a payment request. How do you make the API idempotent?',
+  'Two requests update the same record at the same time and one update is lost. How do you prevent this race condition?',
+  'A deployment went out and the error rate spiked. Walk through your incident response and rollback.',
+  'How do you add logging, metrics, and tracing to a Node.js service so production issues are easy to debug?',
+  // nodejs-coding-round
+  'Implement a retry function with exponential backoff and jitter.',
+  'Run a list of async tasks with at most N running at the same time (a promise pool).',
+  'Implement an LRU cache with O(1) `get` and `put`.',
+  'Implement a token-bucket rate limiter as Express middleware.',
+  'Count word frequencies in a very large file using streams.',
+]);
+
+export type Level = 'core' | 'senior';
+
+export function levelOf(question: string): Level {
+  return SENIOR_QUESTIONS.has(question) ? 'senior' : 'core';
+}
+
+/** Sidebar sections per track. Every topic belongs to exactly one group, in topic order. */
+export const TOPIC_GROUPS: { track: Track; title: string; topics: string[] }[] = [
+  { track: 'foundations', title: 'Language', topics: ['javascript-fundamentals', 'typescript'] },
+  { track: 'foundations', title: 'Web platform', topics: ['browser-dom-css'] },
+  {
+    track: 'angular',
+    title: 'Angular core',
+    topics: [
+      'angular-cli-build',
+      'components',
+      'templates-styling',
+      'pipes',
+      'directives',
+      'dependency-injection',
+      'change-detection',
+    ],
+  },
+  { track: 'angular', title: 'Reactivity', topics: ['signals', 'modern-angular', 'rxjs'] },
+  {
+    track: 'angular',
+    title: 'Data & state',
+    topics: ['http-apis', 'routing', 'forms', 'component-communication', 'ngrx'],
+  },
+  {
+    track: 'angular',
+    title: 'Architecture & quality',
+    topics: [
+      'architecture',
+      'frontend-system-design',
+      'performance',
+      'security-storage',
+      'testing',
+    ],
+  },
+  {
+    track: 'angular',
+    title: 'Interview rounds',
+    topics: ['experience-behavioral', 'coding-round'],
+  },
+  {
+    track: 'nodejs',
+    title: 'Runtime',
+    topics: ['nodejs-fundamentals', 'nodejs-error-handling', 'nodejs-streams', 'nodejs-memory'],
+  },
+  {
+    track: 'nodejs',
+    title: 'APIs & security',
+    topics: ['nodejs-express-nestjs', 'nodejs-networking', 'nodejs-security'],
+  },
+  { track: 'nodejs', title: 'Data', topics: ['nodejs-sql', 'nodejs-nosql', 'nodejs-caching'] },
+  {
+    track: 'nodejs',
+    title: 'Performance & scale',
+    topics: ['nodejs-performance', 'nodejs-clustering'],
+  },
+  { track: 'nodejs', title: 'Delivery', topics: ['nodejs-testing', 'nodejs-devops'] },
+  {
+    track: 'nodejs',
+    title: 'Architecture',
+    topics: ['nodejs-design-patterns', 'nodejs-microservices', 'nodejs-system-design'],
+  },
+  {
+    track: 'nodejs',
+    title: 'Interview rounds',
+    topics: ['nodejs-backend-operations', 'nodejs-coding-round'],
+  },
+];
+
+/**
  * Question bank, grouped by topic and ordered roughly from fundamentals → advanced.
  *
  * - The track comes from `trackOf()`: Foundations topics are listed in FOUNDATION_TOPICS,

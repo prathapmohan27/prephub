@@ -2,13 +2,14 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DailyLearningService, LearningMode } from '@services/daily-learning';
 import { Question, CategoryModel } from '@services/question';
 import { Answer } from '../answer/answer';
+import { RichText } from '../content-blocks/rich-text';
 
 type AppMode = 'angular' | 'nodejs';
 type ViewState = 'setup' | 'session';
 
 @Component({
   selector: 'app-daily-learning',
-  imports: [Answer],
+  imports: [Answer, RichText],
   template: `
     <div class="dl-shell">
       <div class="dl-glow"></div>
@@ -229,7 +230,7 @@ type ViewState = 'setup' | 'session';
 
                     <!-- Question text -->
                     <p class="q-text" [class.q-text--done]="session()!.completed[i]">
-                      {{ q.text }}
+                      <app-rich-text [text]="q.text" />
                     </p>
 
                     <!-- Category tag -->

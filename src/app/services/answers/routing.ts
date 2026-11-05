@@ -1089,7 +1089,7 @@ export class ProductDetailComponent {
     ],
   },
 
-  'What is the primary benefit of fetching API data inside a Route Resolver (`ResolveFn`) instead of inside the component`s `ngOnInit()`?':
+  "What is the primary benefit of fetching API data inside a Route Resolver (`ResolveFn`) instead of inside the component's `ngOnInit()`?":
     {
       summary:
         'The component is created only when its data is ready, so it never renders a half-empty state, does not need loading/null checks for that data, and the decision "does this resource exist?" happens before navigation completes (you can redirect to 404 without flashing a broken page). The trade-off is that the user waits on the previous page with no content change, so it suits fast, essential data.',

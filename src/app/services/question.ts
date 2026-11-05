@@ -16,6 +16,15 @@ export interface CategoryModel {
  * - Progress (mastered / starred / notes) is keyed by the exact question text, so moving a
  *   question between categories is safe, but rewording it resets that question's progress.
  */
+/**
+ * Questions whose wording was corrected. Progress is keyed by question text, so saved
+ * mastered/starred state is moved from the old text to the new text on load.
+ */
+export const RENAMED_QUESTIONS: Record<string, string> = {
+  'What is the primary benefit of fetching API data inside a Route Resolver (`ResolveFn`) instead of inside the component`s `ngOnInit()`?':
+    "What is the primary benefit of fetching API data inside a Route Resolver (`ResolveFn`) instead of inside the component's `ngOnInit()`?",
+};
+
 @Service()
 export class Question {
   private categories: CategoryModel[] = [
@@ -124,6 +133,22 @@ export class Question {
       ],
     },
     {
+      id: 'pipes',
+      icon: 'ti-filter',
+      title: 'Pipes',
+      color: '#C026D3',
+      bg: '#FAE8FF',
+      questions: [
+        'What are pipes in Angular? Name the built-in pipes you use most.',
+        'What is the difference between pure and impure pipes?',
+        'How do you create a custom pipe? Write one with parameters.',
+        'How does the `async` pipe work, and why is it preferred over subscribing manually?',
+        'Why is calling a method in a template bad for performance, and how do pure pipes or `computed()` fix it?',
+        "Why doesn't Angular ship `filter` or `orderBy` pipes, and how should you filter or sort lists instead?",
+        'How do you use a pipe inside a component or service class instead of a template?',
+      ],
+    },
+    {
       id: 'directives',
       icon: 'ti-code',
       title: 'Directives & Decorators',
@@ -182,6 +207,30 @@ export class Question {
         'Difference between Signals and RxJS',
         'When would you choose Signals over Observables?',
         'Signals vs NgRx',
+      ],
+    },
+    {
+      id: 'modern-angular',
+      icon: 'ti-sparkles',
+      title: 'Modern Angular (v17+)',
+      color: '#E11D48',
+      bg: '#FFE4E6',
+      questions: [
+        'What is the built-in control flow (`@if`, `@for`, `@switch`) and how is it better than `*ngIf` / `*ngFor`?',
+        'Why is `track` mandatory in `@for`, and what should you track by?',
+        'What are deferrable views (`@defer`)? Explain its triggers and the `@placeholder`, `@loading`, and `@error` blocks.',
+        'What are signal inputs (`input()`, `input.required()`) and how do they differ from `@Input()`?',
+        'What is `model()` and how does two-way binding work with signals?',
+        'What is the `output()` function and how does it differ from `@Output()` with `EventEmitter`?',
+        'What are signal queries (`viewChild()`, `contentChildren()`) and why use them instead of `@ViewChild`?',
+        'What is `linkedSignal()` and when would you use it instead of `computed()`?',
+        'What are `resource()` and `httpResource()`, and how do they load async data with signals?',
+        'What is the `inject()` function and why is it preferred over constructor injection?',
+        'How do `DestroyRef` and `takeUntilDestroyed()` simplify cleanup and unsubscribing?',
+        'How do you migrate an existing Angular app to zoneless change detection?',
+        'What is hydration in Angular? Explain event replay and incremental hydration.',
+        'What are Signal Forms and how do they differ from Reactive Forms?',
+        'How do you migrate an older Angular codebase to modern APIs (standalone, control flow, signal inputs, `inject()`)?',
       ],
     },
     {
@@ -284,7 +333,7 @@ export class Question {
         'How do you restrict unauthorized users from accessing specific route URLs or components using Angular Route Guards?',
         // Resolvers
         'What are Resolvers?',
-        'What is the primary benefit of fetching API data inside a Route Resolver (`ResolveFn`) instead of inside the component`s `ngOnInit()`?',
+        "What is the primary benefit of fetching API data inside a Route Resolver (`ResolveFn`) instead of inside the component's `ngOnInit()`?",
         'What happens if you resolve and subscribe to an API inside an Angular Route Resolver (`ResolveFn`) before loading the component?',
         'Will you be able to see the API request in the browser Network tab if the request is triggered inside a Route Resolver or Guard?',
       ],

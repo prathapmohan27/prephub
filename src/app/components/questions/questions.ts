@@ -8,14 +8,14 @@ import {
   effect,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router, Scroll } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Header } from '@components/header';
 import { Stats } from '@components/stats';
-import { Answer } from '../answer/answer';
-import { RichText } from '../content-blocks/rich-text';
+import { MockInterview, MockItem } from '../mock-interview/mock-interview';
 import { QGroup, QItem, QuestionList, questionKey } from '../question-list/question-list';
 import { QuestionReader } from '../question-reader/question-reader';
 import { Question, CategoryModel, RENAMED_QUESTIONS } from '@services/question';
@@ -53,7 +53,7 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
 
 @Component({
   selector: 'app-questions',
-  imports: [Header, Stats, Answer, RichText, QuestionList, QuestionReader],
+  imports: [Header, Stats, QuestionList, QuestionReader, MockInterview],
   host: {
     '(document:keydown)': 'onKeydown($event)',
     '(window:popstate)': 'onPopState()',
@@ -185,7 +185,7 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
               [activeFilter]="activeFilter()"
               (searchChange)="onSearch($event)"
               (filterChange)="onFilterChange($event)"
-              (randomChallenge)="triggerSpotlight()"
+              (randomChallenge)="mockOpen.set(true)"
             />
 
             <app-stats
@@ -196,69 +196,18 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
               [(collapsed)]="statsCollapsed"
             />
 
-            <!-- Spotlight card -->
-            @if (spotlightQuestion()) {
-              <div class="glass-panel animate-fade-in spotlight-card">
-                <div class="flex-between">
-                  <span class="spotlight-label">
-                    <i class="ti ti-dice-5 text-[14px]"></i>
-                    Mock Interview Challenge
-                  </span>
-                  <button (click)="clearSpotlight()" class="btn-icon-small">
-                    <i class="ti ti-x"></i>
-                  </button>
-                </div>
-
-                <div class="spotlight-q-box">
-                  <p class="spotlight-q-text">"<app-rich-text [text]="spotlightQuestion()!" />"</p>
-                  <span
-                    class="spotlight-cat-tag"
-                    [style.color]="spotlightCategory()?.color"
-                    [style.background]="spotlightCategory()?.color + '18'"
-                    >{{ spotlightCategory()?.title }}</span
-                  >
-                </div>
-
-                <!-- Try answering out loud first, then reveal the model answer -->
-                @if (spotlightRevealed()) {
-                  <div class="spotlight-answer animate-fade-in">
-                    <app-answer
-                      [categoryId]="spotlightCategory()!.id"
-                      [question]="spotlightQuestion()!"
-                    />
-                  </div>
-                }
-
-                <div class="flex-wrap-gap">
-                  <button (click)="spotlightRevealed.update((v) => !v)" class="btn-ghost">
-                    <i
-                      class="ti"
-                      [class.ti-eye]="!spotlightRevealed()"
-                      [class.ti-eye-off]="spotlightRevealed()"
-                    ></i>
-                    {{ spotlightRevealed() ? 'Hide Answer' : 'Reveal Answer' }}
-                  </button>
-                  <button (click)="togglePreparedSpotlight()" class="btn-mastered">
-                    <i
-                      class="ti"
-                      [class.ti-circle-check]="isSpotlightPrepared()"
-                      [class.ti-circle]="!isSpotlightPrepared()"
-                    ></i>
-                    {{ isSpotlightPrepared() ? 'Mastered ✓' : 'Mark as Mastered' }}
-                  </button>
-                  <button (click)="triggerSpotlight()" class="btn-ghost">
-                    <i class="ti ti-refresh-dot"></i> Try Another
-                  </button>
-                  <a
-                    [href]="studyDocsUrl(spotlightQuestion() || '')"
-                    target="_blank"
-                    class="btn-ghost action-link"
-                  >
-                    <i class="ti ti-external-link"></i>
-                    {{ mode() === 'angular' ? 'Angular Docs' : 'Node.js Docs' }}
-                  </a>
-                </div>
-              </div>
+            <!-- Mock Me -->
+            @if (mockOpen()) {
+              <app-mock-interview
+                [pool]="mockPool()"
+                [prepared]="preparedSet()"
+                [starred]="starredSet()"
+                [mode]="mode()"
+                [scopeLabel]="mockScopeLabel()"
+                (preparedChange)="setPrepared($event.q, $event.prepared)"
+                (starQuestions)="starAll($event)"
+                (closed)="mockOpen.set(false)"
+              />
             }
 
             <!-- Question list + answer reader -->
@@ -375,9 +324,8 @@ export class Questions implements OnInit {
   selectedCategory = signal<CategoryModel | null>(null);
   mode = signal<AppMode>('angular');
 
-  spotlightQuestion = signal<string | null>(null);
-  spotlightCategory = signal<CategoryModel | null>(null);
-  spotlightRevealed = signal(false);
+  mockOpen = signal(false);
+  private mockCard = viewChild(MockInterview);
 
   /** Question the user explicitly picked; null means "first in the list". */
   selectedKey = signal<string | null>(null);
@@ -410,6 +358,13 @@ export class Questions implements OnInit {
     { keys: ['F'], label: 'Focus mode (hide topics & stats)' },
     { keys: ['Esc'], label: 'Close / back to list' },
     { keys: ['?'], label: 'Show this help' },
+    { keys: ['Enter'], label: 'Mock Me: start session' },
+    { keys: ['Space'], label: 'Mock Me: reveal / hide answer' },
+    { keys: ['1', '2', '3'], label: 'Mock Me: rate Nailed it / Shaky / Blanked' },
+    { keys: ['N'], label: 'Mock Me: skip question' },
+    { keys: ['T'], label: 'Mock Me: timer on / off' },
+    { keys: ['R'], label: 'Mock Me: retry missed (on results)' },
+    { keys: ['Esc'], label: 'Mock Me: end session / close' },
   ];
 
   private questionService: Question = inject(Question);
@@ -525,9 +480,22 @@ export class Questions implements OnInit {
 
   active = computed<QItem | null>(() => this.items()[this.activeIndex()] ?? null);
 
-  isSpotlightPrepared = computed(() => {
-    const q = this.spotlightQuestion();
-    return q ? this.preparedSet().has(q) : false;
+  /** Visible questions for Mock Me, paired with their original (unfiltered) category. */
+  mockPool = computed<MockItem[]>(() => {
+    const byId = new Map(this.modeCategories().map((c) => [c.id, c]));
+    return this.visibleCategories().flatMap((vc) => {
+      const cat = byId.get(vc.id);
+      return cat ? vc.questions.map((q) => ({ q, cat })) : [];
+    });
+  });
+
+  mockScopeLabel = computed(() => {
+    const parts = [this.selectedCategory()?.title ?? 'all topics'];
+    const filter = this.activeFilter();
+    if (filter !== 'all') parts.push(filter[0].toUpperCase() + filter.slice(1));
+    const search = this.searchFilter().trim();
+    if (search) parts.push(`"${search}"`);
+    return parts.join(' · ');
   });
 
   ngOnInit() {
@@ -589,7 +557,7 @@ export class Questions implements OnInit {
     this.selectedCategory.set(null);
     this.searchFilter.set('');
     this.resetSelection();
-    this.clearSpotlight();
+    this.mockOpen.set(false);
     localStorage.setItem('prep_mode', m);
     this.restoreLastViewed();
     afterNextRender(() => this.revealActive(false), { injector: this.injector });
@@ -716,6 +684,11 @@ export class Questions implements OnInit {
       }
       return;
     }
+    // Mock Me covers the page: its keys only, nothing reaches the hidden list
+    if (this.mockOpen()) {
+      if (this.mockCard()?.handleKey(e)) e.preventDefault();
+      return;
+    }
     if (e.key === '?') {
       this.openShortcuts();
       e.preventDefault();
@@ -830,41 +803,15 @@ export class Questions implements OnInit {
     localStorage.setItem('prep_starred', JSON.stringify(Array.from(updated)));
   }
 
-  triggerSpotlight() {
-    const pool = this.visibleCategories().reduce<{ q: string; cat: CategoryModel }[]>(
-      (acc, cat) => {
-        const origCat = this.modeCategories().find((c) => c.id === cat.id);
-        if (origCat) cat.questions.forEach((q) => acc.push({ q, cat: origCat }));
-        return acc;
-      },
-      [],
-    );
-    if (!pool.length) {
-      this.clearSpotlight();
-      return;
-    }
-    const item = pool[Math.floor(Math.random() * pool.length)];
-    this.spotlightQuestion.set(item.q);
-    this.spotlightCategory.set(item.cat);
-    this.spotlightRevealed.set(false);
+  setPrepared(q: string, prepared: boolean) {
+    if (this.preparedSet().has(q) !== prepared) this.togglePrepared(q);
   }
 
-  clearSpotlight() {
-    this.spotlightQuestion.set(null);
-    this.spotlightCategory.set(null);
-    this.spotlightRevealed.set(false);
-  }
-
-  togglePreparedSpotlight() {
-    const q = this.spotlightQuestion();
-    if (q) this.togglePrepared(q);
-  }
-
-  studyDocsUrl(question: string): string {
-    const q = encodeURIComponent(question);
-    return this.mode() === 'nodejs'
-      ? `https://www.google.com/search?q=site%3Anodejs.org+${q}`
-      : `https://www.google.com/search?q=site%3Aangular.dev+${q}`;
+  starAll(questions: string[]) {
+    const updated = new Set(this.starredSet());
+    questions.forEach((q) => updated.add(q));
+    this.starredSet.set(updated);
+    localStorage.setItem('prep_starred', JSON.stringify(Array.from(updated)));
   }
 
   /** Close icon button for spotlight */

@@ -26,20 +26,6 @@ import { Component, input, computed, model } from '@angular/core';
     } @else {
       <div class="stats-wrap">
         <div class="stats-grid">
-          <!-- Total Questions -->
-          <div class="glass-panel stat-card">
-            <div>
-              <p class="section-label mb-1.5">Question Pool</p>
-              <div class="flex-baseline">
-                <span class="stat-val stat-val-total">{{ totalQuestions() }}</span>
-                <span class="subtitle-main">total</span>
-              </div>
-            </div>
-            <div class="stat-icon stat-icon-total">
-              <i class="ti ti-database"></i>
-            </div>
-          </div>
-
           <!-- Progress -->
           <div class="glass-panel stat-card stat-card-col">
             <div class="flex-between">

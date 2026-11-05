@@ -4,7 +4,7 @@
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   gap: 12px;
 }
 
@@ -33,11 +33,6 @@
   font-size: 18px;
 }
 
-.stat-icon-total {
-  background: rgba(39, 39, 42, 0.5);
-  color: var(--color-text-subtle);
-}
-
 .stat-icon-starred {
   background: var(--color-warning-bg);
   color: var(--color-warning-light);
@@ -48,10 +43,6 @@
   font-size: 1.625rem;
   font-weight: 800;
   line-height: 1;
-}
-
-.stat-val-total {
-  color: var(--color-text-primary);
 }
 
 .stat-val-starred {
@@ -173,13 +164,9 @@
   }
 }
 
-/* Phones: three cards don't fit side by side */
+/* Phones: stack the cards */
 @media (max-width: 560px) {
   .stats-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-
-  .stats-grid > :last-child {
-    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr);
   }
 }

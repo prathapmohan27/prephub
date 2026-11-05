@@ -503,11 +503,3 @@
     display: none;
   }
 }
-
-/* Model answer revealed inside the Mock Interview card */
-.spotlight-answer {
-  margin: 4px 0 16px;
-  max-height: 60vh;
-  overflow-y: auto;
-  padding-right: 4px;
-}

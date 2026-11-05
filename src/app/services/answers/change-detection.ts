@@ -112,13 +112,15 @@ export class CartBadgeComponent {
         variant: 'tip',
         text: 'Interview tip: structure the answer as "who triggers it" (Zone.js vs zoneless) and "what it does" (top-down tree walk, binding comparison, minimal DOM updates). Then mention OnPush and signals as the optimizations.',
       },
-    ],
-  },
-
-  'What is Change Detection in Angular and how does the mechanism work across component trees?': {
-    summary:
-      'Change detection syncs state to the DOM. Across the tree, Angular starts at the root view and checks views depth-first: each parent updates its bindings (including child inputs) before its children are checked. Default components are always visited; OnPush components and their subtrees are skipped unless marked dirty; with signals, only views that read a changed signal need refreshing.',
-    details: [
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: What is Change Detection in Angular and how does the mechanism work across component trees?',
+      },
+      {
+        type: 'paragraph',
+        text: 'Change detection syncs state to the DOM. Across the tree, Angular starts at the root view and checks views depth-first: each parent updates its bindings (including child inputs) before its children are checked. Default components are always visited; OnPush components and their subtrees are skipped unless marked dirty; with signals, only views that read a changed signal need refreshing.',
+      },
       {
         type: 'paragraph',
         text: 'Every component instance owns a view, and views form a tree that mirrors the component tree. `ApplicationRef.tick()` calls `detectChanges` on the root view, which runs its update function, then recurses into each child view. Embedded views from `@if`/`@for` are part of that tree too.',

@@ -1,142 +1,6 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'Why do we need Node.js and npm before working with Angular?': {
-    summary:
-      'Angular apps run in the browser, but the tooling around them runs on Node.js. The Angular CLI, the TypeScript compiler, the build system (esbuild/Vite), the dev server, test runners and linters are all Node.js programs. npm (or pnpm/yarn) installs Angular and its dependencies from the registry into `node_modules` and runs project scripts from `package.json`. Node.js is NOT needed to run the built app in production — the output is static HTML, JS and CSS (unless you use SSR).',
-    details: [
-      {
-        type: 'paragraph',
-        text: 'A common misconception is that Angular "runs on Node". It doesn\'t — the browser runs the compiled JavaScript. Node.js is the development-time runtime for the toolchain that turns your TypeScript and templates into that JavaScript.',
-      },
-      { type: 'heading3', text: 'What Node.js is used for' },
-      {
-        type: 'bullets',
-        items: [
-          '**Angular CLI (`ng`)** — a Node program: `ng new`, `ng generate`, `ng serve`, `ng build`, `ng test`, `ng update`.',
-          '**Compilation** — the TypeScript compiler and Angular compiler (ngtsc) turn TS + templates into JavaScript.',
-          '**Bundling** — esbuild bundles, tree-shakes and minifies; the dev server (Vite-based) serves with live reload.',
-          '**Testing & linting** — test runners (Vitest/Karma/Jest), ESLint, Prettier.',
-          '**SSR** — with `@angular/ssr`, Node also runs the server that renders pages (this one IS used in production).',
-        ],
-      },
-      { type: 'heading3', text: 'What npm is used for' },
-      {
-        type: 'code',
-        lang: 'bash',
-        code: `node -v            # check Node version (use an LTS version supported by your Angular release)
-npm -v
-
-npm install -g @angular/cli   # install the CLI globally
-ng new shop-app               # scaffolds the project and runs npm install
-
-cd shop-app
-npm install                   # installs everything in package.json → node_modules
-npm start                     # runs the "start" script → ng serve
-npm run build                 # → ng build → static files in dist/`,
-      },
-      {
-        type: 'code',
-        lang: 'json',
-        code: `{
-  "scripts": {
-    "start": "ng serve",
-    "build": "ng build",
-    "test": "ng test"
-  },
-  "dependencies": {
-    "@angular/core": "^21.0.0",
-    "@angular/router": "^21.0.0",
-    "rxjs": "~7.8.0"
-  },
-  "devDependencies": {
-    "@angular/cli": "^21.0.0",
-    "@angular/build": "^21.0.0",
-    "typescript": "~5.9.0"
-  }
-}`,
-      },
-      {
-        type: 'flow',
-        title: 'Node in development vs the browser in production',
-        code: `flowchart LR
-  subgraph DEV["Development machine (Node.js)"]
-    SRC["TS + templates + SCSS"]:::client --> CLI["Angular CLI<br/>compiler + esbuild"]:::server
-  end
-  NPM[("npm registry")]:::external -->|npm install| CLI
-  CLI --> DIST["dist/: index.html,<br/>main.js, styles.css"]:::highlight
-  DIST -->|"deploy to any static host / CDN"| BR["User's browser runs the app"]:::client`,
-      },
-      {
-        type: 'bullets',
-        items: [
-          'Each Angular major version supports specific Node.js LTS versions — check the version compatibility table on angular.dev before upgrading.',
-          '`package-lock.json` pins exact dependency versions so every developer and CI build installs the same tree; use `npm ci` in CI.',
-          "The production server (Nginx, S3, Firebase Hosting…) doesn't need Node unless you use SSR.",
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: the key sentence is "Node is the runtime for the build tooling, npm is the package manager — the final app runs in the browser without Node (except with SSR)." That distinction is what the question is really testing.',
-      },
-    ],
-  },
-
-  'What CLI command is used to run and serve a project in Angular?': {
-    summary:
-      '`ng serve` (or `npm start`, which usually calls it) builds the app in development mode, starts a local dev server on `http://localhost:4200`, watches files and reloads the browser on changes. Add `--open` (`-o`) to open the browser, `--port` to change the port, and `--configuration production` to serve a production build locally.',
-    details: [
-      {
-        type: 'paragraph',
-        text: '`ng serve` is for local development only — it builds in memory and serves from a dev server. For deployment you use `ng build`, which writes optimised static files to `dist/`.',
-      },
-      { type: 'heading3', text: 'Common commands and flags' },
-      {
-        type: 'code',
-        lang: 'bash',
-        code: `ng serve                       # dev build + server at http://localhost:4200
-ng serve -o                    # also open the browser
-ng serve --port 4300           # different port
-ng serve --host 0.0.0.0        # make it reachable from other devices on the network
-ng serve --configuration production   # serve with production optimisations
-ng serve --ssl                 # serve over HTTPS with a generated certificate
-ng serve --proxy-config proxy.conf.json  # forward /api calls to a backend (avoid CORS)
-ng serve my-admin-app          # pick a project in a multi-project workspace
-
-npm start                      # usually the same as ng serve (see package.json scripts)`,
-      },
-      { type: 'heading3', text: 'Proxying API calls during development' },
-      {
-        type: 'code',
-        lang: 'json',
-        code: `{
-  "/api": {
-    "target": "http://localhost:3000",
-    "secure": false,
-    "changeOrigin": true
-  }
-}`,
-      },
-      { type: 'heading3', text: 'Related CLI commands' },
-      {
-        type: 'bullets',
-        items: [
-          '`ng build` — production build into `dist/` (production is the default configuration for new projects).',
-          '`ng test` — run unit tests; `ng e2e` — run end-to-end tests if configured.',
-          '`ng generate component users` (`ng g c users`) — scaffold code.',
-          '`ng update @angular/core @angular/cli` — upgrade with automatic migrations.',
-          '`ng add @angular/material` — install a library and run its setup schematic.',
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: "Interview tip: answer `ng serve`, then add one or two useful flags (`--port`, `--open`, `--proxy-config`) and mention that `ng build` is what you deploy. It shows you've used the CLI beyond the basics.",
-      },
-    ],
-  },
-
   'What happens when we run `ng serve`?': {
     summary:
       "`ng serve` reads `angular.json` to find the project's `serve` target and its build options, compiles TypeScript and templates with the Angular compiler, bundles them with esbuild (the modern `application` builder), keeps the output in memory, and starts a Vite-based dev server on localhost:4200. It then watches files: on save it rebuilds only what changed and live-reloads the browser (or hot-replaces styles/templates where supported).",
@@ -217,27 +81,84 @@ Watch mode enabled. Watching for file changes...
         variant: 'tip',
         text: 'Interview tip: walk through "angular.json → compile → bundle in memory → dev server → watch & reload". Naming the modern esbuild/Vite toolchain shows you\'re current; contrast with `ng build` writing to `dist/`.',
       },
-    ],
-  },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: What CLI command is used to run and serve a project in Angular?',
+      },
+      {
+        type: 'paragraph',
+        text: '`ng serve` (or `npm start`, which usually calls it) builds the app in development mode, starts a local dev server on `http://localhost:4200`, watches files and reloads the browser on changes. Add `--open` (`-o`) to open the browser, `--port` to change the port, and `--configuration production` to serve a production build locally.',
+      },
+      {
+        type: 'paragraph',
+        text: '`ng serve` is for local development only — it builds in memory and serves from a dev server. For deployment you use `ng build`, which writes optimised static files to `dist/`.',
+      },
+      { type: 'heading3', text: 'Common commands and flags' },
+      {
+        type: 'code',
+        lang: 'bash',
+        code: `ng serve                       # dev build + server at http://localhost:4200
+ng serve -o                    # also open the browser
+ng serve --port 4300           # different port
+ng serve --host 0.0.0.0        # make it reachable from other devices on the network
+ng serve --configuration production   # serve with production optimisations
+ng serve --ssl                 # serve over HTTPS with a generated certificate
+ng serve --proxy-config proxy.conf.json  # forward /api calls to a backend (avoid CORS)
+ng serve my-admin-app          # pick a project in a multi-project workspace
 
-  'How do you change the default port of an Angular application when running locally (`ng serve`) or in `angular.json`?':
-    {
-      summary:
-        'For a one-off run use the flag: `ng serve --port 4300`. To make it permanent for the project, set `"port": 4300` under `projects.<name>.architect.serve.options` in `angular.json` (or bake the flag into the `start` script in `package.json`). The command-line flag overrides the `angular.json` value.',
-      details: [
-        { type: 'heading3', text: 'Option 1 — command-line flag (temporary)' },
-        {
-          type: 'code',
-          lang: 'bash',
-          code: `ng serve --port 4300
+npm start                      # usually the same as ng serve (see package.json scripts)`,
+      },
+      { type: 'heading3', text: 'Proxying API calls during development' },
+      {
+        type: 'code',
+        lang: 'json',
+        code: `{
+  "/api": {
+    "target": "http://localhost:3000",
+    "secure": false,
+    "changeOrigin": true
+  }
+}`,
+      },
+      { type: 'heading3', text: 'Related CLI commands' },
+      {
+        type: 'bullets',
+        items: [
+          '`ng build` — production build into `dist/` (production is the default configuration for new projects).',
+          '`ng test` — run unit tests; `ng e2e` — run end-to-end tests if configured.',
+          '`ng generate component users` (`ng g c users`) — scaffold code.',
+          '`ng update @angular/core @angular/cli` — upgrade with automatic migrations.',
+          '`ng add @angular/material` — install a library and run its setup schematic.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: "Interview tip: answer `ng serve`, then add one or two useful flags (`--port`, `--open`, `--proxy-config`) and mention that `ng build` is what you deploy. It shows you've used the CLI beyond the basics.",
+      },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: How do you change the default port of an Angular application when running locally (`ng serve`) or in `angular.json`?',
+      },
+      {
+        type: 'paragraph',
+        text: 'For a one-off run use the flag: `ng serve --port 4300`. To make it permanent for the project, set `"port": 4300` under `projects.<name>.architect.serve.options` in `angular.json` (or bake the flag into the `start` script in `package.json`). The command-line flag overrides the `angular.json` value.',
+      },
+      { type: 'heading3', text: 'Option 1 — command-line flag (temporary)' },
+      {
+        type: 'code',
+        lang: 'bash',
+        code: `ng serve --port 4300
 ng serve --port 4300 --open      # and open the browser
 ng serve --port 4300 --host 0.0.0.0  # reachable from phone/other PCs on the LAN`,
-        },
-        { type: 'heading3', text: 'Option 2 — angular.json (permanent, per project)' },
-        {
-          type: 'code',
-          lang: 'json',
-          code: `{
+      },
+      { type: 'heading3', text: 'Option 2 — angular.json (permanent, per project)' },
+      {
+        type: 'code',
+        lang: 'json',
+        code: `{
   "projects": {
     "shop-app": {
       "architect": {
@@ -257,57 +178,141 @@ ng serve --port 4300 --host 0.0.0.0  # reachable from phone/other PCs on the LAN
     }
   }
 }`,
-        },
-        { type: 'heading3', text: 'Option 3 — npm script' },
-        {
-          type: 'code',
-          lang: 'json',
-          code: `{
+      },
+      { type: 'heading3', text: 'Option 3 — npm script' },
+      {
+        type: 'code',
+        lang: 'json',
+        code: `{
   "scripts": {
     "start": "ng serve --port 4300",
     "start:admin": "ng serve admin --port 4400"
   }
 }`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Priority: CLI flag > `angular.json` options > default 4200.',
-            'In multi-project workspaces (e.g. a shell app and micro-frontends) give each project its own port in `angular.json` so they can run side by side.',
-            'If the chosen port is in use, the CLI offers to use another free port.',
-            'Older webpack-based projects use `"builder": "@angular-devkit/build-angular:dev-server"` — the `port` option goes in the same place.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Common pitfall: putting `port` under the `build` target instead of `serve`. The port is a dev-server option, so it belongs in `architect.serve.options`.',
-        },
-        { type: 'divider' },
-        { type: 'heading3', text: 'Follow-up: What is the default port of Angular?' },
-        {
-          type: 'paragraph',
-          text: 'The Angular CLI dev server (`ng serve`) runs on port **4200** by default, so the app is available at `http://localhost:4200`. This is only for local development — in production the built files are served by whatever web server you deploy to, on its own port (usually 80/443).',
-        },
-        {
-          type: 'code',
-          lang: 'bash',
-          code: `ng serve
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Priority: CLI flag > `angular.json` options > default 4200.',
+          'In multi-project workspaces (e.g. a shell app and micro-frontends) give each project its own port in `angular.json` so they can run side by side.',
+          'If the chosen port is in use, the CLI offers to use another free port.',
+          'Older webpack-based projects use `"builder": "@angular-devkit/build-angular:dev-server"` — the `port` option goes in the same place.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common pitfall: putting `port` under the `build` target instead of `serve`. The port is a dev-server option, so it belongs in `architect.serve.options`.',
+      },
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: What is the default port of Angular?' },
+      {
+        type: 'paragraph',
+        text: 'The Angular CLI dev server (`ng serve`) runs on port **4200** by default, so the app is available at `http://localhost:4200`. This is only for local development — in production the built files are served by whatever web server you deploy to, on its own port (usually 80/443).',
+      },
+      {
+        type: 'code',
+        lang: 'bash',
+        code: `ng serve
 # ➜  Local:   http://localhost:4200/
 
 ng serve --port 4300     # override for this run
 # If 4200 is busy, the CLI asks whether to use a different port instead.`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Other defaults worth knowing: host `localhost` (use `--host 0.0.0.0` to expose it on your network).',
-            '`ng test` with Karma uses port 9876 by default.',
-            'SSR apps run their Node server on the port from the `PORT` environment variable when deployed (the generated `server.ts` falls back to 4000).',
-          ],
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Other defaults worth knowing: host `localhost` (use `--host 0.0.0.0` to expose it on your network).',
+          '`ng test` with Karma uses port 9876 by default.',
+          'SSR apps run their Node server on the port from the `PORT` environment variable when deployed (the generated `server.ts` falls back to 4000).',
+        ],
+      },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: Why do we need Node.js and npm before working with Angular?',
+      },
+      {
+        type: 'paragraph',
+        text: 'Angular apps run in the browser, but the tooling around them runs on Node.js. The Angular CLI, the TypeScript compiler, the build system (esbuild/Vite), the dev server, test runners and linters are all Node.js programs. npm (or pnpm/yarn) installs Angular and its dependencies from the registry into `node_modules` and runs project scripts from `package.json`. Node.js is NOT needed to run the built app in production — the output is static HTML, JS and CSS (unless you use SSR).',
+      },
+      {
+        type: 'paragraph',
+        text: 'A common misconception is that Angular "runs on Node". It doesn\'t — the browser runs the compiled JavaScript. Node.js is the development-time runtime for the toolchain that turns your TypeScript and templates into that JavaScript.',
+      },
+      { type: 'heading3', text: 'What Node.js is used for' },
+      {
+        type: 'bullets',
+        items: [
+          '**Angular CLI (`ng`)** — a Node program: `ng new`, `ng generate`, `ng serve`, `ng build`, `ng test`, `ng update`.',
+          '**Compilation** — the TypeScript compiler and Angular compiler (ngtsc) turn TS + templates into JavaScript.',
+          '**Bundling** — esbuild bundles, tree-shakes and minifies; the dev server (Vite-based) serves with live reload.',
+          '**Testing & linting** — test runners (Vitest/Karma/Jest), ESLint, Prettier.',
+          '**SSR** — with `@angular/ssr`, Node also runs the server that renders pages (this one IS used in production).',
+        ],
+      },
+      { type: 'heading3', text: 'What npm is used for' },
+      {
+        type: 'code',
+        lang: 'bash',
+        code: `node -v            # check Node version (use an LTS version supported by your Angular release)
+npm -v
+
+npm install -g @angular/cli   # install the CLI globally
+ng new shop-app               # scaffolds the project and runs npm install
+
+cd shop-app
+npm install                   # installs everything in package.json → node_modules
+npm start                     # runs the "start" script → ng serve
+npm run build                 # → ng build → static files in dist/`,
+      },
+      {
+        type: 'code',
+        lang: 'json',
+        code: `{
+  "scripts": {
+    "start": "ng serve",
+    "build": "ng build",
+    "test": "ng test"
+  },
+  "dependencies": {
+    "@angular/core": "^21.0.0",
+    "@angular/router": "^21.0.0",
+    "rxjs": "~7.8.0"
+  },
+  "devDependencies": {
+    "@angular/cli": "^21.0.0",
+    "@angular/build": "^21.0.0",
+    "typescript": "~5.9.0"
+  }
+}`,
+      },
+      {
+        type: 'flow',
+        title: 'Node in development vs the browser in production',
+        code: `flowchart LR
+  subgraph DEV["Development machine (Node.js)"]
+    SRC["TS + templates + SCSS"]:::client --> CLI["Angular CLI<br/>compiler + esbuild"]:::server
+  end
+  NPM[("npm registry")]:::external -->|npm install| CLI
+  CLI --> DIST["dist/: index.html,<br/>main.js, styles.css"]:::highlight
+  DIST -->|"deploy to any static host / CDN"| BR["User's browser runs the app"]:::client`,
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Each Angular major version supports specific Node.js LTS versions — check the version compatibility table on angular.dev before upgrading.',
+          '`package-lock.json` pins exact dependency versions so every developer and CI build installs the same tree; use `npm ci` in CI.',
+          "The production server (Nginx, S3, Firebase Hosting…) doesn't need Node unless you use SSR.",
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: the key sentence is "Node is the runtime for the build tooling, npm is the package manager — the final app runs in the browser without Node (except with SSR)." That distinction is what the question is really testing.',
+      },
+    ],
+  },
 
   'How does the browser load an Angular application?': {
     summary:
@@ -526,7 +531,7 @@ Legacy NgModule app with an empty bootstrap array and no ngDoBootstrap():
       ],
     },
 
-  'What are new features of Angular 21?': {
+  'What changed in recent Angular releases (v19–v21)?': {
     summary:
       'Angular 21 (released November 2025) continued the move to a signal-first, zoneless framework. Headline changes: new projects are **zoneless by default** (no zone.js), **Vitest** replaces Karma as the default unit-test runner, experimental **Signal Forms** (a signal-based forms API), **Angular Aria** in developer preview (headless, accessible UI primitives), and expanded AI tooling through the Angular CLI **MCP server**. Always confirm details against the official release notes for your exact version.',
     details: [

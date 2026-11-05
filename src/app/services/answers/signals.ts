@@ -221,74 +221,6 @@ fullName = computed(() => \`\${this.first()} \${this.last()}\`);`,
     ],
   },
 
-  'Difference between Signals and BehaviorSubject': {
-    summary:
-      'Both hold a current value and notify on change. A signal is read synchronously by calling it, tracks dependents automatically, needs no subscription or unsubscribe, and integrates with Angular change detection. A BehaviorSubject is an RxJS stream: you subscribe (and must unsubscribe), can compose it with operators like `debounceTime` or `switchMap`, and every `next()` emits — even the same value. Signals are for state; BehaviorSubject for state that is part of an async event pipeline.',
-    details: [
-      {
-        type: 'paragraph',
-        text: 'For years the "state service" pattern in Angular was a private `BehaviorSubject` plus a public `asObservable()`. Signals now cover that pattern with less code, and with `computed()` replacing `combineLatest` + `map` for derived state.',
-      },
-      { type: 'heading3', text: 'Same store, two ways' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// BehaviorSubject version
-@Injectable({ providedIn: 'root' })
-export class CartStoreRx {
-  private items$$ = new BehaviorSubject<Item[]>([]);
-  items$ = this.items$$.asObservable();
-  total$ = this.items$.pipe(map(items => items.reduce((s, i) => s + i.price, 0)));
-  add(i: Item) { this.items$$.next([...this.items$$.value, i]); }
-}
-// template: {{ total$ | async }}  — or subscribe + unsubscribe in code
-
-// Signal version
-@Injectable({ providedIn: 'root' })
-export class CartStore {
-  private _items = signal<Item[]>([]);
-  items = this._items.asReadonly();
-  total = computed(() => this._items().reduce((s, i) => s + i.price, 0));
-  add(i: Item) { this._items.update(list => [...list, i]); }
-}
-// template: {{ total() }}  — no pipe, no subscription`,
-      },
-      { type: 'heading3', text: 'Behavioural differences' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `const s = signal(1);
-s.set(1);              // no notification — equal value (Object.is)
-
-const b = new BehaviorSubject(1);
-b.subscribe(v => console.log('emit', v)); // emit 1 (replays current value)
-b.next(1);             // emit 1 — emits again, unless you add distinctUntilChanged()
-
-// Glitches: signals are glitch-free
-const a = signal(1);
-const sum = computed(() => a() + a() * 10);
-a.set(2);              // sum() → 22, never an intermediate mixed value
-// combineLatest on two derived observables of the same source can emit an intermediate value.`,
-      },
-      {
-        type: 'bullets',
-        items: [
-          '**Reading**: `sig()` anywhere, synchronously vs `.value` (imperative) or `subscribe`.',
-          '**Cleanup**: signals — none needed. BehaviorSubject — unsubscribe, `async` pipe or `takeUntilDestroyed()`.',
-          '**Derivation**: `computed()` vs `pipe(map, combineLatest...)`.',
-          '**Time/async operators**: only RxJS (debounce, retry, switchMap, buffering).',
-          '**Change detection**: signals notify Angular precisely (OnPush/zoneless-friendly); a BehaviorSubject needs the `async` pipe or `toSignal()` to do so.',
-          '**Interop**: `toSignal(subject$)` and `toObservable(signal)` from `@angular/core/rxjs-interop`.',
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: "Interview tip: say you'd now use a signal for a simple state service, and keep BehaviorSubject (or any observable) where state feeds operators like `switchMap`/`debounceTime` — then mention `toSignal` to bridge at the edge.",
-      },
-    ],
-  },
-
   'Difference between Signals and RxJS': {
     summary:
       'Signals model **values that change over time** — synchronous, always have a current value, automatically tracked, no subscriptions. RxJS models **streams of events** — push-based, can be async, may have no current value, with powerful operators for timing, cancellation and composition. Signals are best for UI/application state; RxJS for async workflows (HTTP races, debouncing, websockets). They complement each other via `toSignal`/`toObservable`.',
@@ -412,6 +344,73 @@ visible = computed(() =>
         type: 'callout',
         variant: 'tip',
         text: 'Interview tip: avoid "signals replace RxJS". Say "signals for state, RxJS for events and async orchestration, interop at the boundaries" — that is the Angular team\'s own guidance.',
+      },
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: Difference between Signals and BehaviorSubject' },
+      {
+        type: 'paragraph',
+        text: 'Both hold a current value and notify on change. A signal is read synchronously by calling it, tracks dependents automatically, needs no subscription or unsubscribe, and integrates with Angular change detection. A BehaviorSubject is an RxJS stream: you subscribe (and must unsubscribe), can compose it with operators like `debounceTime` or `switchMap`, and every `next()` emits — even the same value. Signals are for state; BehaviorSubject for state that is part of an async event pipeline.',
+      },
+      {
+        type: 'paragraph',
+        text: 'For years the "state service" pattern in Angular was a private `BehaviorSubject` plus a public `asObservable()`. Signals now cover that pattern with less code, and with `computed()` replacing `combineLatest` + `map` for derived state.',
+      },
+      { type: 'heading3', text: 'Same store, two ways' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// BehaviorSubject version
+@Injectable({ providedIn: 'root' })
+export class CartStoreRx {
+  private items$$ = new BehaviorSubject<Item[]>([]);
+  items$ = this.items$$.asObservable();
+  total$ = this.items$.pipe(map(items => items.reduce((s, i) => s + i.price, 0)));
+  add(i: Item) { this.items$$.next([...this.items$$.value, i]); }
+}
+// template: {{ total$ | async }}  — or subscribe + unsubscribe in code
+
+// Signal version
+@Injectable({ providedIn: 'root' })
+export class CartStore {
+  private _items = signal<Item[]>([]);
+  items = this._items.asReadonly();
+  total = computed(() => this._items().reduce((s, i) => s + i.price, 0));
+  add(i: Item) { this._items.update(list => [...list, i]); }
+}
+// template: {{ total() }}  — no pipe, no subscription`,
+      },
+      { type: 'heading3', text: 'Behavioural differences' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `const s = signal(1);
+s.set(1);              // no notification — equal value (Object.is)
+
+const b = new BehaviorSubject(1);
+b.subscribe(v => console.log('emit', v)); // emit 1 (replays current value)
+b.next(1);             // emit 1 — emits again, unless you add distinctUntilChanged()
+
+// Glitches: signals are glitch-free
+const a = signal(1);
+const sum = computed(() => a() + a() * 10);
+a.set(2);              // sum() → 22, never an intermediate mixed value
+// combineLatest on two derived observables of the same source can emit an intermediate value.`,
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**Reading**: `sig()` anywhere, synchronously vs `.value` (imperative) or `subscribe`.',
+          '**Cleanup**: signals — none needed. BehaviorSubject — unsubscribe, `async` pipe or `takeUntilDestroyed()`.',
+          '**Derivation**: `computed()` vs `pipe(map, combineLatest...)`.',
+          '**Time/async operators**: only RxJS (debounce, retry, switchMap, buffering).',
+          '**Change detection**: signals notify Angular precisely (OnPush/zoneless-friendly); a BehaviorSubject needs the `async` pipe or `toSignal()` to do so.',
+          '**Interop**: `toSignal(subject$)` and `toObservable(signal)` from `@angular/core/rxjs-interop`.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: "Interview tip: say you'd now use a signal for a simple state service, and keep BehaviorSubject (or any observable) where state feeds operators like `switchMap`/`debounceTime` — then mention `toSignal` to bridge at the edge.",
       },
     ],
   },

@@ -688,13 +688,124 @@ readonly vm$ = combineLatest([
         variant: 'tip',
         text: 'Interview tip: expect a follow-up like "switchMap vs mergeMap?" — pick operators you can explain confidently. Mentioning `takeUntilDestroyed` and the `retry({ count, delay })` config (RxJS 7) shows current knowledge.',
       },
-    ],
-  },
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: What does the map operator do?' },
+      {
+        type: 'paragraph',
+        text: "`map` applies a projection function to every value emitted by the source and emits the result — a one-to-one transformation, just like `Array.prototype.map` but over time. It doesn't filter, flatten or change timing; errors and completion pass straight through.",
+      },
+      { type: 'heading3', text: 'Basic usage' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `of(1, 2, 3).pipe(map((x) => x * 10)).subscribe(console.log);
+// 10, 20, 30
 
-  'Why do we use pipe() before subscribing?': {
-    summary:
-      "`pipe()` composes operators into a new Observable that transforms the stream — filtering, mapping, combining, handling errors — **before** values reach the subscriber. It keeps the subscribe callback simple, makes the logic declarative and reusable, keeps the result lazy (nothing runs until subscribe), and with RxJS's pipeable operators allows tree-shaking. Note that `pipe()` doesn't mutate the source; it returns a new Observable.",
-    details: [
+// The projection also receives the index
+of('a', 'b').pipe(map((v, i) => \`\${i}:\${v}\`)).subscribe(console.log);
+// 0:a, 1:b`,
+      },
+      { type: 'heading3', text: 'Angular: shaping API responses' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `interface ApiUser { id: number; first_name: string; last_name: string; created_at: string }
+interface User { id: number; fullName: string; createdAt: Date }
+
+getUsers(): Observable<User[]> {
+  return this.http.get<{ data: ApiUser[] }>('/api/users').pipe(
+    map((res) => res.data),                                  // unwrap the envelope
+    map((users) =>
+      users.map((u) => ({                                   // Array.map INSIDE rxjs map
+        id: u.id,
+        fullName: \`\${u.first_name} \${u.last_name}\`,
+        createdAt: new Date(u.created_at),
+      })),
+    ),
+  );
+}`,
+      },
+      { type: 'heading3', text: 'map vs similar operators' },
+      {
+        type: 'bullets',
+        items: [
+          '`map` — transform each value (1 in → 1 out).',
+          '`filter` — decide whether a value passes (1 in → 0 or 1 out).',
+          "`tap` — side effect, value passes through unchanged (don't do side effects in `map`).",
+          '`switchMap`/`mergeMap` — when the projection returns an **Observable** (e.g. an HTTP call). Using `map` there gives you `Observable<Observable<T>>`.',
+          '`scan` — transform with access to accumulated state.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Common mistake: map returning an Observable
+this.route.paramMap.pipe(
+  map((p) => this.api.getProduct(p.get('id')!)),   // ❌ Observable<Observable<Product>>
+);
+this.route.paramMap.pipe(
+  switchMap((p) => this.api.getProduct(p.get('id')!)), // ✅ Observable<Product>
+);`,
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: keep `map` pure (no HTTP calls, no state mutation). If the interviewer asks "what if the transformation is async?", the answer is a flattening operator like `switchMap`.',
+      },
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: What does the filter operator do?' },
+      {
+        type: 'paragraph',
+        text: '`filter` evaluates a predicate for each emitted value and only lets through the values for which it returns `true`; others are silently dropped. Like `Array.filter`, but over time. It can also narrow TypeScript types when given a type-guard predicate.',
+      },
+      { type: 'heading3', text: 'Basic usage' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `of(1, 2, 3, 4, 5, 6).pipe(filter((n) => n % 2 === 0)).subscribe(console.log);
+// 2, 4, 6`,
+      },
+      { type: 'heading3', text: 'Angular examples' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// 1. React only to NavigationEnd router events (type guard narrows the type)
+this.router.events.pipe(
+  filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+  takeUntilDestroyed(),
+).subscribe((e) => this.analytics.pageView(e.urlAfterRedirects));   // e: NavigationEnd
+
+// 2. Ignore short search terms
+this.search.valueChanges.pipe(
+  filter((term): term is string => !!term && term.length >= 3),
+  debounceTime(300),
+  switchMap((term) => this.api.search(term)),
+);
+
+// 3. Drop null/undefined (e.g. from a BehaviorSubject<User | null>)
+this.auth.user$.pipe(filter((u): u is User => u !== null));`,
+      },
+      { type: 'heading3', text: 'Related operators' },
+      {
+        type: 'bullets',
+        items: [
+          '`distinctUntilChanged()` — filter out consecutive duplicates.',
+          '`first(predicate)` / `take(1)` — the first matching value, then complete.',
+          '`skip(n)`, `takeWhile(pred)`, `skipWhile(pred)` — position or condition based.',
+          '`debounceTime`/`throttleTime` — time-based filtering.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Pitfall: if the predicate never passes, the subscriber gets nothing — no error. In a stream feeding `forkJoin` or `firstValueFrom`, a filtered-out source that completes without emitting causes `forkJoin` to complete empty or `firstValueFrom` to reject with `EmptyError`.',
+      },
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: Why do we use pipe() before subscribing?' },
+      {
+        type: 'paragraph',
+        text: "`pipe()` composes operators into a new Observable that transforms the stream — filtering, mapping, combining, handling errors — **before** values reach the subscriber. It keeps the subscribe callback simple, makes the logic declarative and reusable, keeps the result lazy (nothing runs until subscribe), and with RxJS's pipeable operators allows tree-shaking. Note that `pipe()` doesn't mutate the source; it returns a new Observable.",
+      },
       {
         type: 'paragraph',
         text: 'Think of `pipe()` as an assembly line: the source emits raw values, each operator does one job, and the subscriber receives the finished product. Without `pipe()` you would end up with all the logic — and nested subscriptions — inside `subscribe()`.',
@@ -766,120 +877,6 @@ this.searchControl.valueChanges.pipe(searchTerm(3), switchMap(search));`,
         type: 'callout',
         variant: 'tip',
         text: 'Interview tip: "pipe transforms, subscribe consumes." Mention that subscribe should contain as little logic as possible, and that nested subscribes are an anti-pattern solved by flattening operators inside the pipe.',
-      },
-    ],
-  },
-
-  'What does the map operator do?': {
-    summary:
-      "`map` applies a projection function to every value emitted by the source and emits the result — a one-to-one transformation, just like `Array.prototype.map` but over time. It doesn't filter, flatten or change timing; errors and completion pass straight through.",
-    details: [
-      { type: 'heading3', text: 'Basic usage' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `of(1, 2, 3).pipe(map((x) => x * 10)).subscribe(console.log);
-// 10, 20, 30
-
-// The projection also receives the index
-of('a', 'b').pipe(map((v, i) => \`\${i}:\${v}\`)).subscribe(console.log);
-// 0:a, 1:b`,
-      },
-      { type: 'heading3', text: 'Angular: shaping API responses' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `interface ApiUser { id: number; first_name: string; last_name: string; created_at: string }
-interface User { id: number; fullName: string; createdAt: Date }
-
-getUsers(): Observable<User[]> {
-  return this.http.get<{ data: ApiUser[] }>('/api/users').pipe(
-    map((res) => res.data),                                  // unwrap the envelope
-    map((users) =>
-      users.map((u) => ({                                   // Array.map INSIDE rxjs map
-        id: u.id,
-        fullName: \`\${u.first_name} \${u.last_name}\`,
-        createdAt: new Date(u.created_at),
-      })),
-    ),
-  );
-}`,
-      },
-      { type: 'heading3', text: 'map vs similar operators' },
-      {
-        type: 'bullets',
-        items: [
-          '`map` — transform each value (1 in → 1 out).',
-          '`filter` — decide whether a value passes (1 in → 0 or 1 out).',
-          "`tap` — side effect, value passes through unchanged (don't do side effects in `map`).",
-          '`switchMap`/`mergeMap` — when the projection returns an **Observable** (e.g. an HTTP call). Using `map` there gives you `Observable<Observable<T>>`.',
-          '`scan` — transform with access to accumulated state.',
-        ],
-      },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// Common mistake: map returning an Observable
-this.route.paramMap.pipe(
-  map((p) => this.api.getProduct(p.get('id')!)),   // ❌ Observable<Observable<Product>>
-);
-this.route.paramMap.pipe(
-  switchMap((p) => this.api.getProduct(p.get('id')!)), // ✅ Observable<Product>
-);`,
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: keep `map` pure (no HTTP calls, no state mutation). If the interviewer asks "what if the transformation is async?", the answer is a flattening operator like `switchMap`.',
-      },
-    ],
-  },
-
-  'What does the filter operator do?': {
-    summary:
-      '`filter` evaluates a predicate for each emitted value and only lets through the values for which it returns `true`; others are silently dropped. Like `Array.filter`, but over time. It can also narrow TypeScript types when given a type-guard predicate.',
-    details: [
-      { type: 'heading3', text: 'Basic usage' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `of(1, 2, 3, 4, 5, 6).pipe(filter((n) => n % 2 === 0)).subscribe(console.log);
-// 2, 4, 6`,
-      },
-      { type: 'heading3', text: 'Angular examples' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// 1. React only to NavigationEnd router events (type guard narrows the type)
-this.router.events.pipe(
-  filter((e): e is NavigationEnd => e instanceof NavigationEnd),
-  takeUntilDestroyed(),
-).subscribe((e) => this.analytics.pageView(e.urlAfterRedirects));   // e: NavigationEnd
-
-// 2. Ignore short search terms
-this.search.valueChanges.pipe(
-  filter((term): term is string => !!term && term.length >= 3),
-  debounceTime(300),
-  switchMap((term) => this.api.search(term)),
-);
-
-// 3. Drop null/undefined (e.g. from a BehaviorSubject<User | null>)
-this.auth.user$.pipe(filter((u): u is User => u !== null));`,
-      },
-      { type: 'heading3', text: 'Related operators' },
-      {
-        type: 'bullets',
-        items: [
-          '`distinctUntilChanged()` — filter out consecutive duplicates.',
-          '`first(predicate)` / `take(1)` — the first matching value, then complete.',
-          '`skip(n)`, `takeWhile(pred)`, `skipWhile(pred)` — position or condition based.',
-          '`debounceTime`/`throttleTime` — time-based filtering.',
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'warning',
-        text: 'Pitfall: if the predicate never passes, the subscriber gets nothing — no error. In a stream feeding `forkJoin` or `firstValueFrom`, a filtered-out source that completes without emitting causes `forkJoin` to complete empty or `firstValueFrom` to reject with `EmptyError`.',
       },
     ],
   },
@@ -1496,71 +1493,6 @@ testScheduler.run(({ cold, expectObservable }) => {
     ],
   },
 
-  'Should error handling happen before or after subscribing?': {
-    summary:
-      'Mostly **before** — inside `pipe()` with `catchError`/`retry`, placed close to where the error can occur (usually around the inner HTTP call), so you can recover with a fallback and keep the stream alive. The `error` callback in `subscribe()` is a last resort: by the time it runs the stream has already terminated, so it can only report the failure. A global `ErrorHandler`/HTTP interceptor handles cross-cutting concerns like logging and 401s.',
-    details: [
-      {
-        type: 'paragraph',
-        text: 'An Observable that errors is finished. Handling the error in the pipe lets you replace it with a value (or retry) before it reaches the subscriber; handling it in `subscribe` only lets you react after the stream is dead.',
-      },
-      { type: 'heading3', text: 'In subscribe — stream terminates' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `this.search.valueChanges.pipe(
-  switchMap((q) => this.api.search(q)),
-).subscribe({
-  next: (r) => (this.results = r),
-  error: (e) => this.toast.error('Search failed'),   // runs once…
-});
-// …and then the search box is DEAD: valueChanges is unsubscribed, typing does nothing.`,
-      },
-      { type: 'heading3', text: 'In the pipe, on the inner observable — stream survives' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `results$ = this.search.valueChanges.pipe(
-  switchMap((q) =>
-    this.api.search(q).pipe(
-      retry({ count: 2, delay: 500 }),
-      catchError((e) => {
-        this.toast.error('Search failed');
-        return of([]);                 // replace the error with a fallback value
-      }),
-    ),
-  ),
-);
-// One failed request → empty results; the next keystroke still triggers a new search.`,
-      },
-      {
-        type: 'flow',
-        title: 'Where errors are handled',
-        code: `flowchart LR
-  API["HTTP call"]:::server -->|error| INT["Interceptor<br/>401, logging"]:::security
-  INT --> CE["catchError in pipe<br/>fallback / retry"]:::highlight
-  CE -->|value| SUB["subscribe next"]:::client
-  CE -.->|"rethrown"| ERR["subscribe error<br/>last resort"]:::external
-  ERR -.-> GEH["Global ErrorHandler"]:::external`,
-      },
-      {
-        type: 'bullets',
-        items: [
-          '**Pipe (`catchError`)**: recover, map to a user-friendly state, retry — the right place for most logic.',
-          '**Inner vs outer**: put `catchError` inside `switchMap`/`mergeMap` to protect long-lived outer streams.',
-          '**subscribe error callback**: final notification (e.g. show a toast) when you deliberately let the error through.',
-          '**Interceptor / `ErrorHandler`**: app-wide concerns — auth redirects, logging to Sentry, generic messages.',
-          'An unhandled error in an Observable with no error callback is reported asynchronously (RxJS 7 rethrows it on a timeout) and ends up in the global error handler.',
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: say "before, in the pipe — because an error terminates the stream" and show the dead-search-box example. That cause-and-effect explanation is what interviewers want.',
-      },
-    ],
-  },
-
   'How do you handle errors in RxJS streams? Explain catchError, retry, and retryWhen': {
     summary:
       '`catchError` intercepts an error and returns a replacement Observable — a fallback value (`of([])`), `EMPTY`, or a rethrow with `throwError(() => err)`. `retry(n)` resubscribes to the source up to n times on error. `retryWhen` was the old way to customise retries (delays, conditions) and is **deprecated in RxJS 7** in favour of `retry({ count, delay })`, where `delay` can be a number or a function returning a notifier Observable.',
@@ -1641,6 +1573,73 @@ source$.pipe(
         type: 'callout',
         variant: 'warning',
         text: 'Pitfall: `catchError` placed on the outer stream of a long-lived chain (e.g. after `switchMap` on `valueChanges`) replaces the whole stream with the fallback and completes it — later events are ignored. Put it on the inner observable.',
+      },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: Should error handling happen before or after subscribing?',
+      },
+      {
+        type: 'paragraph',
+        text: 'Mostly **before** — inside `pipe()` with `catchError`/`retry`, placed close to where the error can occur (usually around the inner HTTP call), so you can recover with a fallback and keep the stream alive. The `error` callback in `subscribe()` is a last resort: by the time it runs the stream has already terminated, so it can only report the failure. A global `ErrorHandler`/HTTP interceptor handles cross-cutting concerns like logging and 401s.',
+      },
+      {
+        type: 'paragraph',
+        text: 'An Observable that errors is finished. Handling the error in the pipe lets you replace it with a value (or retry) before it reaches the subscriber; handling it in `subscribe` only lets you react after the stream is dead.',
+      },
+      { type: 'heading3', text: 'In subscribe — stream terminates' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `this.search.valueChanges.pipe(
+  switchMap((q) => this.api.search(q)),
+).subscribe({
+  next: (r) => (this.results = r),
+  error: (e) => this.toast.error('Search failed'),   // runs once…
+});
+// …and then the search box is DEAD: valueChanges is unsubscribed, typing does nothing.`,
+      },
+      { type: 'heading3', text: 'In the pipe, on the inner observable — stream survives' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `results$ = this.search.valueChanges.pipe(
+  switchMap((q) =>
+    this.api.search(q).pipe(
+      retry({ count: 2, delay: 500 }),
+      catchError((e) => {
+        this.toast.error('Search failed');
+        return of([]);                 // replace the error with a fallback value
+      }),
+    ),
+  ),
+);
+// One failed request → empty results; the next keystroke still triggers a new search.`,
+      },
+      {
+        type: 'flow',
+        title: 'Where errors are handled',
+        code: `flowchart LR
+  API["HTTP call"]:::server -->|error| INT["Interceptor<br/>401, logging"]:::security
+  INT --> CE["catchError in pipe<br/>fallback / retry"]:::highlight
+  CE -->|value| SUB["subscribe next"]:::client
+  CE -.->|"rethrown"| ERR["subscribe error<br/>last resort"]:::external
+  ERR -.-> GEH["Global ErrorHandler"]:::external`,
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**Pipe (`catchError`)**: recover, map to a user-friendly state, retry — the right place for most logic.',
+          '**Inner vs outer**: put `catchError` inside `switchMap`/`mergeMap` to protect long-lived outer streams.',
+          '**subscribe error callback**: final notification (e.g. show a toast) when you deliberately let the error through.',
+          '**Interceptor / `ErrorHandler`**: app-wide concerns — auth redirects, logging to Sentry, generic messages.',
+          'An unhandled error in an Observable with no error callback is reported asynchronously (RxJS 7 rethrows it on a timeout) and ends up in the global error handler.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: say "before, in the pipe — because an error terminates the stream" and show the dead-search-box example. That cause-and-effect explanation is what interviewers want.',
       },
     ],
   },

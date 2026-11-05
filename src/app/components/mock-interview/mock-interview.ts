@@ -10,7 +10,7 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { CategoryModel } from '@services/question';
+import { CategoryModel, Track, trackInfo } from '@services/question';
 import { Answer } from '../answer/answer';
 import { RichText } from '../content-blocks/rich-text';
 
@@ -312,7 +312,7 @@ function formatClock(totalSeconds: number): string {
                   class="btn-ghost action-link"
                 >
                   <i class="ti ti-external-link"></i>
-                  {{ mode() === 'angular' ? 'Angular Docs' : 'Node.js Docs' }}
+                  {{ docsLabel() }}
                 </a>
                 @if (results().length) {
                   <button type="button" (click)="end()" class="btn-ghost mock-end">
@@ -410,7 +410,8 @@ export class MockInterview {
   pool = input.required<MockItem[]>();
   prepared = input.required<Set<string>>();
   starred = input.required<Set<string>>();
-  mode = input<'angular' | 'nodejs'>('angular');
+  mode = input<Track>('angular');
+  protected readonly docsLabel = computed(() => trackInfo(this.mode()).docsLabel);
   /** Human-readable description of the pool, e.g. "Signals · Unprepared". */
   scopeLabel = input('all topics');
 
@@ -580,9 +581,7 @@ export class MockInterview {
 
   docsUrl(question: string): string {
     const q = encodeURIComponent(question);
-    return this.mode() === 'nodejs'
-      ? `https://www.google.com/search?q=site%3Anodejs.org+${q}`
-      : `https://www.google.com/search?q=site%3Aangular.dev+${q}`;
+    return `https://www.google.com/search?q=site%3A${trackInfo(this.mode()).docsSite}+${q}`;
   }
 
   /** Keyboard shortcuts while the card is open. Returns true if the key was handled. */

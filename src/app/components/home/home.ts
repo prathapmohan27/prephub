@@ -1,9 +1,15 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CategoryModel, Question, RENAMED_QUESTIONS } from '@services/question';
+import {
+  CategoryModel,
+  Question,
+  RENAMED_QUESTIONS,
+  TRACKS,
+  Track,
+  isTrack,
+  trackOf,
+} from '@services/question';
 import { DailyLearningService } from '@services/daily-learning';
-
-type Mode = 'angular' | 'nodejs';
 
 interface Progress {
   read: number;
@@ -86,6 +92,13 @@ function readList(key: string): string[] {
 }
 
 /** Landing page: overall progress, today's questions, and where to continue in each section. */
+
+const TRACK_ACCENT: Record<Track, string> = {
+  foundations: '#f59e0b',
+  angular: '#f43f5e',
+  nodejs: '#22c55e',
+};
+
 @Component({
   selector: 'app-home',
   imports: [RouterLink],
@@ -228,14 +241,22 @@ export class Home implements OnInit {
   readonly todayTotal = computed(() => this.daily.session()?.questions.length ?? 0);
   readonly todayPercent = computed(() => pct(this.todayDone(), this.todayTotal()));
 
-  private qaProgress(mode: Mode): Progress {
-    const cats = this.categories.filter((c) => c.id.startsWith('nodejs-') === (mode === 'nodejs'));
+  private qaProgress(track: Track): Progress {
+    const cats = this.categories.filter((c) => trackOf(c.id) === track);
     const all = cats.flatMap((c) => c.questions);
     const read = all.filter((q) => this.prepared.has(q)).length;
     return { read, total: all.length, percent: pct(read, all.length) };
   }
 
   readonly stats = computed(() => [
+    {
+      label: 'Foundations',
+      icon: 'ti-brand-javascript',
+      accent: '#f59e0b',
+      unit: 'mastered',
+      link: '/questions',
+      progress: this.qaProgress('foundations'),
+    },
     {
       label: 'Angular Q&A',
       icon: 'ti-brand-angular',
@@ -280,8 +301,10 @@ export class Home implements OnInit {
 
   /** Last question opened in Interview Q&A (saved per mode by the Q&A page). */
   private readonly lastQuestion = computed(() => {
-    const saved = localStorage.getItem('prep_mode') === 'nodejs' ? 'nodejs' : 'angular';
-    for (const mode of [saved, saved === 'angular' ? 'nodejs' : 'angular']) {
+    const savedMode = localStorage.getItem('prep_mode');
+    const saved: Track = isTrack(savedMode) ? savedMode : 'angular';
+    // The track used last first, then the others
+    for (const mode of [saved, ...TRACKS.map((t) => t.id).filter((t) => t !== saved)]) {
       try {
         const last = JSON.parse(localStorage.getItem(`prep_last_${mode}`) || 'null');
         if (!last?.key) continue;
@@ -308,7 +331,7 @@ export class Home implements OnInit {
             kind: 'qa',
             label: 'Interview Q&A',
             icon: 'ti-list-check',
-            accent: last.cat.id.startsWith('nodejs-') ? '#22c55e' : '#f43f5e',
+            accent: TRACK_ACCENT[trackOf(last.cat.id)],
             title: last.q.replace(/`/g, ''),
             meta: last.cat.title,
             percent: 0,

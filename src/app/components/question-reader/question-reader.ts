@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output, signal } f
 import { Highlight } from '@pipes/highlight';
 import { Answer } from '../answer/answer';
 import { QItem } from '../question-list/question-list';
+import { Track, isTrack, trackInfo } from '@services/question';
 
 /** Reading pane for the selected question: answer, mastered/star toggles and prev/next navigation. */
 @Component({
@@ -52,7 +53,7 @@ import { QItem } from '../question-list/question-list';
         </button>
         <a [href]="docsLink()" target="_blank" rel="noopener" class="btn-ghost action-link">
           <i class="ti ti-external-link"></i>
-          {{ mode() === 'nodejs' ? 'Node.js Docs' : 'Angular Docs' }}
+          {{ track().docsLabel }}
         </a>
         <a [href]="googleLink()" target="_blank" rel="noopener" class="btn-ghost action-link">
           <i class="ti ti-brand-google"></i> Google
@@ -129,16 +130,18 @@ export class QuestionReader {
   private readonly copiedKey = signal<string | null>(null);
   protected readonly copied = computed(() => this.copiedKey() === this.item().key);
 
+  protected readonly track = computed(() =>
+    trackInfo(isTrack(this.mode()) ? (this.mode() as Track) : 'angular'),
+  );
+
   protected readonly docsLink = computed(() => {
     const q = encodeURIComponent(this.item().q);
-    return this.mode() === 'nodejs'
-      ? `https://www.google.com/search?q=site%3Anodejs.org+${q}`
-      : `https://www.google.com/search?q=site%3Aangular.dev+${q}`;
+    return `https://www.google.com/search?q=site%3A${this.track().docsSite}+${q}`;
   });
 
   protected readonly googleLink = computed(() => {
-    const prefix = this.mode() === 'nodejs' ? 'Node.js' : 'Angular';
-    return `https://www.google.com/search?q=${encodeURIComponent(prefix + ' ' + this.item().q)}`;
+    const query = `${this.track().searchPrefix} ${this.item().q}`;
+    return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
   });
 
   copyQuestion() {

@@ -9,10 +9,72 @@ export interface CategoryModel {
   questions: string[];
 }
 
+/** The three Q&A tracks. Foundations is shared by both stacks (JavaScript, TypeScript, the web). */
+export type Track = 'foundations' | 'angular' | 'nodejs';
+
+export interface TrackInfo {
+  id: Track;
+  label: string;
+  /** Short label for tight spaces (track switch, chips). */
+  short: string;
+  icon: string;
+  /** Site searched by the "Docs" button, and the prefix for a general web search. */
+  docsSite: string;
+  docsLabel: string;
+  searchPrefix: string;
+}
+
+export const TRACKS: TrackInfo[] = [
+  {
+    id: 'foundations',
+    label: 'Foundations',
+    short: 'JS/TS',
+    icon: 'ti-brand-javascript',
+    docsSite: 'developer.mozilla.org',
+    docsLabel: 'MDN Docs',
+    searchPrefix: 'JavaScript',
+  },
+  {
+    id: 'angular',
+    label: 'Angular',
+    short: 'Angular',
+    icon: 'ti-brand-angular',
+    docsSite: 'angular.dev',
+    docsLabel: 'Angular Docs',
+    searchPrefix: 'Angular',
+  },
+  {
+    id: 'nodejs',
+    label: 'Node.js',
+    short: 'Node.js',
+    icon: 'ti-brand-nodejs',
+    docsSite: 'nodejs.org',
+    docsLabel: 'Node.js Docs',
+    searchPrefix: 'Node.js',
+  },
+];
+
+/** Topics shared by both stacks. Ids are kept stable so links and saved progress keep working. */
+const FOUNDATION_TOPICS = new Set(['javascript-fundamentals', 'typescript', 'browser-dom-css']);
+
+export function trackOf(categoryId: string): Track {
+  if (FOUNDATION_TOPICS.has(categoryId)) return 'foundations';
+  return categoryId.startsWith('nodejs-') ? 'nodejs' : 'angular';
+}
+
+export function isTrack(value: unknown): value is Track {
+  return value === 'foundations' || value === 'angular' || value === 'nodejs';
+}
+
+export function trackInfo(track: Track): TrackInfo {
+  return TRACKS.find((t) => t.id === track)!;
+}
+
 /**
  * Question bank, grouped by topic and ordered roughly from fundamentals → advanced.
  *
- * - Categories whose id starts with `nodejs-` appear in Node.js mode; all others in Angular mode.
+ * - The track comes from `trackOf()`: Foundations topics are listed in FOUNDATION_TOPICS,
+ *   `nodejs-` topics are Node.js, everything else is Angular.
  * - Progress (mastered / starred / notes) is keyed by the exact question text, so moving a
  *   question between categories is safe, but rewording it resets that question's progress.
  */
@@ -24,7 +86,7 @@ export const RENAMED_QUESTIONS: Record<string, string> = {
   // Duplicates merged into one question (their answers live on as "Follow-up" sections)
   'Explain Angular change detection.': 'How does Change Detection work in Angular?',
   'How does Angular Change Detection work by default (`ChangeDetectionStrategy.Default`) across component trees?':
-    'What is Change Detection in Angular and how does the mechanism work across component trees?',
+    'How does Change Detection work in Angular?',
   'Explain Angular lifecycle hooks':
     'Explain the execution order and purpose of all Angular component lifecycle hooks (`ngOnChanges`, `ngOnInit`, `ngDoCheck`, `ngOnDestroy`, etc.).',
   'Difference between Subject, BehaviorSubject, and ReplaySubject in RxJS':
@@ -48,7 +110,7 @@ export const RENAMED_QUESTIONS: Record<string, string> = {
   'What are the ways to share data between components other than `@Input()` and `@Output()`?':
     'Different ways to share data between components',
   'What types of data (`strings vs objects`) can you store in browser Session Storage?':
-    'What is browser Session Storage?',
+    'Where do you store authentication tokens? Session Storage vs Local Storage, and can tokens be stored in a service using RxJS Observables?',
   'Is it secure or recommended to store sensitive or personal data (`PII/tokens`) in browser Session Storage?':
     'Where do you store authentication tokens? Session Storage vs Local Storage, and can tokens be stored in a service using RxJS Observables?',
   'What is NgRx and how does its Redux-pattern architecture (`Store, Actions, Reducers, Effects, Selectors`) work in Angular?':
@@ -56,8 +118,7 @@ export const RENAMED_QUESTIONS: Record<string, string> = {
   'Why does Angular use View Encapsulation (`ViewEncapsulation.Emulated`) for components by default?':
     'What is ViewEncapsulation?',
   'Is ngClass the only way to change CSS dynamically?': 'If I want to change CSS dynamically, how?',
-  'What is the default port of Angular?':
-    'How do you change the default port of an Angular application when running locally (`ng serve`) or in `angular.json`?',
+  'What is the default port of Angular?': 'What happens when we run `ng serve`?',
   "What happens if we don't have `AppComponent` in an Angular project?":
     'Is `AppComponent` mandatory? Can we build and bootstrap an Angular project without `AppComponent`?',
   'Why do we need Arrow Functions when regular function declarations already exist (`lexical this binding`)?':
@@ -72,7 +133,79 @@ export const RENAMED_QUESTIONS: Record<string, string> = {
   'What is the difference between INNER JOIN, LEFT JOIN, and FULL OUTER JOIN?':
     'What are SQL joins and when do you use each type?',
   'What is the primary benefit of fetching API data inside a Route Resolver (`ResolveFn`) instead of inside the component`s `ngOnInit()`?':
-    "What is the primary benefit of fetching API data inside a Route Resolver (`ResolveFn`) instead of inside the component's `ngOnInit()`?",
+    'What are Resolvers?',
+  // Foundations track (2026-11): duplicates across tracks and trivia merged into one question
+  'What is the difference between == and === in JavaScript?': 'Difference between == and ===',
+  'What is the Temporal Dead Zone (TDZ) in JavaScript and why does accessing let and const before declaration throw a ReferenceError?':
+    'What is the Temporal Dead Zone (TDZ) in JavaScript and how does it affect hoisting with let and const?',
+  'What are closures and how are they used in Node.js?': 'Explain closures with practical examples',
+  'What is the difference between deep clone and shallow clone?': 'Deep copy vs shallow copy',
+  'What is the latest JavaScript version you have used?': 'What are ES6 features?',
+  'What is the difference between interface and type alias in TypeScript?':
+    'Difference between Type and Interface',
+  'What is the difference between unknown and any in TypeScript?':
+    'What is the difference between `any`, `unknown`, and `never`?',
+  'What are generics in TypeScript and how do they improve type safety?':
+    'What are Generics in TypeScript?',
+  'What are TypeScript utility types? (Partial, Pick, Omit, Record, Readonly)':
+    'What are utility types (`Partial`, `Pick`, `Omit`, `Record`, `Readonly`) and where do you use them in Angular?',
+  'What is the difference between namespace and module in TypeScript?':
+    'What is the difference between CommonJS (require) and ES Modules (import) in Node.js?',
+  'DOM manipulations': 'What is your understanding of the DOM? Explain with a real-time example.',
+  'What CLI command is used to run and serve a project in Angular?':
+    'What happens when we run `ng serve`?',
+  'How do you change the default port of an Angular application when running locally (`ng serve`) or in `angular.json`?':
+    'What happens when we run `ng serve`?',
+  'Why do we need Node.js and npm before working with Angular?':
+    'What happens when we run `ng serve`?',
+  'What is the purpose of ngOnInit() in Angular components?':
+    'Explain the execution order and purpose of all Angular component lifecycle hooks (`ngOnChanges`, `ngOnInit`, `ngDoCheck`, `ngOnDestroy`, etc.).',
+  'Does `ngOnChanges` execute every time or only when `@Input()` properties change? Does it execute before `ngOnInit()`?':
+    'Explain the execution order and purpose of all Angular component lifecycle hooks (`ngOnChanges`, `ngOnInit`, `ngDoCheck`, `ngOnDestroy`, etc.).',
+  'How to use BComponent inside AComponent?':
+    'What are Standalone Components and their advantages?',
+  'What is the default `ViewEncapsulation` mode (`Emulated`) in Angular and how does it scope component styles via unique attributes (`_ngcontent-xxx`)?':
+    'What is ViewEncapsulation?',
+  'What happens to CSS styles when component encapsulation (`ViewEncapsulation.None`) is set to None?':
+    'What is ViewEncapsulation?',
+  'What is Change Detection in Angular and how does the mechanism work across component trees?':
+    'How does Change Detection work in Angular?',
+  'Difference between Signals and BehaviorSubject': 'Difference between Signals and RxJS',
+  'What does the map operator do?': 'Which RxJS operators have you used?',
+  'What does the filter operator do?': 'Which RxJS operators have you used?',
+  'Why do we use pipe() before subscribing?': 'Which RxJS operators have you used?',
+  'Should error handling happen before or after subscribing?':
+    'How do you handle errors in RxJS streams? Explain catchError, retry, and retryWhen',
+  'What is the difference between `PUT` (`full replacement`) and `PATCH` (`partial update`) HTTP methods when updating resource data?':
+    'What are the most common HTTP methods (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`) and when should each be used?',
+  'How do you send a request body/payload in an HTTP POST or PUT request using Angular `HttpClient`?':
+    'How do you make an HTTP API call in Angular using `HttpClient`?',
+  'Write the TypeScript code to make an HTTP POST API call sending a JSON request payload and custom headers using Angular `HttpClient`.':
+    'How do you make an HTTP API call in Angular using `HttpClient`?',
+  'Write a function to fetch data from an API such as JsonPlaceholder.':
+    'How do you make an HTTP API call in Angular using `HttpClient`?',
+  'How to implement Page Not Found route?':
+    'What happens if you have `**` (`wildcard route`) as the very first route in the routing configuration file?',
+  'How to set query parameters?':
+    'Is passing state and parameters through Angular routing preferred over using a shared service? When should each be used?',
+  "What is the primary benefit of fetching API data inside a Route Resolver (`ResolveFn`) instead of inside the component's `ngOnInit()`?":
+    'What are Resolvers?',
+  'What happens if you resolve and subscribe to an API inside an Angular Route Resolver (`ResolveFn`) before loading the component?':
+    'What are Resolvers?',
+  'How do you communicate and pass data between parent and child components in Angular?':
+    'Different ways to share data between components',
+  'In a large Angular application, how do you pass data between components?':
+    'Different ways to share data between components',
+  'How is your application managing state and sharing data between components?':
+    'Different ways to share data between components',
+  'What is browser Session Storage?':
+    'Where do you store authentication tokens? Session Storage vs Local Storage, and can tokens be stored in a service using RxJS Observables?',
+  'Difference between Ask, Agent, and Plan mode in GitHub Copilot': 'Have you used any AI tools?',
+  'How does Node.js handle asynchronous operations if it is single-threaded?':
+    'What is the Event Loop in Node.js and how does it work?',
+  'What is the domain module and is it still recommended?':
+    'How do you handle uncaught exceptions in Node.js?',
+  'What are new features of Angular 21?': 'What changed in recent Angular releases (v19–v21)?',
 };
 
 @Service()
@@ -88,7 +221,6 @@ export class Question {
       color: '#B45309',
       bg: '#FEF3E2',
       questions: [
-        'What is the latest JavaScript version you have used?',
         'What are ES6 features?',
         'Difference between var, let, and const',
         'What is the Temporal Dead Zone (TDZ) in JavaScript and how does it affect hoisting with let and const?',
@@ -102,6 +234,14 @@ export class Question {
         'Explain how the JavaScript Event Loop works',
         'What is a Promise in JavaScript?',
         'Debounce vs Throttle',
+        'What is the difference between null and undefined in JavaScript?',
+        'What is the difference between call(), apply(), and bind()?',
+        'Explain the JavaScript prototype chain',
+        'What is the difference between Array.map(), Array.filter(), and Array.reduce()?',
+        'What is Promise.all() vs Promise.allSettled() vs Promise.race() vs Promise.any()?',
+        'What are generator functions and async generators in JavaScript?',
+        'What is a Proxy object and how is it used?',
+        'What are WeakMap and WeakSet, and why do they allow garbage collection?',
       ],
     },
     {
@@ -124,6 +264,8 @@ export class Question {
         'What does `strict` mode enable in `tsconfig.json`, and what does Angular add with `strictTemplates`?',
         'When should you use optional chaining (`?.`), nullish coalescing (`??`), and the non-null assertion (`!`)?',
         'How do you type HTTP responses with `HttpClient.get<T>()`, and why is that not runtime validation?',
+        'How do you type async functions and Promises in TypeScript?',
+        'What are TypeScript decorators and how are they used?',
       ],
     },
     {
@@ -134,10 +276,10 @@ export class Question {
       bg: '#E0F2FE',
       questions: [
         'What is your understanding of the DOM? Explain with a real-time example.',
-        'DOM manipulations',
         'What is Event Delegation?',
         'What is Flexbox?',
         'How does Angular detect the device a user is logged in from?',
+        'Explain event bubbling and event capturing in JavaScript',
       ],
     },
 
@@ -149,13 +291,10 @@ export class Question {
       color: '#475569',
       bg: '#F1F5F9',
       questions: [
-        'Why do we need Node.js and npm before working with Angular?',
-        'What CLI command is used to run and serve a project in Angular?',
         'What happens when we run `ng serve`?',
-        'How do you change the default port of an Angular application when running locally (`ng serve`) or in `angular.json`?',
         'How does the browser load an Angular application?',
         'Is `AppComponent` mandatory? Can we build and bootstrap an Angular project without `AppComponent`?',
-        'What are new features of Angular 21?',
+        'What changed in recent Angular releases (v19–v21)?',
       ],
     },
     {
@@ -166,10 +305,7 @@ export class Question {
       bg: '#E1F5EE',
       questions: [
         'What are Standalone Components and their advantages?',
-        'How to use BComponent inside AComponent?',
         'Explain the execution order and purpose of all Angular component lifecycle hooks (`ngOnChanges`, `ngOnInit`, `ngDoCheck`, `ngOnDestroy`, etc.).',
-        'What is the purpose of ngOnInit() in Angular components?',
-        'Does `ngOnChanges` execute every time or only when `@Input()` properties change? Does it execute before `ngOnInit()`?',
         'Content projection and ViewChild',
         'Difference between ng-content and ng-template',
       ],
@@ -184,8 +320,6 @@ export class Question {
         'If I want to toggle an element dynamically without using *ngIf, how?',
         'If I want to change CSS dynamically, how?',
         'What is ViewEncapsulation?',
-        'What is the default `ViewEncapsulation` mode (`Emulated`) in Angular and how does it scope component styles via unique attributes (`_ngcontent-xxx`)?',
-        'What happens to CSS styles when component encapsulation (`ViewEncapsulation.None`) is set to None?',
         'How can you apply global styles or pass specific parent component styles down to child components in Angular (`:host-context()`, CSS variables)?',
         'How can you dynamically apply different styles or themes to the same CSS class across multiple component instances in Angular?',
       ],
@@ -239,7 +373,6 @@ export class Question {
       bg: '#FAEEDA',
       questions: [
         'How does Change Detection work in Angular?',
-        'What is Change Detection in Angular and how does the mechanism work across component trees?',
         'Difference between Default and OnPush Change Detection Strategy',
         'Where and how do you implement custom change detection (`ChangeDetectionStrategy.OnPush` and `markForCheck()`) in code?',
         'Difference between markForCheck() and detectChanges()',
@@ -259,7 +392,6 @@ export class Question {
         'What are Signals in Angular?',
         'Explain different types of Signals and the use case of computed().',
         'Difference between Computed Signal and Effect',
-        'Difference between Signals and BehaviorSubject',
         'Difference between Signals and RxJS',
         'Signals vs NgRx',
       ],
@@ -295,21 +427,15 @@ export class Question {
       color: '#534AB7',
       bg: '#EEEDFE',
       questions: [
-        // Basics
         'What is an Observable in RxJS?',
         'Why do we use Observables in Angular?',
         'What are the key differences between a Promise and an Observable (`eager vs lazy, single vs multiple values, cancellation`)?',
         'Explain the difference between cold and hot observables with examples',
-        // Subjects
         'What is the core difference between a Subject and an Observable in RxJS?',
         'What is the difference between Subject, BehaviorSubject, ReplaySubject, and AsyncSubject?',
         'How do you declare a `BehaviorSubject` and emit/share values to all subscribed components?',
         'Have you used BehaviorSubject in any real scenario?',
-        // Operators
         'Which RxJS operators have you used?',
-        'Why do we use pipe() before subscribing?',
-        'What does the map operator do?',
-        'What does the filter operator do?',
         'When would you use switchMap vs mergeMap vs concatMap vs exhaustMap? Give a real-world scenario for each',
         'Explain the difference between combineLatest, forkJoin, zip, and withLatestFrom',
         'What does shareReplay(1) do and when is it essential?',
@@ -317,12 +443,9 @@ export class Question {
         'How does scan differ from reduce? Where would you use scan in an Angular app?',
         'What is takeUntil and how is it used for subscription management? What are modern alternatives?',
         'What are schedulers in RxJS and when would you use asyncScheduler vs queueScheduler?',
-        // Error handling
-        'Should error handling happen before or after subscribing?',
         'How do you handle errors in RxJS streams? Explain catchError, retry, and retryWhen',
         'How to handle errors and retry an API call up to 3 times using RxJS?',
         'Explain the complete RxJS flow: API response, subscribe, and error handling',
-        // Scenarios
         "You're building a type-ahead search — implement it using RxJS operators, handling debounce, cancellation of in-flight requests, and deduplication",
         'A user clicks a button 10 times and 10 API calls are triggered. How would you handle this using RxJS?',
         'You have a payment form where the user clicks Submit. How do you prevent duplicate submissions using RxJS? Which operator do you choose and why?',
@@ -337,21 +460,14 @@ export class Question {
       color: '#0E7490',
       bg: '#E0F7FA',
       questions: [
-        // HTTP basics
         'What are the most common HTTP methods (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`) and when should each be used?',
-        'What is the difference between `PUT` (`full replacement`) and `PATCH` (`partial update`) HTTP methods when updating resource data?',
         'In what different ways can client data be transmitted to an HTTP API endpoint (`Path Params`, `Query Params`, `Headers`, `Request Body/Payload`)?',
         'Can you include a request body/payload inside an HTTP GET API request (`HttpClient.get()`)?',
-        // HttpClient
         'How do you make an HTTP API call in Angular using `HttpClient`?',
-        'How do you send a request body/payload in an HTTP POST or PUT request using Angular `HttpClient`?',
-        'Write the TypeScript code to make an HTTP POST API call sending a JSON request payload and custom headers using Angular `HttpClient`.',
-        'Write a function to fetch data from an API such as JsonPlaceholder.',
         'How do you design API calling from the UI? When do you use the async pipe, and when should you unsubscribe manually?',
         'What is an HTTP Interceptor (`HttpInterceptorFn`) in Angular and how does it intercept outgoing requests and incoming responses?',
         'How to write an HTTP interceptor to handle common error responses?',
         'Global error handling vs component-level error handling',
-        // Scenarios
         'How do you prevent duplicate API requests in Angular?',
         'An API response is required by multiple components. How would you avoid repeated API calls?',
       ],
@@ -363,9 +479,6 @@ export class Question {
       color: '#185FA5',
       bg: '#E6F1FB',
       questions: [
-        // Basics
-        'How to set query parameters?',
-        'How to implement Page Not Found route?',
         'What happens if you have `**` (`wildcard route`) as the very first route in the routing configuration file?',
         'Is it possible to use multiple Router Outlets in Angular? If yes, how?',
         'How would you track every route change to monitor user navigation?',
@@ -374,10 +487,7 @@ export class Question {
         'What are the different Route Guards (`canActivate`, `canActivateChild`, `canDeactivate`, `canMatch`, `resolve`) in Angular?',
         'Difference between canMatch and canLoad',
         'How do you restrict unauthorized users from accessing specific route URLs or components using Angular Route Guards?',
-        // Resolvers
         'What are Resolvers?',
-        "What is the primary benefit of fetching API data inside a Route Resolver (`ResolveFn`) instead of inside the component's `ngOnInit()`?",
-        'What happens if you resolve and subscribe to an API inside an Angular Route Resolver (`ResolveFn`) before loading the component?',
         'Will you be able to see the API request in the browser Network tab if the request is triggered inside a Route Resolver or Guard?',
       ],
     },
@@ -408,14 +518,11 @@ export class Question {
       color: '#0F766E',
       bg: '#CCFBF1',
       questions: [
-        'How do you communicate and pass data between parent and child components in Angular?',
         'Different ways to share data between components',
-        'In a large Angular application, how do you pass data between components?',
         'Is passing state and parameters through Angular routing preferred over using a shared service? When should each be used?',
         'You have a value that has to be shared across all components. How do you implement this cleanly in Angular?',
         'Write the TypeScript syntax and code to implement a shared state service (`using BehaviorSubject or Signals`) across all components.',
         'If admin updates data and changes need to reflect in multiple components simultaneously, how?',
-        'How is your application managing state and sharing data between components?',
       ],
     },
     {
@@ -425,22 +532,17 @@ export class Question {
       color: '#7E22CE',
       bg: '#F3E8FF',
       questions: [
-        // Concepts
         'What is NgRx and how did you implement it in Angular applications?',
         'What are the steps to set up NgRx in an Angular application?',
         'Explain the NgRx data flow: Action → Reducer → Store → Selector → Component → Effect → Action',
         'What is the difference between createAction, createReducer, and createEffect?',
         'What is the difference between dispatch and select in NgRx? How do you avoid unnecessary re-renders via selectors?',
-        // Selectors
         'What are Selectors in NgRx? Explain memoization and why it matters for performance',
         'What is createFeatureSelector and when do you use it?',
-        // Effects
         'How do Effects work in NgRx? Explain ofType, switchMap, and error handling inside effects',
         'Explain concatLatestFrom (formerly withLatestFrom in effects) and its use case',
-        // Ecosystem
         'What is NgRx Entity and what problem does it solve?',
         'What is the NgRx Signal Store (introduced in NgRx 17)? How does it differ from the traditional store?',
-        // Scenarios
         'Design the NgRx state shape for a banking dashboard that shows account list, selected account details, and transaction history with pagination',
         'An Effect makes an HTTP call, but you want to cancel the previous request if a new action arrives. Which operator do you use inside the effect and why?',
         'Your selector is being called too frequently causing performance issues. How do you diagnose and fix this?',
@@ -503,7 +605,6 @@ export class Question {
       questions: [
         'How are you securing your Angular application?',
         'How to implement role-based access control in Angular?',
-        'What is browser Session Storage?',
         'Where do you store authentication tokens? Session Storage vs Local Storage, and can tokens be stored in a service using RxJS Observables?',
         'What is XSS (Cross-Site Scripting) and how does Angular protect against it by default?',
         'What does `DomSanitizer` do, and when should you use `bypassSecurityTrustHtml`?',
@@ -555,7 +656,6 @@ export class Question {
         'Have you worked on resolving issues in CI/CD pipelines?',
         'Have you worked with teams from different organizations where your module depended on parallel development teams? How did you manage communication and dependencies?',
         'Have you used any AI tools?',
-        'Difference between Ask, Agent, and Plan mode in GitHub Copilot',
         'Tell me about yourself.',
         'How do you structure answers to behavioral questions using the STAR method?',
         'Tell me about a time you disagreed with a teammate or reviewer on a technical decision.',
@@ -598,7 +698,6 @@ export class Question {
         'What is Node.js and how does it differ from browser JavaScript?',
         'What is libuv and what role does it play in Node.js?',
         'What is the difference between synchronous and asynchronous code in Node.js?',
-        'How does Node.js handle asynchronous operations if it is single-threaded?',
         'What is the Event Loop in Node.js and how does it work?',
         'What are the phases of the Node.js Event Loop?',
         'What is the difference between process.nextTick() and setImmediate()?',
@@ -607,45 +706,7 @@ export class Question {
         'What is module caching in Node.js?',
         'What are Worker Threads in Node.js and when should you use them?',
         'What is the difference between child_process.fork(), spawn(), and exec()?',
-      ],
-    },
-    {
-      id: 'nodejs-javascript',
-      icon: 'ti-brand-javascript',
-      title: 'JavaScript Deep Dive',
-      color: '#CA8A04',
-      bg: '#FEF9C3',
-      questions: [
-        'What is the difference between null and undefined in JavaScript?',
-        'What is the difference between == and === in JavaScript?',
-        'What is the Temporal Dead Zone (TDZ) in JavaScript and why does accessing let and const before declaration throw a ReferenceError?',
-        'What are closures and how are they used in Node.js?',
-        'What is the difference between call(), apply(), and bind()?',
-        'Explain the JavaScript prototype chain',
-        'What is the difference between deep clone and shallow clone?',
-        'What is the difference between Array.map(), Array.filter(), and Array.reduce()?',
-        'What is Promise.all() vs Promise.allSettled() vs Promise.race() vs Promise.any()?',
-        'What are generator functions and async generators in JavaScript?',
-        'What is a Proxy object and how is it used?',
-        'What are WeakMap and WeakSet, and why do they allow garbage collection?',
-        'Explain event bubbling and event capturing in JavaScript',
-      ],
-    },
-    {
-      id: 'nodejs-typescript',
-      icon: 'ti-brand-typescript',
-      title: 'TypeScript with Node.js',
-      color: '#1D4ED8',
-      bg: '#DBEAFE',
-      questions: [
         'How do you set up TypeScript in a Node.js project?',
-        'What is the difference between interface and type alias in TypeScript?',
-        'What is the difference between unknown and any in TypeScript?',
-        'What are generics in TypeScript and how do they improve type safety?',
-        'What are TypeScript utility types? (Partial, Pick, Omit, Record, Readonly)',
-        'How do you type async functions and Promises in TypeScript?',
-        'What are TypeScript decorators and how are they used?',
-        'What is the difference between namespace and module in TypeScript?',
       ],
     },
     {
@@ -659,7 +720,6 @@ export class Question {
         'How do you handle uncaught exceptions in Node.js?',
         'What is the difference between try/catch and process.on("uncaughtException")?',
         'How do you implement graceful shutdown in Node.js?',
-        'What is the domain module and is it still recommended?',
       ],
     },
     {

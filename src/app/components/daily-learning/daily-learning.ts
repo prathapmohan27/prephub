@@ -1,10 +1,10 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DailyLearningService, LearningMode } from '@services/daily-learning';
-import { Question, CategoryModel } from '@services/question';
+import { Question, CategoryModel, TRACKS, Track, isTrack, trackOf } from '@services/question';
 import { Answer } from '../answer/answer';
 import { RichText } from '../content-blocks/rich-text';
 
-type AppMode = 'angular' | 'nodejs';
+type AppMode = Track;
 type ViewState = 'setup' | 'session';
 
 @Component({
@@ -43,28 +43,26 @@ type ViewState = 'setup' | 'session';
 
         <!-- ── SETUP VIEW ────────────────────────────────────────────────── -->
         @if (view() === 'setup') {
-          <!-- App mode toggle (Angular / Node.js) -->
+          <!-- Track toggle (Foundations / Angular / Node.js) -->
           <div style="margin-bottom: 24px; display: flex; align-items: center; gap: 8px;">
             <span class="mode-section-label" style="margin-bottom: 0">Learning Track:</span>
             <div style="display:flex; align-items:center; gap:6px;">
-              <button
-                (click)="setAppMode('angular')"
-                class="topic-chip"
-                [class.topic-chip--active]="appMode() === 'angular'"
-                style="border-radius: var(--radius-md);"
-              >
-                <i class="ti ti-brand-angular" style="font-size:13px; color:#f43f5e"></i>
-                Angular
-              </button>
-              <button
-                (click)="setAppMode('nodejs')"
-                class="topic-chip"
-                [class.topic-chip--active]="appMode() === 'nodejs'"
-                style="border-radius: var(--radius-md);"
-              >
-                <i class="ti ti-brand-nodejs" style="font-size:13px; color:#16a34a"></i>
-                Node.js
-              </button>
+              @for (t of tracks; track t.id) {
+                <button
+                  (click)="setAppMode(t.id)"
+                  class="topic-chip"
+                  [class.topic-chip--active]="appMode() === t.id"
+                  style="border-radius: var(--radius-md);"
+                  [title]="t.id === 'foundations' ? 'JavaScript, TypeScript & the web' : t.label"
+                >
+                  <i
+                    [class]="'ti ' + t.icon"
+                    style="font-size:13px"
+                    [style.color]="trackColor[t.id]"
+                  ></i>
+                  {{ t.label }}
+                </button>
+              }
             </div>
           </div>
 
@@ -334,6 +332,12 @@ export class DailyLearning implements OnInit {
   selectedTopics = signal<string[]>([]);
   expandedIndex = signal<number | null>(null);
   appMode = signal<AppMode>('angular');
+  readonly tracks = TRACKS;
+  readonly trackColor: Record<Track, string> = {
+    foundations: '#d97706',
+    angular: '#f43f5e',
+    nodejs: '#16a34a',
+  };
 
   session = this.dailyService.session;
   streak = this.dailyService.streak;
@@ -345,9 +349,7 @@ export class DailyLearning implements OnInit {
 
   modeCategories = computed(() => {
     const m = this.appMode();
-    return this.allCategories().filter((c) =>
-      m === 'nodejs' ? c.id.startsWith('nodejs-') : !c.id.startsWith('nodejs-'),
-    );
+    return this.allCategories().filter((c) => trackOf(c.id) === m);
   });
 
   canGenerate = computed(() => {
@@ -365,8 +367,8 @@ export class DailyLearning implements OnInit {
   ngOnInit() {
     this.allCategories.set(this.questionService.getCategories());
 
-    const savedMode = localStorage.getItem('prep_mode') as AppMode | null;
-    if (savedMode === 'angular' || savedMode === 'nodejs') {
+    const savedMode = localStorage.getItem('prep_mode');
+    if (isTrack(savedMode)) {
       this.appMode.set(savedMode);
     }
 

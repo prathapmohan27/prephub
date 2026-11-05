@@ -1,99 +1,6 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'How do you communicate and pass data between parent and child components in Angular?': {
-    summary:
-      'Parent → child with inputs (`input()` signal inputs, or legacy `@Input()`); child → parent with outputs (`output()`, or legacy `@Output()` + `EventEmitter`). For two-way binding use `model()`. When the parent needs to call into the child directly it can use `viewChild()`; for deeper or sibling communication use a shared service.',
-    details: [
-      {
-        type: 'paragraph',
-        text: "Inputs and outputs are the default because they make the data flow explicit in the template: data goes down, events go up. The child stays reusable and doesn't know who its parent is.",
-      },
-      { type: 'heading3', text: 'Modern (signal-based) API' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// child
-@Component({
-  selector: 'app-product-card',
-  template: \`
-    <h3>{{ product().name }}</h3>
-    <p>{{ product().price | currency }}</p>
-    <button (click)="addToCart.emit(product().id)">Add</button>
-    <input type="number" [value]="qty()" (input)="qty.set(+$any($event.target).value)" />
-  \`,
-  imports: [CurrencyPipe],
-})
-export class ProductCard {
-  product = input.required<Product>();          // parent → child (readonly signal)
-  compact = input(false, { transform: booleanAttribute });
-  addToCart = output<number>();                 // child → parent
-  qty = model(1);                               // two-way: [(qty)]
-}`,
-      },
-      {
-        type: 'code',
-        lang: 'html',
-        code: `<!-- parent template -->
-@for (p of products(); track p.id) {
-  <app-product-card
-    [product]="p"
-    compact
-    [(qty)]="quantities[p.id]"
-    (addToCart)="onAdd($event)" />
-}`,
-      },
-      { type: 'heading3', text: 'Legacy decorator API (still common in existing code)' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `export class ProductCardLegacy implements OnChanges {
-  @Input({ required: true }) product!: Product;
-  @Output() addToCart = new EventEmitter<number>();
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['product']) { /* react to new input */ }
-  }
-}
-// With signal inputs you use computed()/effect() instead of ngOnChanges`,
-      },
-      { type: 'heading3', text: 'Parent calling the child: viewChild' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `export class CheckoutPage {
-  private player = viewChild.required(VideoPlayer); // Signal<VideoPlayer>
-  replay() { this.player().seek(0); }
-}
-// Legacy: @ViewChild(VideoPlayer) player!: VideoPlayer; (available from ngAfterViewInit)
-// Template reference: <app-video-player #p /> <button (click)="p.seek(0)">`,
-      },
-      {
-        type: 'flow',
-        title: 'Parent ↔ child data flow',
-        code: `flowchart TD
-  P[Parent component]:::server -->|"[input] data down"| C[Child component]:::client
-  C -->|"(output) events up"| P
-  P <-->|"[(model)] two-way"| C
-  P -.->|"viewChild() direct call"| C`,
-      },
-      {
-        type: 'bullets',
-        items: [
-          'Signal inputs are read-only; never mutate an input object in the child — emit an event and let the parent change it.',
-          "`output()` returns an `OutputEmitterRef`; it's not an RxJS Subject. Use `outputFromObservable()` to expose a stream.",
-          'Use `transform` (e.g. `booleanAttribute`, `numberAttribute`) to coerce attribute inputs.',
-          'Content projection (`<ng-content>`) is another way to "pass" UI from parent to child.',
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: say "data down, events up", show both the signal API and the decorator API, and mention that beyond one or two levels you switch to a shared service rather than prop-drilling.',
-      },
-    ],
-  },
-
   'Different ways to share data between components': {
     summary:
       'By relationship: parent/child via inputs, outputs, `model()` and `viewChild`; siblings or unrelated components via a shared service (signals or `BehaviorSubject`); across routes via route/query params, resolvers or navigation state; feature- or app-wide via NgRx/Signal Store; and across reloads via browser storage.',
@@ -219,13 +126,110 @@ export class Tab {
         variant: 'tip',
         text: 'Interview tip: finish with a trade-off — "inputs/outputs are explicit but cause prop-drilling; services remove drilling but hide dependencies; NgRx adds structure and tooling at the cost of boilerplate."',
       },
-    ],
-  },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: How do you communicate and pass data between parent and child components in Angular?',
+      },
+      {
+        type: 'paragraph',
+        text: 'Parent → child with inputs (`input()` signal inputs, or legacy `@Input()`); child → parent with outputs (`output()`, or legacy `@Output()` + `EventEmitter`). For two-way binding use `model()`. When the parent needs to call into the child directly it can use `viewChild()`; for deeper or sibling communication use a shared service.',
+      },
+      {
+        type: 'paragraph',
+        text: "Inputs and outputs are the default because they make the data flow explicit in the template: data goes down, events go up. The child stays reusable and doesn't know who its parent is.",
+      },
+      { type: 'heading3', text: 'Modern (signal-based) API' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// child
+@Component({
+  selector: 'app-product-card',
+  template: \`
+    <h3>{{ product().name }}</h3>
+    <p>{{ product().price | currency }}</p>
+    <button (click)="addToCart.emit(product().id)">Add</button>
+    <input type="number" [value]="qty()" (input)="qty.set(+$any($event.target).value)" />
+  \`,
+  imports: [CurrencyPipe],
+})
+export class ProductCard {
+  product = input.required<Product>();          // parent → child (readonly signal)
+  compact = input(false, { transform: booleanAttribute });
+  addToCart = output<number>();                 // child → parent
+  qty = model(1);                               // two-way: [(qty)]
+}`,
+      },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<!-- parent template -->
+@for (p of products(); track p.id) {
+  <app-product-card
+    [product]="p"
+    compact
+    [(qty)]="quantities[p.id]"
+    (addToCart)="onAdd($event)" />
+}`,
+      },
+      { type: 'heading3', text: 'Legacy decorator API (still common in existing code)' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export class ProductCardLegacy implements OnChanges {
+  @Input({ required: true }) product!: Product;
+  @Output() addToCart = new EventEmitter<number>();
 
-  'In a large Angular application, how do you pass data between components?': {
-    summary:
-      'Layered: presentational components get data only through inputs/outputs; smart (container) components read from **feature-scoped stores** (signal-based services or NgRx Signal Store) and dispatch commands; truly global state (auth user, settings) lives in root-level stores or NgRx Store; and anything that should be shareable or survive refresh goes in the URL.',
-    details: [
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['product']) { /* react to new input */ }
+  }
+}
+// With signal inputs you use computed()/effect() instead of ngOnChanges`,
+      },
+      { type: 'heading3', text: 'Parent calling the child: viewChild' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export class CheckoutPage {
+  private player = viewChild.required(VideoPlayer); // Signal<VideoPlayer>
+  replay() { this.player().seek(0); }
+}
+// Legacy: @ViewChild(VideoPlayer) player!: VideoPlayer; (available from ngAfterViewInit)
+// Template reference: <app-video-player #p /> <button (click)="p.seek(0)">`,
+      },
+      {
+        type: 'flow',
+        title: 'Parent ↔ child data flow',
+        code: `flowchart TD
+  P[Parent component]:::server -->|"[input] data down"| C[Child component]:::client
+  C -->|"(output) events up"| P
+  P <-->|"[(model)] two-way"| C
+  P -.->|"viewChild() direct call"| C`,
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Signal inputs are read-only; never mutate an input object in the child — emit an event and let the parent change it.',
+          "`output()` returns an `OutputEmitterRef`; it's not an RxJS Subject. Use `outputFromObservable()` to expose a stream.",
+          'Use `transform` (e.g. `booleanAttribute`, `numberAttribute`) to coerce attribute inputs.',
+          'Content projection (`<ng-content>`) is another way to "pass" UI from parent to child.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: say "data down, events up", show both the signal API and the decorator API, and mention that beyond one or two levels you switch to a shared service rather than prop-drilling.',
+      },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: In a large Angular application, how do you pass data between components?',
+      },
+      {
+        type: 'paragraph',
+        text: 'Layered: presentational components get data only through inputs/outputs; smart (container) components read from **feature-scoped stores** (signal-based services or NgRx Signal Store) and dispatch commands; truly global state (auth user, settings) lives in root-level stores or NgRx Store; and anything that should be shareable or survive refresh goes in the URL.',
+      },
       {
         type: 'paragraph',
         text: 'In a large app the problem isn\'t "how do I move a value" but "how do I keep data flow predictable for 20 developers". That means clear ownership: every piece of state has exactly one owner, and components either own nothing (presentational) or talk to a store (containers).',
@@ -310,6 +314,62 @@ export class OrdersStore {
         variant: 'tip',
         text: 'Interview tip: talk about **ownership and scope** — global vs feature vs local vs URL — plus the smart/dumb split. That signals architectural thinking more than naming APIs.',
       },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: How is your application managing state and sharing data between components?',
+      },
+      {
+        type: 'paragraph',
+        text: 'Answer with your real architecture, organised by scope: local UI state in component signals; feature state in route-scoped signal services or Signal Store; global state (auth, settings) in root services or NgRx Store; server data cached in the store; and shareable state in the URL — plus why that choice fit the app. Use the structure below and fill in your own project details.',
+      },
+      {
+        type: 'paragraph',
+        text: 'This is an experience question. The interviewer wants to hear a coherent, justified design — not every API you know. Describe the layers, give one concrete example flow, mention a trade-off or something you would change, and be honest about what you actually used.',
+      },
+      { type: 'heading3', text: 'A structure for your answer' },
+      {
+        type: 'numbered',
+        items: [
+          '**Context** — app type and size: "[your project] is an Angular [version] app with [N] feature areas used by [users]."',
+          '**Layers of state** — local, feature, global, URL, server cache — and which tool you used for each.',
+          '**Data flow** — container components read from stores and pass data to presentational components via inputs; events go back up via outputs and call store methods/dispatch actions.',
+          '**One concrete example** — e.g. "when a user updates an order, …".',
+          '**Why** — the trade-off that drove the choice (team size, complexity, devtools, boilerplate).',
+          "**Reflection** — what you'd improve (e.g. migrating BehaviorSubject services to signals).",
+        ],
+      },
+      { type: 'heading3', text: 'Sample answer (replace the placeholders)' },
+      {
+        type: 'paragraph',
+        text: '"In [your project], a [domain] portal with about [N] modules, we split state by scope. UI-only state like open panels or selected tabs lives in component signals. Each feature — orders, customers, reports — has a store service provided on its route, built with signals (`signal` + `computed`) [or NgRx Signal Store], so it\'s created when you enter the feature and destroyed when you leave. Cross-cutting state like the logged-in user, permissions and tenant settings is in root-level services [or NgRx Store, because several teams contribute to it and we wanted Redux DevTools]. Filters and pagination go in query params so links are shareable. Containers inject the store and pass data to presentational OnPush components through inputs. For example, when an agent updates an order, the editor calls `ordersStore.update()`, which calls the API and upserts the result, and the list, the summary card and the header badge all update from the same signal. If I started again I would [your improvement]."',
+      },
+      {
+        type: 'code',
+        lang: 'text',
+        code: `Scope          | Where it lives                       | Example
+---------------|--------------------------------------|---------------------------
+Local UI       | component signal()                   | isPanelOpen, selectedTab
+Feature        | route-provided store (signals/Signal Store) | orders list, filters
+Global         | root service / NgRx Store            | user, permissions, theme
+URL            | route + query params                 | /orders/42?page=2
+Server cache   | store + HTTP (or TanStack Query)     | product catalogue
+Real-time      | WebSocket/SSE → store                | order status updates`,
+      },
+      {
+        type: 'bullets',
+        items: [
+          'What interviewers look for: clear ownership, unidirectional flow, justified tool choice, awareness of trade-offs.',
+          'If you used NgRx, be ready for follow-ups on effects, selectors/memoisation and entity adapters.',
+          'If you used services, be ready to explain how you avoid exposing writable state and how you handle loading/error states.',
+          "Don't claim tools you haven't used in production — say \"I've evaluated X\" instead.",
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: draw the layers quickly (local / feature / global / URL) and walk through one real user action end-to-end. A concrete flow is far more convincing than a list of libraries.',
+      },
     ],
   },
 
@@ -377,6 +437,73 @@ this.router.navigate(['/checkout/success'], { state: { orderNo: 'A-1001' } });
           type: 'callout',
           variant: 'warning',
           text: 'Pitfall: passing a whole object via `history.state` or a service and having the detail page break on refresh or when opened in a new tab. Always be able to rebuild the page from the URL alone.',
+        },
+        { type: 'divider' },
+        { type: 'heading3', text: 'Follow-up: How to set query parameters?' },
+        {
+          type: 'paragraph',
+          text: "In the template use `[queryParams]` on a `routerLink`; in code use `router.navigate([path], { queryParams: {...} })` or `router.navigateByUrl` with a `UrlTree` from `router.createUrlTree`. Add `queryParamsHandling: 'merge'` to keep existing params, and read them with `ActivatedRoute.queryParamMap` or, with `withComponentInputBinding()`, directly as component inputs.",
+        },
+        {
+          type: 'paragraph',
+          text: 'Query parameters (`/products?category=shoes&page=2`) are optional, shareable state: filters, sorting, pagination, search terms. Unlike path params they do not change which route matches.',
+        },
+        { type: 'heading3', text: 'Setting them' },
+        {
+          type: 'code',
+          lang: 'html',
+          code: `<!-- Template: /products?category=shoes&page=1 -->
+<a routerLink="/products" [queryParams]="{ category: 'shoes', page: 1 }">Shoes</a>
+
+<!-- Keep current params and only change page -->
+<a [routerLink]="[]" [queryParams]="{ page: 2 }" queryParamsHandling="merge">Next</a>`,
+        },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `private router = inject(Router);
+private route = inject(ActivatedRoute);
+
+applyFilter(category: string) {
+  this.router.navigate([], {                // [] = stay on the current route
+    relativeTo: this.route,
+    queryParams: { category, page: 1 },
+    queryParamsHandling: 'merge',           // keep e.g. ?sort=price
+    replaceUrl: true,                       // don't spam browser history on each filter change
+  });
+}
+
+clearCategory() {
+  // null removes a param when merging
+  this.router.navigate([], { queryParams: { category: null }, queryParamsHandling: 'merge' });
+}`,
+        },
+        { type: 'heading3', text: 'Reading them' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `// Option A: ActivatedRoute (reacts to changes on the same component instance)
+category$ = inject(ActivatedRoute).queryParamMap.pipe(map(p => p.get('category') ?? 'all'));
+
+// Option B: component input binding — provideRouter(routes, withComponentInputBinding())
+export class ProductListComponent {
+  category = input<string>();               // filled from ?category=...
+  page = input(1, { transform: numberAttribute });
+}`,
+        },
+        {
+          type: 'bullets',
+          items: [
+            'Query param values are always strings in the URL — convert numbers/booleans yourself.',
+            "`queryParamsHandling`: `'merge'` (combine), `'preserve'` (keep current, ignore new), default replaces them all.",
+            "Arrays: `{ tag: ['a', 'b'] }` → `?tag=a&tag=b`; read with `paramMap.getAll('tag')`.",
+            'Use `snapshot.queryParamMap` only if the component is recreated on every navigation; otherwise subscribe or use inputs.',
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          text: 'Interview tip: mention keeping filter state in query params so the page is bookmarkable and survives refresh — and `replaceUrl: true` so the back button is not flooded with every keystroke.',
         },
       ],
     },
@@ -651,60 +778,6 @@ export class ProductRealtime {
         type: 'callout',
         variant: 'tip',
         text: 'Interview tip: clarify scope first — "same screen/session, or other users too?" — then answer both: a single reactive store for in-app propagation, and server push feeding that store for multi-user propagation.',
-      },
-    ],
-  },
-
-  'How is your application managing state and sharing data between components?': {
-    summary:
-      'Answer with your real architecture, organised by scope: local UI state in component signals; feature state in route-scoped signal services or Signal Store; global state (auth, settings) in root services or NgRx Store; server data cached in the store; and shareable state in the URL — plus why that choice fit the app. Use the structure below and fill in your own project details.',
-    details: [
-      {
-        type: 'paragraph',
-        text: 'This is an experience question. The interviewer wants to hear a coherent, justified design — not every API you know. Describe the layers, give one concrete example flow, mention a trade-off or something you would change, and be honest about what you actually used.',
-      },
-      { type: 'heading3', text: 'A structure for your answer' },
-      {
-        type: 'numbered',
-        items: [
-          '**Context** — app type and size: "[your project] is an Angular [version] app with [N] feature areas used by [users]."',
-          '**Layers of state** — local, feature, global, URL, server cache — and which tool you used for each.',
-          '**Data flow** — container components read from stores and pass data to presentational components via inputs; events go back up via outputs and call store methods/dispatch actions.',
-          '**One concrete example** — e.g. "when a user updates an order, …".',
-          '**Why** — the trade-off that drove the choice (team size, complexity, devtools, boilerplate).',
-          "**Reflection** — what you'd improve (e.g. migrating BehaviorSubject services to signals).",
-        ],
-      },
-      { type: 'heading3', text: 'Sample answer (replace the placeholders)' },
-      {
-        type: 'paragraph',
-        text: '"In [your project], a [domain] portal with about [N] modules, we split state by scope. UI-only state like open panels or selected tabs lives in component signals. Each feature — orders, customers, reports — has a store service provided on its route, built with signals (`signal` + `computed`) [or NgRx Signal Store], so it\'s created when you enter the feature and destroyed when you leave. Cross-cutting state like the logged-in user, permissions and tenant settings is in root-level services [or NgRx Store, because several teams contribute to it and we wanted Redux DevTools]. Filters and pagination go in query params so links are shareable. Containers inject the store and pass data to presentational OnPush components through inputs. For example, when an agent updates an order, the editor calls `ordersStore.update()`, which calls the API and upserts the result, and the list, the summary card and the header badge all update from the same signal. If I started again I would [your improvement]."',
-      },
-      {
-        type: 'code',
-        lang: 'text',
-        code: `Scope          | Where it lives                       | Example
----------------|--------------------------------------|---------------------------
-Local UI       | component signal()                   | isPanelOpen, selectedTab
-Feature        | route-provided store (signals/Signal Store) | orders list, filters
-Global         | root service / NgRx Store            | user, permissions, theme
-URL            | route + query params                 | /orders/42?page=2
-Server cache   | store + HTTP (or TanStack Query)     | product catalogue
-Real-time      | WebSocket/SSE → store                | order status updates`,
-      },
-      {
-        type: 'bullets',
-        items: [
-          'What interviewers look for: clear ownership, unidirectional flow, justified tool choice, awareness of trade-offs.',
-          'If you used NgRx, be ready for follow-ups on effects, selectors/memoisation and entity adapters.',
-          'If you used services, be ready to explain how you avoid exposing writable state and how you handle loading/error states.',
-          "Don't claim tools you haven't used in production — say \"I've evaluated X\" instead.",
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: draw the layers quickly (local / feature / global / URL) and walk through one real user action end-to-end. A concrete flow is far more convincing than a list of libraries.',
       },
     ],
   },

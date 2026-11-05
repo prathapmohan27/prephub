@@ -1,145 +1,6 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'How to set query parameters?': {
-    summary:
-      "In the template use `[queryParams]` on a `routerLink`; in code use `router.navigate([path], { queryParams: {...} })` or `router.navigateByUrl` with a `UrlTree` from `router.createUrlTree`. Add `queryParamsHandling: 'merge'` to keep existing params, and read them with `ActivatedRoute.queryParamMap` or, with `withComponentInputBinding()`, directly as component inputs.",
-    details: [
-      {
-        type: 'paragraph',
-        text: 'Query parameters (`/products?category=shoes&page=2`) are optional, shareable state: filters, sorting, pagination, search terms. Unlike path params they do not change which route matches.',
-      },
-      { type: 'heading3', text: 'Setting them' },
-      {
-        type: 'code',
-        lang: 'html',
-        code: `<!-- Template: /products?category=shoes&page=1 -->
-<a routerLink="/products" [queryParams]="{ category: 'shoes', page: 1 }">Shoes</a>
-
-<!-- Keep current params and only change page -->
-<a [routerLink]="[]" [queryParams]="{ page: 2 }" queryParamsHandling="merge">Next</a>`,
-      },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `private router = inject(Router);
-private route = inject(ActivatedRoute);
-
-applyFilter(category: string) {
-  this.router.navigate([], {                // [] = stay on the current route
-    relativeTo: this.route,
-    queryParams: { category, page: 1 },
-    queryParamsHandling: 'merge',           // keep e.g. ?sort=price
-    replaceUrl: true,                       // don't spam browser history on each filter change
-  });
-}
-
-clearCategory() {
-  // null removes a param when merging
-  this.router.navigate([], { queryParams: { category: null }, queryParamsHandling: 'merge' });
-}`,
-      },
-      { type: 'heading3', text: 'Reading them' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// Option A: ActivatedRoute (reacts to changes on the same component instance)
-category$ = inject(ActivatedRoute).queryParamMap.pipe(map(p => p.get('category') ?? 'all'));
-
-// Option B: component input binding — provideRouter(routes, withComponentInputBinding())
-export class ProductListComponent {
-  category = input<string>();               // filled from ?category=...
-  page = input(1, { transform: numberAttribute });
-}`,
-      },
-      {
-        type: 'bullets',
-        items: [
-          'Query param values are always strings in the URL — convert numbers/booleans yourself.',
-          "`queryParamsHandling`: `'merge'` (combine), `'preserve'` (keep current, ignore new), default replaces them all.",
-          "Arrays: `{ tag: ['a', 'b'] }` → `?tag=a&tag=b`; read with `paramMap.getAll('tag')`.",
-          'Use `snapshot.queryParamMap` only if the component is recreated on every navigation; otherwise subscribe or use inputs.',
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: mention keeping filter state in query params so the page is bookmarkable and survives refresh — and `replaceUrl: true` so the back button is not flooded with every keystroke.',
-      },
-    ],
-  },
-
-  'How to implement Page Not Found route?': {
-    summary:
-      "Add a wildcard route `{ path: '**', component: NotFoundComponent }` (or `loadComponent`) as the LAST entry in your routes. The router matches routes in order, so anything that did not match earlier lands there. Optionally add a redirect for the empty path and a dedicated `/404` route you can navigate to programmatically when an API returns 404.",
-    details: [
-      { type: 'heading3', text: 'Routes' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// app.routes.ts
-export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'home' },
-  { path: 'home', loadComponent: () => import('./home/home').then(m => m.HomeComponent) },
-  { path: 'products/:id', loadComponent: () => import('./products/detail').then(m => m.ProductDetail) },
-
-  // Explicit route you can navigate to from code
-  { path: 'not-found', loadComponent: () => import('./not-found/not-found').then(m => m.NotFoundComponent), title: 'Page not found' },
-
-  // Wildcard — MUST be last
-  { path: '**', loadComponent: () => import('./not-found/not-found').then(m => m.NotFoundComponent), title: 'Page not found' },
-];`,
-      },
-      { type: 'heading3', text: 'The component' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `@Component({
-  selector: 'app-not-found',
-  imports: [RouterLink],
-  template: \`
-    <h1>404 — Page not found</h1>
-    <p>We couldn't find <code>{{ url }}</code>.</p>
-    <a routerLink="/home">Go home</a>
-  \`,
-})
-export class NotFoundComponent {
-  url = inject(Router).url; // the URL the user typed is preserved
-}`,
-      },
-      { type: 'heading3', text: 'Valid route, missing data' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// /products/999 matches the route, but the product does not exist
-export const productResolver: ResolveFn<Product> = route => {
-  const router = inject(Router);
-  return inject(ProductService).getById(+route.paramMap.get('id')!).pipe(
-    catchError(() => {
-      // skipLocationChange keeps /products/999 in the address bar
-      router.navigate(['/not-found'], { skipLocationChange: true });
-      return EMPTY;
-    }),
-  );
-};`,
-      },
-      {
-        type: 'bullets',
-        items: [
-          "Using `component` keeps the bad URL in the address bar; `redirectTo: 'not-found'` changes the URL to `/not-found`. Keeping the original URL is usually better UX.",
-          'Lazy-loaded child route arrays can have their own `**` route for section-specific 404s.',
-          'With SSR, set the HTTP response status to 404 for the not-found page so search engines do not index it as a real page.',
-          'On static hosting (Nginx, S3, Firebase) configure a fallback to `index.html`, otherwise deep links 404 at the server before Angular runs.',
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'warning',
-        text: 'Common pitfall: putting `**` before other routes. Because matching is first-match-wins, every URL would show the 404 page.',
-      },
-    ],
-  },
-
   'What happens if you have `**` (`wildcard route`) as the very first route in the routing configuration file?':
     {
       summary:
@@ -188,6 +49,76 @@ export const productResolver: ResolveFn<Product> = route => {
           type: 'callout',
           variant: 'tip',
           text: 'Interview tip: say "first match wins, in array order" and give the `products/new` vs `products/:id` example — it shows you understand the matching algorithm, not just the wildcard rule.',
+        },
+        { type: 'divider' },
+        { type: 'heading3', text: 'Follow-up: How to implement Page Not Found route?' },
+        {
+          type: 'paragraph',
+          text: "Add a wildcard route `{ path: '**', component: NotFoundComponent }` (or `loadComponent`) as the LAST entry in your routes. The router matches routes in order, so anything that did not match earlier lands there. Optionally add a redirect for the empty path and a dedicated `/404` route you can navigate to programmatically when an API returns 404.",
+        },
+        { type: 'heading3', text: 'Routes' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `// app.routes.ts
+export const routes: Routes = [
+  { path: '', pathMatch: 'full', redirectTo: 'home' },
+  { path: 'home', loadComponent: () => import('./home/home').then(m => m.HomeComponent) },
+  { path: 'products/:id', loadComponent: () => import('./products/detail').then(m => m.ProductDetail) },
+
+  // Explicit route you can navigate to from code
+  { path: 'not-found', loadComponent: () => import('./not-found/not-found').then(m => m.NotFoundComponent), title: 'Page not found' },
+
+  // Wildcard — MUST be last
+  { path: '**', loadComponent: () => import('./not-found/not-found').then(m => m.NotFoundComponent), title: 'Page not found' },
+];`,
+        },
+        { type: 'heading3', text: 'The component' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `@Component({
+  selector: 'app-not-found',
+  imports: [RouterLink],
+  template: \`
+    <h1>404 — Page not found</h1>
+    <p>We couldn't find <code>{{ url }}</code>.</p>
+    <a routerLink="/home">Go home</a>
+  \`,
+})
+export class NotFoundComponent {
+  url = inject(Router).url; // the URL the user typed is preserved
+}`,
+        },
+        { type: 'heading3', text: 'Valid route, missing data' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `// /products/999 matches the route, but the product does not exist
+export const productResolver: ResolveFn<Product> = route => {
+  const router = inject(Router);
+  return inject(ProductService).getById(+route.paramMap.get('id')!).pipe(
+    catchError(() => {
+      // skipLocationChange keeps /products/999 in the address bar
+      router.navigate(['/not-found'], { skipLocationChange: true });
+      return EMPTY;
+    }),
+  );
+};`,
+        },
+        {
+          type: 'bullets',
+          items: [
+            "Using `component` keeps the bad URL in the address bar; `redirectTo: 'not-found'` changes the URL to `/not-found`. Keeping the original URL is usually better UX.",
+            'Lazy-loaded child route arrays can have their own `**` route for section-specific 404s.',
+            'With SSR, set the HTTP response status to 404 for the not-found page so search engines do not index it as a real page.',
+            'On static hosting (Nginx, S3, Firebase) configure a fallback to `index.html`, otherwise deep links 404 at the server before Angular runs.',
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'warning',
+          text: 'Common pitfall: putting `**` before other routes. Because matching is first-match-wins, every URL would show the 404 page.',
         },
       ],
     },
@@ -1074,19 +1005,20 @@ export class ProductDetailComponent {
         variant: 'warning',
         text: 'Common pitfall: a slow API inside a resolver makes the app feel frozen — the click seems to do nothing. Always pair resolvers with a navigation loading indicator and handle errors (redirect or fallback value).',
       },
-    ],
-  },
-
-  "What is the primary benefit of fetching API data inside a Route Resolver (`ResolveFn`) instead of inside the component's `ngOnInit()`?":
-    {
-      summary:
-        'The component is created only when its data is ready, so it never renders a half-empty state, does not need loading/null checks for that data, and the decision "does this resource exist?" happens before navigation completes (you can redirect to 404 without flashing a broken page). The trade-off is that the user waits on the previous page with no content change, so it suits fast, essential data.',
-      details: [
-        { type: 'heading3', text: 'ngOnInit approach' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export class OrderComponent implements OnInit {
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: "Follow-up: What is the primary benefit of fetching API data inside a Route Resolver (`ResolveFn`) instead of inside the component's `ngOnInit()`?",
+      },
+      {
+        type: 'paragraph',
+        text: 'The component is created only when its data is ready, so it never renders a half-empty state, does not need loading/null checks for that data, and the decision "does this resource exist?" happens before navigation completes (you can redirect to 404 without flashing a broken page). The trade-off is that the user waits on the previous page with no content change, so it suits fast, essential data.',
+      },
+      { type: 'heading3', text: 'ngOnInit approach' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export class OrderComponent implements OnInit {
   private api = inject(OrderService);
   id = input.required<string>();
   order = signal<Order | null>(null);   // must handle null in the template
@@ -1096,12 +1028,12 @@ export class ProductDetailComponent {
   }
 }
 // Page shows immediately with a spinner/skeleton → data pops in later.`,
-        },
-        { type: 'heading3', text: 'Resolver approach' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export const orderResolver: ResolveFn<Order> = route => {
+      },
+      { type: 'heading3', text: 'Resolver approach' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export const orderResolver: ResolveFn<Order> = route => {
   const router = inject(Router);
   return inject(OrderService).get(route.paramMap.get('id')!).pipe(
     catchError(() => of(new RedirectCommand(router.parseUrl('/not-found')))),
@@ -1112,37 +1044,38 @@ export class ProductDetailComponent {
 export class OrderComponent {
   order = input.required<Order>();   // always defined, no null checks
 }`,
-        },
-        { type: 'heading3', text: 'Benefits vs costs' },
-        {
-          type: 'bullets',
-          items: [
-            '**Benefit — complete render**: no flicker, no `?.` everywhere, simpler component and tests (just pass an input).',
-            '**Benefit — navigation-level decisions**: missing resource → redirect before showing anything; the URL and page stay consistent.',
-            '**Benefit — separation**: data loading is defined in the route config and reusable across components; the component becomes presentational.',
-            '**Benefit — SSR/SEO**: the data is in the first render.',
-            '**Cost — perceived latency**: nothing changes on screen until the request finishes; you need a global progress bar.',
-            '**Cost — all-or-nothing**: one slow call blocks the whole page; parallel or optional data is better loaded in the component (or `@defer`).',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: do not claim resolvers are "faster" — the request takes the same time. The benefit is WHEN the component renders and where errors are handled. Saying that clearly shows real understanding.',
-        },
-      ],
-    },
-
-  'What happens if you resolve and subscribe to an API inside an Angular Route Resolver (`ResolveFn`) before loading the component?':
-    {
-      summary:
-        'You should return the Observable, not subscribe to it. If you return it, the router subscribes, waits for the first value, puts it in route data, then activates the component. If you `subscribe()` inside the resolver yourself and return nothing (or the Subscription), the router does not wait — the component loads immediately with `undefined` data, and the API result goes nowhere. Also: an error in the returned Observable fails the navigation, and an Observable that completes without emitting cancels it.',
-      details: [
-        { type: 'heading3', text: 'Wrong: subscribing inside the resolver' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// ❌ Router gets a Subscription (or undefined), not the data
+      },
+      { type: 'heading3', text: 'Benefits vs costs' },
+      {
+        type: 'bullets',
+        items: [
+          '**Benefit — complete render**: no flicker, no `?.` everywhere, simpler component and tests (just pass an input).',
+          '**Benefit — navigation-level decisions**: missing resource → redirect before showing anything; the URL and page stay consistent.',
+          '**Benefit — separation**: data loading is defined in the route config and reusable across components; the component becomes presentational.',
+          '**Benefit — SSR/SEO**: the data is in the first render.',
+          '**Cost — perceived latency**: nothing changes on screen until the request finishes; you need a global progress bar.',
+          '**Cost — all-or-nothing**: one slow call blocks the whole page; parallel or optional data is better loaded in the component (or `@defer`).',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: do not claim resolvers are "faster" — the request takes the same time. The benefit is WHEN the component renders and where errors are handled. Saying that clearly shows real understanding.',
+      },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: What happens if you resolve and subscribe to an API inside an Angular Route Resolver (`ResolveFn`) before loading the component?',
+      },
+      {
+        type: 'paragraph',
+        text: 'You should return the Observable, not subscribe to it. If you return it, the router subscribes, waits for the first value, puts it in route data, then activates the component. If you `subscribe()` inside the resolver yourself and return nothing (or the Subscription), the router does not wait — the component loads immediately with `undefined` data, and the API result goes nowhere. Also: an error in the returned Observable fails the navigation, and an Observable that completes without emitting cancels it.',
+      },
+      { type: 'heading3', text: 'Wrong: subscribing inside the resolver' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// ❌ Router gets a Subscription (or undefined), not the data
 export const userResolver: ResolveFn<User> = route => {
   let result!: User;
   inject(UserService).get(route.paramMap.get('id')!).subscribe(u => (result = u));
@@ -1150,47 +1083,47 @@ export const userResolver: ResolveFn<User> = route => {
 };
 // Component: route.data.user === undefined. The request still fires and completes later,
 // but nobody uses the response.`,
-        },
-        { type: 'heading3', text: 'Right: return the Observable (or Promise)' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// ✅ Router subscribes, waits, then activates
+      },
+      { type: 'heading3', text: 'Right: return the Observable (or Promise)' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// ✅ Router subscribes, waits, then activates
 export const userResolver: ResolveFn<User> = route =>
   inject(UserService).get(route.paramMap.get('id')!);
 
 // Async/await also works
 export const settingsResolver: ResolveFn<Settings> = async () =>
   firstValueFrom(inject(SettingsService).load());`,
-        },
-        { type: 'heading3', text: 'What the router does with the returned Observable' },
-        {
-          type: 'bullets',
-          items: [
-            'Takes the **first** emitted value and proceeds (current Angular). Very old versions waited for completion, so a never-completing stream hung navigation; still, prefer streams that complete, like HttpClient calls.',
-            '**Error** → navigation fails with a `NavigationError` event; the user stays on the previous page unless you catch it.',
-            '**Completes without emitting** (e.g. `EMPTY`) → navigation is cancelled (`NavigationCancel`).',
-            'Multiple resolvers on the same route run in parallel; the component waits for all of them.',
-            'The router manages the subscription, so there is nothing to unsubscribe.',
-          ],
-        },
-        {
-          type: 'flow',
-          title: 'Outcomes of a resolver Observable',
-          code: `flowchart TD
+      },
+      { type: 'heading3', text: 'What the router does with the returned Observable' },
+      {
+        type: 'bullets',
+        items: [
+          'Takes the **first** emitted value and proceeds (current Angular). Very old versions waited for completion, so a never-completing stream hung navigation; still, prefer streams that complete, like HttpClient calls.',
+          '**Error** → navigation fails with a `NavigationError` event; the user stays on the previous page unless you catch it.',
+          '**Completes without emitting** (e.g. `EMPTY`) → navigation is cancelled (`NavigationCancel`).',
+          'Multiple resolvers on the same route run in parallel; the component waits for all of them.',
+          'The router manages the subscription, so there is nothing to unsubscribe.',
+        ],
+      },
+      {
+        type: 'flow',
+        title: 'Outcomes of a resolver Observable',
+        code: `flowchart TD
   R["Resolver returns Observable"]:::server --> S{"Router subscribes"}
   S -->|"emits value"| OK["Data stored<br/>component activates"]:::highlight
   S -->|"errors"| ERR["NavigationError<br/>stay on old page"]:::external
   S -->|"completes empty"| CAN["NavigationCancel"]:::external
   S -->|"never emits"| HANG["Navigation waits forever"]:::security`,
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Common pitfall: using a store selector that never emits until data is loaded, without triggering the load. The resolver waits forever and the click appears dead. Dispatch the load, then `filter` + `take(1)` on the selector.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common pitfall: using a store selector that never emits until data is loaded, without triggering the load. The resolver waits forever and the click appears dead. Dispatch the load, then `filter` + `take(1)` on the selector.',
+      },
+    ],
+  },
 
   'Will you be able to see the API request in the browser Network tab if the request is triggered inside a Route Resolver or Guard?':
     {

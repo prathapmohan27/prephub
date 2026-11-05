@@ -75,14 +75,15 @@ export class UserApi {
           variant: 'tip',
           text: 'Interview tip: go beyond "GET reads, POST writes". Mention safety and idempotency and give the retry example — "it is safe to automatically retry a PUT or DELETE after a timeout, but not a POST without an idempotency key".',
         },
-      ],
-    },
-
-  'What is the difference between `PUT` (`full replacement`) and `PATCH` (`partial update`) HTTP methods when updating resource data?':
-    {
-      summary:
-        '`PUT` sends the complete new representation of a resource and replaces whatever is stored — fields you omit are cleared or reset. `PATCH` sends only the changes, leaving other fields untouched. `PUT` is idempotent by definition; `PATCH` is not guaranteed to be.',
-      details: [
+        { type: 'divider' },
+        {
+          type: 'heading3',
+          text: 'Follow-up: What is the difference between `PUT` (`full replacement`) and `PATCH` (`partial update`) HTTP methods when updating resource data?',
+        },
+        {
+          type: 'paragraph',
+          text: '`PUT` sends the complete new representation of a resource and replaces whatever is stored — fields you omit are cleared or reset. `PATCH` sends only the changes, leaving other fields untouched. `PUT` is idempotent by definition; `PATCH` is not guaranteed to be.',
+        },
         {
           type: 'paragraph',
           text: 'Both methods update an existing resource, but they disagree on what the body means. With `PUT` the body IS the new resource. With `PATCH` the body is a set of instructions describing how to modify the resource.',
@@ -399,23 +400,24 @@ export class ProductsComponent {
         variant: 'tip',
         text: 'Interview tip: say "HttpClient observables are cold and complete after one emission". It explains why you do not need to unsubscribe from a finished request in most cases, and why subscribing twice doubles the calls.',
       },
-    ],
-  },
-
-  'How do you send a request body/payload in an HTTP POST or PUT request using Angular `HttpClient`?':
-    {
-      summary:
-        'Pass the body as the second argument: `http.post<T>(url, body, options)` / `http.put<T>(url, body, options)`. Plain objects are serialised to JSON with `Content-Type: application/json` automatically; `FormData` is sent as `multipart/form-data`, `HttpParams` as URL-encoded form data, and `Blob`/`string` as-is.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Angular infers the content type from the type of the body you pass, so most of the time you just hand it a typed object. You only set `Content-Type` yourself for unusual formats.',
-        },
-        { type: 'heading3', text: 'JSON body (the 95% case)' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `interface CreateTodo { title: string; done: boolean }
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: How do you send a request body/payload in an HTTP POST or PUT request using Angular `HttpClient`?',
+      },
+      {
+        type: 'paragraph',
+        text: 'Pass the body as the second argument: `http.post<T>(url, body, options)` / `http.put<T>(url, body, options)`. Plain objects are serialised to JSON with `Content-Type: application/json` automatically; `FormData` is sent as `multipart/form-data`, `HttpParams` as URL-encoded form data, and `Blob`/`string` as-is.',
+      },
+      {
+        type: 'paragraph',
+        text: 'Angular infers the content type from the type of the body you pass, so most of the time you just hand it a typed object. You only set `Content-Type` yourself for unusual formats.',
+      },
+      { type: 'heading3', text: 'JSON body (the 95% case)' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `interface CreateTodo { title: string; done: boolean }
 interface Todo extends CreateTodo { id: number }
 
 createTodo(body: CreateTodo) {
@@ -427,12 +429,12 @@ replaceTodo(todo: Todo) {
   // → PUT /api/todos/7  with the full object
   return this.http.put<Todo>(\`/api/todos/\${todo.id}\`, todo);
 }`,
-        },
-        { type: 'heading3', text: 'Sending a Reactive Form value' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `form = inject(FormBuilder).nonNullable.group({
+      },
+      { type: 'heading3', text: 'Sending a Reactive Form value' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `form = inject(FormBuilder).nonNullable.group({
   title: ['', Validators.required],
   done: [false],
 });
@@ -444,12 +446,12 @@ save() {
     error: err => this.errorMessage.set(err.error?.message ?? 'Save failed'),
   });
 }`,
-        },
-        { type: 'heading3', text: 'File upload and form-encoded bodies' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// multipart/form-data — do NOT set Content-Type yourself, the browser adds the boundary
+      },
+      { type: 'heading3', text: 'File upload and form-encoded bodies' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// multipart/form-data — do NOT set Content-Type yourself, the browser adds the boundary
 upload(file: File, description: string) {
   const fd = new FormData();
   fd.append('file', file);
@@ -465,33 +467,34 @@ login(user: string, pass: string) {
   const body = new HttpParams().set('username', user).set('password', pass).set('grant_type', 'password');
   return this.http.post<TokenResponse>('/oauth/token', body);
 }`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Third argument = options: `headers`, `params`, `observe`, `responseType`, `withCredentials`, `context`.',
-            'A `Date` in the body becomes an ISO string via `JSON.stringify`; a `Map`/`Set` becomes `{}` — convert them first.',
-            'The call is lazy: nothing is sent until you subscribe.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Common pitfall: manually setting `Content-Type: multipart/form-data` on a FormData upload. It removes the boundary parameter the browser would add, and the server cannot parse the request.',
-        },
-      ],
-    },
-
-  'Write the TypeScript code to make an HTTP POST API call sending a JSON request payload and custom headers using Angular `HttpClient`.':
-    {
-      summary:
-        'Create a typed service that injects `HttpClient`, builds `HttpHeaders`, and calls `this.http.post<ResponseType>(url, payload, { headers })`. Subscribe (or use `async`/`toSignal`) to send it, and handle errors with `catchError`. Cross-cutting headers like `Authorization` are better added in an interceptor.',
-      details: [
-        { type: 'heading3', text: 'Complete working example' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// order.service.ts
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Third argument = options: `headers`, `params`, `observe`, `responseType`, `withCredentials`, `context`.',
+          'A `Date` in the body becomes an ISO string via `JSON.stringify`; a `Map`/`Set` becomes `{}` — convert them first.',
+          'The call is lazy: nothing is sent until you subscribe.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common pitfall: manually setting `Content-Type: multipart/form-data` on a FormData upload. It removes the boundary parameter the browser would add, and the server cannot parse the request.',
+      },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: Write the TypeScript code to make an HTTP POST API call sending a JSON request payload and custom headers using Angular `HttpClient`.',
+      },
+      {
+        type: 'paragraph',
+        text: 'Create a typed service that injects `HttpClient`, builds `HttpHeaders`, and calls `this.http.post<ResponseType>(url, payload, { headers })`. Subscribe (or use `async`/`toSignal`) to send it, and handle errors with `catchError`. Cross-cutting headers like `Authorization` are better added in an interceptor.',
+      },
+      { type: 'heading3', text: 'Complete working example' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// order.service.ts
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, throwError } from 'rxjs';
@@ -530,12 +533,12 @@ export class OrderService {
     );
   }
 }`,
-        },
-        { type: 'heading3', text: 'Calling it from a component' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+      },
+      { type: 'heading3', text: 'Calling it from a component' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-checkout',
   template: \`
     <button (click)="placeOrder()" [disabled]="saving()">Place order</button>
@@ -562,39 +565,41 @@ export class CheckoutComponent {
       });
   }
 }`,
-        },
-        { type: 'heading3', text: 'Reading response headers too' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `this.http
+      },
+      { type: 'heading3', text: 'Reading response headers too' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `this.http
   .post<OrderResponse>(this.url, payload, { headers, observe: 'response' })
   .subscribe(res => {
     console.log(res.status);                   // 201
     console.log(res.headers.get('Location'));  // /orders/ord_8f2a
     console.log(res.body?.orderId);            // ord_8f2a
   });`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            "`HttpHeaders` is immutable — `headers.set(...)` returns a NEW instance, so reassign it: `headers = headers.set('X-A', '1')`.",
-            "You can also pass a plain object: `{ headers: { 'X-Client-Version': '2.4.0' } }`.",
-            'Custom headers on cross-origin requests trigger a CORS preflight; the server must list them in `Access-Control-Allow-Headers`.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: after writing the code, mention that you would move the auth/version headers into an `HttpInterceptorFn` so every request gets them consistently — it shows you think about the codebase, not just one call.',
-        },
-      ],
-    },
-
-  'Write a function to fetch data from an API such as JsonPlaceholder.': {
-    summary:
-      'In plain JavaScript use `fetch` with `async/await`, check `response.ok` (fetch does not reject on 404/500), parse JSON, and handle network errors and timeouts with `try/catch` and an `AbortController`. In Angular, the same thing is a typed `HttpClient.get` in a service consumed via the `async` pipe or `toSignal`.',
-    details: [
+      },
+      {
+        type: 'bullets',
+        items: [
+          "`HttpHeaders` is immutable — `headers.set(...)` returns a NEW instance, so reassign it: `headers = headers.set('X-A', '1')`.",
+          "You can also pass a plain object: `{ headers: { 'X-Client-Version': '2.4.0' } }`.",
+          'Custom headers on cross-origin requests trigger a CORS preflight; the server must list them in `Access-Control-Allow-Headers`.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: after writing the code, mention that you would move the auth/version headers into an `HttpInterceptorFn` so every request gets them consistently — it shows you think about the codebase, not just one call.',
+      },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: Write a function to fetch data from an API such as JsonPlaceholder.',
+      },
+      {
+        type: 'paragraph',
+        text: 'In plain JavaScript use `fetch` with `async/await`, check `response.ok` (fetch does not reject on 404/500), parse JSON, and handle network errors and timeouts with `try/catch` and an `AbortController`. In Angular, the same thing is a typed `HttpClient.get` in a service consumed via the `async` pipe or `toSignal`.',
+      },
       { type: 'heading3', text: 'Vanilla JavaScript / TypeScript with fetch' },
       {
         type: 'code',

@@ -67,13 +67,12 @@ export const routes: Routes = [
         variant: 'tip',
         text: 'Interview tip: mention the migration path — `ng generate @angular/core:standalone-migration` converts an existing app step by step — and that modules still work, so teams can migrate incrementally.',
       },
-    ],
-  },
-
-  'How to use BComponent inside AComponent?': {
-    summary:
-      "Add `BComponent` to `AComponent`'s `imports` array (standalone) and use B's selector, e.g. `<app-b />`, in A's template. In the legacy NgModule setup, both must be declared in (or B exported from) a module that A's module can see. Data flows down via inputs and up via outputs.",
-    details: [
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: How to use BComponent inside AComponent?' },
+      {
+        type: 'paragraph',
+        text: "Add `BComponent` to `AComponent`'s `imports` array (standalone) and use B's selector, e.g. `<app-b />`, in A's template. In the legacy NgModule setup, both must be declared in (or B exported from) a module that A's module can see. Data flows down via inputs and up via outputs.",
+      },
       {
         type: 'paragraph',
         text: "Angular resolves a selector in a template only if the component is in that template's compilation scope. For standalone components, the scope is the component's own `imports`. For module-based components, it is the declaring NgModule's declarations plus whatever its imported modules export.",
@@ -296,22 +295,24 @@ export class ChartComponent implements OnChanges, OnInit, AfterViewInit, OnDestr
   OC2 --> DC
   AVC -->|"removed from DOM"| OD[ngOnDestroy]:::security`,
         },
-      ],
-    },
-
-  'What is the purpose of ngOnInit() in Angular components?': {
-    summary:
-      "`ngOnInit` runs once, after Angular has set the component's inputs for the first time (after the first `ngOnChanges`). It is the place for initialization logic that depends on inputs — like loading data — keeping the constructor limited to dependency injection.",
-    details: [
-      {
-        type: 'paragraph',
-        text: 'When the constructor runs, Angular has only created the class instance; bound inputs such as `[userId]` have not been assigned yet. By the time `ngOnInit` runs, they have. That ordering is the whole reason the hook exists.',
-      },
-      { type: 'heading3', text: 'Constructor vs ngOnInit' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `@Component({ selector: 'app-profile', template: \`{{ user?.name }}\` })
+        { type: 'divider' },
+        {
+          type: 'heading3',
+          text: 'Follow-up: What is the purpose of ngOnInit() in Angular components?',
+        },
+        {
+          type: 'paragraph',
+          text: "`ngOnInit` runs once, after Angular has set the component's inputs for the first time (after the first `ngOnChanges`). It is the place for initialization logic that depends on inputs — like loading data — keeping the constructor limited to dependency injection.",
+        },
+        {
+          type: 'paragraph',
+          text: 'When the constructor runs, Angular has only created the class instance; bound inputs such as `[userId]` have not been assigned yet. By the time `ngOnInit` runs, they have. That ordering is the whole reason the hook exists.',
+        },
+        { type: 'heading3', text: 'Constructor vs ngOnInit' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `@Component({ selector: 'app-profile', template: \`{{ user?.name }}\` })
 export class ProfileComponent implements OnInit {
   @Input() userId!: string;
   private api = inject(UserApi); // DI belongs in the constructor / field initializers
@@ -327,23 +328,23 @@ export class ProfileComponent implements OnInit {
   }
 }
 // <app-profile userId="42" />`,
-      },
-      { type: 'heading3', text: 'Typical uses' },
-      {
-        type: 'bullets',
-        items: [
-          'Fetching initial data based on inputs or route params.',
-          'Setting up subscriptions or form controls that depend on input values.',
-          'Testability: logic in `ngOnInit` runs on the first `fixture.detectChanges()`, so tests can set inputs first.',
-          'It runs only once — if an input changes later, `ngOnInit` will not re-run; use `ngOnChanges`, a setter, or a signal input with `computed`/`effect`.',
-          '`@ViewChild` elements are not ready yet in `ngOnInit` (unless `{ static: true }`) — use `ngAfterViewInit`.',
-        ],
-      },
-      { type: 'heading3', text: 'Modern alternative with signals' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `export class ProfileComponent {
+        },
+        { type: 'heading3', text: 'Typical uses' },
+        {
+          type: 'bullets',
+          items: [
+            'Fetching initial data based on inputs or route params.',
+            'Setting up subscriptions or form controls that depend on input values.',
+            'Testability: logic in `ngOnInit` runs on the first `fixture.detectChanges()`, so tests can set inputs first.',
+            'It runs only once — if an input changes later, `ngOnInit` will not re-run; use `ngOnChanges`, a setter, or a signal input with `computed`/`effect`.',
+            '`@ViewChild` elements are not ready yet in `ngOnInit` (unless `{ static: true }`) — use `ngAfterViewInit`.',
+          ],
+        },
+        { type: 'heading3', text: 'Modern alternative with signals' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `export class ProfileComponent {
   userId = input.required<string>();
   private api = inject(UserApi);
 
@@ -353,20 +354,21 @@ export class ProfileComponent implements OnInit {
     stream: ({ params: id }) => this.api.getUser(id),
   });
 }`,
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: say "constructor for DI, ngOnInit for initialization that needs inputs", then add that it runs only once — which is why data that must react to input changes needs a different approach. (`rxResource`/`resource` are newer APIs — check their status in your Angular version.)',
-      },
-    ],
-  },
-
-  'Does `ngOnChanges` execute every time or only when `@Input()` properties change? Does it execute before `ngOnInit()`?':
-    {
-      summary:
-        'Only when a template-bound `@Input()` receives a new value (compared by reference with `===`) — not on every change detection. Yes, the first call happens before `ngOnInit()` (with `firstChange: true`), and only if the component has at least one bound input. Mutating an object input in place does not trigger it.',
-      details: [
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          text: 'Interview tip: say "constructor for DI, ngOnInit for initialization that needs inputs", then add that it runs only once — which is why data that must react to input changes needs a different approach. (`rxResource`/`resource` are newer APIs — check their status in your Angular version.)',
+        },
+        { type: 'divider' },
+        {
+          type: 'heading3',
+          text: 'Follow-up: Does `ngOnChanges` execute every time or only when `@Input()` properties change? Does it execute before `ngOnInit()`?',
+        },
+        {
+          type: 'paragraph',
+          text: 'Only when a template-bound `@Input()` receives a new value (compared by reference with `===`) — not on every change detection. Yes, the first call happens before `ngOnInit()` (with `firstChange: true`), and only if the component has at least one bound input. Mutating an object input in place does not trigger it.',
+        },
         {
           type: 'paragraph',
           text: 'During change detection, Angular evaluates each input binding in the parent template and compares the new value with the previous one. If they differ by identity, it updates the input and collects the change in a `SimpleChanges` object; after processing the bindings it calls `ngOnChanges` once with all changes for that cycle.',

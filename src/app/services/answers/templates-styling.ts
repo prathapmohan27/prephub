@@ -295,23 +295,24 @@ export class AlertComponent {}`,
         variant: 'tip',
         text: 'Interview tip: mention that the default can be changed app-wide (`defaultEncapsulation` in compiler options), and that `:host`, `:host-context()` and CSS variables are the tools for styling across the boundary.',
       },
-    ],
-  },
-
-  'What is the default `ViewEncapsulation` mode (`Emulated`) in Angular and how does it scope component styles via unique attributes (`_ngcontent-xxx`)?':
-    {
-      summary:
-        "With `Emulated`, the compiler gives each component type a unique id. Every element in its template gets an `_ngcontent-<id>` attribute, the host element gets `_nghost-<id>`, and every selector in the component's CSS is rewritten to require that attribute (`.btn` → `.btn[_ngcontent-<id>]`, `:host` → `[_nghost-<id>]`). So the rules can only match that component's own elements.",
-      details: [
-        {
-          type: 'paragraph',
-          text: 'The scoping is purely selector rewriting — the styles are still injected into a `<style>` tag in `<head>`, once per component type (not per instance). Because all instances share the same id, all instances get the styles.',
-        },
-        { type: 'heading3', text: 'Before and after' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: What is the default `ViewEncapsulation` mode (`Emulated`) in Angular and how does it scope component styles via unique attributes (`_ngcontent-xxx`)?',
+      },
+      {
+        type: 'paragraph',
+        text: "With `Emulated`, the compiler gives each component type a unique id. Every element in its template gets an `_ngcontent-<id>` attribute, the host element gets `_nghost-<id>`, and every selector in the component's CSS is rewritten to require that attribute (`.btn` → `.btn[_ngcontent-<id>]`, `:host` → `[_nghost-<id>]`). So the rules can only match that component's own elements.",
+      },
+      {
+        type: 'paragraph',
+        text: 'The scoping is purely selector rewriting — the styles are still injected into a `<style>` tag in `<head>`, once per component type (not per instance). Because all instances share the same id, all instances get the styles.',
+      },
+      { type: 'heading3', text: 'Before and after' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-card',
   template: \`<h2 class="title">Hi</h2><ng-content />\`,
   styles: \`
@@ -321,11 +322,11 @@ export class AlertComponent {}`,
   \`,
 })
 export class CardComponent {}`,
-        },
-        {
-          type: 'code',
-          lang: 'html',
-          code: `<!-- Rendered DOM (ids are generated, e.g. ng-c1234) -->
+      },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<!-- Rendered DOM (ids are generated, e.g. ng-c1234) -->
 <app-card _nghost-ng-c1234 class="featured">
   <h2 _ngcontent-ng-c1234 class="title">Hi</h2>
   <p _ngcontent-ng-c999>Projected paragraph</p>  <!-- carries the PARENT's id -->
@@ -336,50 +337,51 @@ export class CardComponent {}`,
   .title[_ngcontent-ng-c1234] { color: teal; }
   .featured[_nghost-ng-c1234] .title[_ngcontent-ng-c1234] { color: gold; }
 </style>`,
-        },
-        { type: 'heading3', text: 'Consequences' },
-        {
-          type: 'bullets',
-          items: [
-            "Child components' internal elements have a different id, so a parent's `.title` rule does not reach them.",
-            "Projected content keeps the attribute of the component that declared it (the parent), so the child's styles don't apply to it — style it from the parent or with `::ng-deep`.",
-            "Elements created outside Angular's template (e.g. `innerHTML`, a jQuery plugin) have no `_ngcontent` attribute, so scoped rules don't match them.",
-            'The attribute raises selector specificity slightly (+1 attribute), which can matter when overriding global styles.',
-            "`::ng-deep` removes the attribute requirement for the rest of the selector — deprecated but still supported; scope it under `:host` so it doesn't become global.",
-          ],
-        },
-        {
-          type: 'flow',
-          title: 'What the compiler does',
-          code: `flowchart LR
+      },
+      { type: 'heading3', text: 'Consequences' },
+      {
+        type: 'bullets',
+        items: [
+          "Child components' internal elements have a different id, so a parent's `.title` rule does not reach them.",
+          "Projected content keeps the attribute of the component that declared it (the parent), so the child's styles don't apply to it — style it from the parent or with `::ng-deep`.",
+          "Elements created outside Angular's template (e.g. `innerHTML`, a jQuery plugin) have no `_ngcontent` attribute, so scoped rules don't match them.",
+          'The attribute raises selector specificity slightly (+1 attribute), which can matter when overriding global styles.',
+          "`::ng-deep` removes the attribute requirement for the rest of the selector — deprecated but still supported; scope it under `:host` so it doesn't become global.",
+        ],
+      },
+      {
+        type: 'flow',
+        title: 'What the compiler does',
+        code: `flowchart LR
   A["Component CSS<br/>.title"]:::client --> B["Compiler assigns id<br/>ng-c1234"]:::server
   B --> C["Template elements get<br/>_ngcontent-ng-c1234"]
   B --> D["Host gets<br/>_nghost-ng-c1234"]
   B --> E["Selector rewritten<br/>.title[_ngcontent-ng-c1234]"]:::highlight
   E --> F["style tag in head,<br/>once per component type"]:::db`,
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Pitfall: styling `innerHTML` content or a third-party widget from your component CSS "doesn\'t work" because those nodes lack the `_ngcontent` attribute. Use `:host ::ng-deep .x`, a global stylesheet, or `ViewEncapsulation.None` with a unique wrapper class.',
-        },
-      ],
-    },
-
-  'What happens to CSS styles when component encapsulation (`ViewEncapsulation.None`) is set to None?':
-    {
-      summary:
-        "Angular skips the selector rewriting, so the component's CSS is injected into `<head>` exactly as written and becomes global: it affects every matching element in the app, including other components, once this component has been loaded. It stays applied even after the component is destroyed.",
-      details: [
-        {
-          type: 'paragraph',
-          text: "With None, the component's stylesheet behaves like a global stylesheet that is added lazily — at the moment the component is first rendered. That timing makes styling depend on navigation order, which is the main source of bugs.",
-        },
-        { type: 'heading3', text: 'Example of leakage' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Pitfall: styling `innerHTML` content or a third-party widget from your component CSS "doesn\'t work" because those nodes lack the `_ngcontent` attribute. Use `:host ::ng-deep .x`, a global stylesheet, or `ViewEncapsulation.None` with a unique wrapper class.',
+      },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: What happens to CSS styles when component encapsulation (`ViewEncapsulation.None`) is set to None?',
+      },
+      {
+        type: 'paragraph',
+        text: "Angular skips the selector rewriting, so the component's CSS is injected into `<head>` exactly as written and becomes global: it affects every matching element in the app, including other components, once this component has been loaded. It stays applied even after the component is destroyed.",
+      },
+      {
+        type: 'paragraph',
+        text: "With None, the component's stylesheet behaves like a global stylesheet that is added lazily — at the moment the component is first rendered. That timing makes styling depend on navigation order, which is the main source of bugs.",
+      },
+      { type: 'heading3', text: 'Example of leakage' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-promo',
   template: \`<button class="btn">Buy now</button>\`,
   styles: \`.btn { background: red; }\`,
@@ -390,34 +392,34 @@ export class PromoComponent {}
 // User visits /home  → buttons look normal
 // User visits /promo → PromoComponent loads, <style>.btn{background:red}</style> added to <head>
 // User goes back to /home → ALL .btn buttons are now red 😬 (styles are not removed)`,
-        },
-        { type: 'heading3', text: 'Using None safely' },
-        {
-          type: 'code',
-          lang: 'scss',
-          code: `/* Prefix every rule with the component's selector so it can't leak */
+      },
+      { type: 'heading3', text: 'Using None safely' },
+      {
+        type: 'code',
+        lang: 'scss',
+        code: `/* Prefix every rule with the component's selector so it can't leak */
 app-promo .btn { background: red; }
 
 /* Legit use: styling content you don't control, e.g. a rich-text editor or innerHTML */
 app-article-body h2 { margin-top: 2rem; }
 app-article-body img { max-width: 100%; }`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '`:host` has no meaning without encapsulation — use the element selector instead.',
-            'Good uses: theming third-party components, styling `innerHTML`/markdown output, defining design-system styles in one component.',
-            'Specificity and source order now decide conflicts with your global styles.',
-            'Alternatives that keep scoping: CSS custom properties, `:host ::ng-deep`, or putting the rules in `styles.css`.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Pitfall: "the style only breaks after I open a certain page" is the classic symptom of a `ViewEncapsulation.None` component with unprefixed selectors.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          '`:host` has no meaning without encapsulation — use the element selector instead.',
+          'Good uses: theming third-party components, styling `innerHTML`/markdown output, defining design-system styles in one component.',
+          'Specificity and source order now decide conflicts with your global styles.',
+          'Alternatives that keep scoping: CSS custom properties, `:host ::ng-deep`, or putting the rules in `styles.css`.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Pitfall: "the style only breaks after I open a certain page" is the classic symptom of a `ViewEncapsulation.None` component with unprefixed selectors.',
+      },
+    ],
+  },
 
   'How can you apply global styles or pass specific parent component styles down to child components in Angular (`:host-context()`, CSS variables)?':
     {

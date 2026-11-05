@@ -744,13 +744,15 @@ Use TestBed with a mocked UserService. Do not use deprecated APIs."`,
         variant: 'tip',
         text: 'Interview tip: pair every productivity claim with how you verify the output. "Faster, but I own the result" is exactly the balance hiring managers want to hear.',
       },
-    ],
-  },
-
-  'Difference between Ask, Agent, and Plan mode in GitHub Copilot': {
-    summary:
-      '**Ask** mode answers questions and explains code without changing your files. **Agent** mode works autonomously: it decides which files to edit, makes multi-file changes, can run terminal commands and tests, and iterates on errors (with your approval for actions). **Plan** mode researches the task and produces a step-by-step implementation plan for you to review and refine before any code is written — then you hand the plan to Agent mode to implement.',
-    details: [
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: Difference between Ask, Agent, and Plan mode in GitHub Copilot',
+      },
+      {
+        type: 'paragraph',
+        text: '**Ask** mode answers questions and explains code without changing your files. **Agent** mode works autonomously: it decides which files to edit, makes multi-file changes, can run terminal commands and tests, and iterates on errors (with your approval for actions). **Plan** mode researches the task and produces a step-by-step implementation plan for you to review and refine before any code is written — then you hand the plan to Agent mode to implement.',
+      },
       {
         type: 'paragraph',
         text: "These are chat modes in GitHub Copilot Chat (VS Code and other supported IDEs). They differ in **how much autonomy** Copilot has and **whether it may change your workspace**. There is also an Edit mode for targeted multi-file edits in files you choose; its role has been shrinking as Agent mode matured. Exact names and availability vary by IDE and Copilot version, so check your editor's mode picker.",

@@ -57,26 +57,33 @@
   font-size: 15px;
 }
 
-.btn-mode-tab--active-angular .ti {
+.btn-mode-tab--active.btn-mode-tab--foundations .ti {
+  color: var(--t-amber-400);
+}
+
+.btn-mode-tab--active.btn-mode-tab--angular .ti {
   color: var(--color-angular-text);
 }
 
-.btn-mode-tab--active-node .ti {
+.btn-mode-tab--active.btn-mode-tab--nodejs .ti {
   color: var(--color-node-text);
+}
+
+/* Three tracks in a narrow sidebar: only the selected one shows its name */
+.btn-mode-tab:not(.btn-mode-tab--active) {
+  flex: 0 0 34px;
+}
+
+.btn-mode-tab:not(.btn-mode-tab--active) .mode-label {
+  display: none;
 }
 
 .btn-mode-tab:hover {
   color: var(--color-text-secondary);
 }
 
-.btn-mode-tab--active-angular {
-  /* Neutral selected state; only the icon carries the brand colour */
-  background: var(--color-surface-2);
-  color: var(--color-text-primary);
-  box-shadow: 0 0 0 1px var(--color-border-strong);
-}
-
-.btn-mode-tab--active-node {
+.btn-mode-tab--active {
+  /* Neutral selected state; only the icon carries the track colour */
   background: var(--color-surface-2);
   color: var(--color-text-primary);
   box-shadow: 0 0 0 1px var(--color-border-strong);

@@ -29,8 +29,6 @@ export const ANSWER_LOADERS: Record<string, () => Promise<AnswerMap>> = {
   'experience-behavioral': () => import('./experience-behavioral').then((m) => m.answers),
   'coding-round': () => import('./coding-round').then((m) => m.answers),
   'nodejs-fundamentals': () => import('./nodejs-fundamentals').then((m) => m.answers),
-  'nodejs-javascript': () => import('./nodejs-javascript').then((m) => m.answers),
-  'nodejs-typescript': () => import('./nodejs-typescript').then((m) => m.answers),
   'nodejs-error-handling': () => import('./nodejs-error-handling').then((m) => m.answers),
   'nodejs-streams': () => import('./nodejs-streams').then((m) => m.answers),
   'nodejs-memory': () => import('./nodejs-memory').then((m) => m.answers),

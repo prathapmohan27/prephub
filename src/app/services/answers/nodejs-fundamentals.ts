@@ -203,74 +203,6 @@ http.createServer((req, res) => {
     ],
   },
 
-  'How does Node.js handle asynchronous operations if it is single-threaded?': {
-    summary:
-      "Only the JavaScript execution is single-threaded. Node delegates I/O to the operating system (non-blocking sockets via epoll/kqueue/IOCP) and to libuv's thread pool (files, DNS lookup, crypto, zlib). When an operation finishes, libuv puts its callback in a queue, and the event loop runs it on the main thread once the call stack is empty.",
-    details: [
-      {
-        type: 'paragraph',
-        text: 'A useful analogy: a restaurant with one waiter (the JS thread). The waiter takes your order, passes it to the kitchen (OS / thread pool), and immediately serves the next table instead of standing by the stove. When the dish is ready the kitchen rings a bell (event), and the waiter delivers it when free.',
-      },
-      { type: 'heading3', text: 'The moving parts' },
-      {
-        type: 'numbered',
-        items: [
-          'JavaScript calls an async API, e.g. `fs.readFile()` or `socket.write()`.',
-          "Node's C++ layer hands it to libuv, which uses the OS async facility or a pool thread.",
-          'JavaScript continues; the call stack eventually becomes empty.',
-          'When the I/O completes, libuv queues the callback for the appropriate event loop phase.',
-          'The event loop picks it up and runs it on the main thread. Promise continuations (microtasks) run right after each callback.',
-        ],
-      },
-      {
-        type: 'code',
-        lang: 'javascript',
-        code: `import { readFile } from 'node:fs/promises';
-
-console.log('1: start');
-
-setTimeout(() => console.log('4: timer'), 0);
-readFile(import.meta.filename).then(() => console.log('5: file read'));
-Promise.resolve().then(() => console.log('3: microtask'));
-
-console.log('2: end of script');
-
-// 1: start
-// 2: end of script
-// 3: microtask
-// 4: timer
-// 5: file read   (file I/O usually takes longer than a 0 ms timer)`,
-      },
-      {
-        type: 'flow',
-        title: 'One JS thread, many background workers',
-        code: `sequenceDiagram
-  participant JS as Main JS thread
-  participant UV as libuv
-  participant OS as OS / thread pool
-  JS->>UV: fs.readFile(path, cb)
-  UV->>OS: perform read in background
-  JS->>JS: keeps running other code
-  OS-->>UV: read finished
-  UV-->>JS: queue cb for poll phase
-  JS->>JS: event loop runs cb(data)`,
-      },
-      {
-        type: 'bullets',
-        items: [
-          'This is why Node handles 10k+ concurrent connections with little memory: each waiting connection is just a small object, not a thread.',
-          'The model breaks down for **CPU-bound** work — the single JS thread is busy and cannot serve the queue. Use Worker Threads, child processes or a separate service.',
-          'Node itself is multi-threaded internally (V8 GC helper threads, libuv pool); "single-threaded" refers to your JS code.',
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: correct the premise politely — "Node runs JavaScript on one thread, but the runtime is not single-threaded." Then explain OS async I/O vs the thread pool. That distinction is exactly what the question is probing.',
-      },
-    ],
-  },
-
   'What is the Event Loop in Node.js and how does it work?': {
     summary:
       "The event loop is the mechanism (implemented by libuv) that lets Node's single JavaScript thread process asynchronous work. After your main script runs, the loop repeatedly cycles through phases — timers, pending callbacks, poll (I/O), check (`setImmediate`), close — running any callbacks whose operations are ready. Between every callback it drains the microtask queues (`process.nextTick`, then promises). When nothing is left to wait for, the process exits.",
@@ -351,6 +283,76 @@ setInterval(() => console.log('p99 loop delay ms', h.percentile(99) / 1e6), 5000
         type: 'callout',
         variant: 'tip',
         text: 'Interview tip: mention three things — phases in order, microtasks drained between callbacks, and "don\'t block the loop" with a concrete fix (worker threads, chunking with `setImmediate`, streaming). That covers what most interviewers want.',
+      },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: How does Node.js handle asynchronous operations if it is single-threaded?',
+      },
+      {
+        type: 'paragraph',
+        text: "Only the JavaScript execution is single-threaded. Node delegates I/O to the operating system (non-blocking sockets via epoll/kqueue/IOCP) and to libuv's thread pool (files, DNS lookup, crypto, zlib). When an operation finishes, libuv puts its callback in a queue, and the event loop runs it on the main thread once the call stack is empty.",
+      },
+      {
+        type: 'paragraph',
+        text: 'A useful analogy: a restaurant with one waiter (the JS thread). The waiter takes your order, passes it to the kitchen (OS / thread pool), and immediately serves the next table instead of standing by the stove. When the dish is ready the kitchen rings a bell (event), and the waiter delivers it when free.',
+      },
+      { type: 'heading3', text: 'The moving parts' },
+      {
+        type: 'numbered',
+        items: [
+          'JavaScript calls an async API, e.g. `fs.readFile()` or `socket.write()`.',
+          "Node's C++ layer hands it to libuv, which uses the OS async facility or a pool thread.",
+          'JavaScript continues; the call stack eventually becomes empty.',
+          'When the I/O completes, libuv queues the callback for the appropriate event loop phase.',
+          'The event loop picks it up and runs it on the main thread. Promise continuations (microtasks) run right after each callback.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'javascript',
+        code: `import { readFile } from 'node:fs/promises';
+
+console.log('1: start');
+
+setTimeout(() => console.log('4: timer'), 0);
+readFile(import.meta.filename).then(() => console.log('5: file read'));
+Promise.resolve().then(() => console.log('3: microtask'));
+
+console.log('2: end of script');
+
+// 1: start
+// 2: end of script
+// 3: microtask
+// 4: timer
+// 5: file read   (file I/O usually takes longer than a 0 ms timer)`,
+      },
+      {
+        type: 'flow',
+        title: 'One JS thread, many background workers',
+        code: `sequenceDiagram
+  participant JS as Main JS thread
+  participant UV as libuv
+  participant OS as OS / thread pool
+  JS->>UV: fs.readFile(path, cb)
+  UV->>OS: perform read in background
+  JS->>JS: keeps running other code
+  OS-->>UV: read finished
+  UV-->>JS: queue cb for poll phase
+  JS->>JS: event loop runs cb(data)`,
+      },
+      {
+        type: 'bullets',
+        items: [
+          'This is why Node handles 10k+ concurrent connections with little memory: each waiting connection is just a small object, not a thread.',
+          'The model breaks down for **CPU-bound** work — the single JS thread is busy and cannot serve the queue. Use Worker Threads, child processes or a separate service.',
+          'Node itself is multi-threaded internally (V8 GC helper threads, libuv pool); "single-threaded" refers to your JS code.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: correct the premise politely — "Node runs JavaScript on one thread, but the runtime is not single-threaded." Then explain OS async I/O vs the thread pool. That distinction is exactly what the question is probing.',
       },
     ],
   },
@@ -633,6 +635,83 @@ const esm = require('./math.mjs');`,
         variant: 'tip',
         text: 'Interview tip: "static vs dynamic" and "live bindings vs copied values" are the two conceptual differences interviewers look for. Then mention the practical bits: `"type": "module"`, `.mjs`/`.cjs`, `import.meta.dirname`, and how to load ESM from CJS.',
       },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: What is the difference between namespace and module in TypeScript?',
+      },
+      {
+        type: 'paragraph',
+        text: 'A **module** is any file with a top-level `import` or `export`; it has its own scope and is loaded by the runtime\'s module system (ESM or CommonJS). A **namespace** (`namespace Foo { ... }`, formerly "internal module") is a TypeScript-only construct that groups code under a named object in the global or enclosing scope. Modern code should use ES modules; namespaces survive mainly in declaration files (`.d.ts`) and for augmenting global types like `NodeJS.ProcessEnv`.',
+      },
+      {
+        type: 'paragraph',
+        text: "Namespaces predate ES modules — they were TypeScript's way of avoiding global name collisions when everything was loaded with `<script>` tags. ES modules solve the same problem natively, with better tooling: tree-shaking, static analysis, and native support in Node and browsers.",
+      },
+      { type: 'heading3', text: 'Module (recommended)' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// src/validation/email.ts
+export function isEmail(s: string): boolean {
+  return /^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(s);
+}
+
+// src/app.ts
+import { isEmail } from './validation/email.js';
+isEmail('dev@example.com'); // true`,
+      },
+      { type: 'heading3', text: 'Namespace (legacy pattern)' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `namespace Validation {
+  export function isEmail(s: string): boolean { return s.includes('@'); }
+  const internal = 'not exported'; // private to the namespace
+}
+
+Validation.isEmail('a@b.c');
+
+// Compiles to an IIFE that builds an object:
+// var Validation;
+// (function (Validation) { function isEmail(s) {...} Validation.isEmail = isEmail; })(Validation || (Validation = {}));`,
+      },
+      { type: 'heading3', text: 'Where namespaces are still legitimately used' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Typing environment variables — @types/node declares the NodeJS namespace
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      DATABASE_URL: string;
+      JWT_SECRET: string;
+    }
+  }
+}
+export {};
+
+// Declaration files for libraries that expose a global object
+declare namespace MyLegacySdk {
+  function init(key: string): void;
+}`,
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**Scope**: module → file scope, imported explicitly; namespace → a named object, possibly global.',
+          '**Runtime**: modules are handled by Node/bundlers; namespaces compile into IIFEs and plain objects.',
+          '**Tree-shaking**: works with modules, effectively not with namespaces.',
+          '**Merging**: namespaces can merge with each other, classes, functions and enums — useful in `.d.ts` files.',
+          "Non-declare namespaces are not erasable syntax, so Node's built-in type stripping and `--erasableSyntaxOnly` reject them.",
+          "`declare module 'pkg' { ... }` is **module augmentation/ambient module declaration**, not a namespace — a common naming confusion.",
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: say "use ES modules for code organisation; namespaces only appear in type declarations, like augmenting `NodeJS.ProcessEnv`." That one sentence covers what interviewers want.',
+      },
     ],
   },
 
@@ -864,6 +943,110 @@ process.on('message', async ({ month }) => {
         type: 'callout',
         variant: 'warning',
         text: 'Security pitfall: never interpolate user input into `exec()`. Use `spawn`/`execFile` with an argument array — and validate the input anyway.',
+      },
+    ],
+  },
+
+  'How do you set up TypeScript in a Node.js project?': {
+    summary:
+      'Install `typescript` and `@types/node` as dev dependencies, create a `tsconfig.json` with Node-appropriate settings (`"module": "nodenext"`, a modern `target`, `strict: true`, `outDir`/`rootDir`), compile with `tsc` to JavaScript for production, and use a fast runner like `tsx` (or Node\'s built-in type stripping in recent versions) during development.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'TypeScript is a compile-time tool: Node ultimately runs JavaScript. The setup is about three things — getting type checking right (tsconfig + Node types), a fast dev loop, and a clean build output for production.',
+      },
+      { type: 'heading3', text: '1. Install and initialise' },
+      {
+        type: 'code',
+        lang: 'bash',
+        code: `mkdir orders-api && cd orders-api
+npm init -y
+npm pkg set type=module            # use ES modules
+npm i -D typescript @types/node tsx
+npx tsc --init`,
+      },
+      { type: 'heading3', text: '2. tsconfig.json for Node' },
+      {
+        type: 'code',
+        lang: 'json',
+        code: `{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "rootDir": "src",
+    "outDir": "dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "declaration": false,
+    "verbatimModuleSyntax": true,
+    "noUncheckedIndexedAccess": true
+  },
+  "include": ["src"]
+}`,
+      },
+      {
+        type: 'bullets',
+        items: [
+          "`module`/`moduleResolution: NodeNext` makes TypeScript follow Node's real ESM/CJS rules — including requiring `.js` extensions in relative imports (`import { db } from './db.js'` even though the file is `db.ts`).",
+          'Match `@types/node` to the Node major version you run in production.',
+          'Shared base configs such as `@tsconfig/node22` give sensible defaults you can extend.',
+        ],
+      },
+      { type: 'heading3', text: '3. Scripts' },
+      {
+        type: 'code',
+        lang: 'json',
+        code: `{
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "start": "node --enable-source-maps dist/server.js"
+  }
+}`,
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// src/server.ts
+import http from 'node:http';
+import { getOrders } from './orders.js'; // .js extension with NodeNext
+
+const port = Number(process.env.PORT ?? 3000);
+
+http
+  .createServer(async (_req, res) => {
+    res.setHeader('content-type', 'application/json');
+    res.end(JSON.stringify(await getOrders()));
+  })
+  .listen(port, () => console.log('listening on', port));`,
+      },
+      { type: 'heading3', text: 'Running .ts directly' },
+      {
+        type: 'bullets',
+        items: [
+          '**tsx** (esbuild-based) and **ts-node** run TypeScript without a separate build — great for development. They strip types and do not type-check; run `tsc --noEmit` in CI.',
+          'Recent Node releases can also run `.ts` files directly using built-in **type stripping** (introduced behind a flag in Node 22 and enabled by default in newer releases). It only supports erasable syntax — no `enum`, `namespace` or constructor parameter properties — and does not type-check.',
+          'For production, compiling to JS with `tsc` (or bundling with esbuild/tsup) is still the most common, predictable approach.',
+        ],
+      },
+      {
+        type: 'flow',
+        title: 'Dev vs production pipeline',
+        code: `flowchart LR
+  SRC["src/*.ts"]:::client --> DEV["tsx watch<br/>fast, no type-check"]:::highlight
+  SRC --> TC["tsc --noEmit<br/>type-check in CI"]:::security
+  SRC --> BUILD["tsc build"]:::server
+  BUILD --> DIST["dist/*.js + source maps"]:::db
+  DIST --> RUN["node dist/server.js"]:::server`,
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: mention the `.js` extension rule with NodeNext and that dev runners do not type-check — these are the two things people get wrong in real projects.',
       },
     ],
   },

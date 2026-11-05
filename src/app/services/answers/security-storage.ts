@@ -209,144 +209,6 @@ export class HasPermissionDirective {
     ],
   },
 
-  'What is browser Session Storage?': {
-    summary:
-      "`sessionStorage` is a Web Storage API key-value store (strings only, typically ~5 MB per origin) that is scoped to a single browser tab and origin: data survives page reloads in that tab but is cleared when the tab or window is closed, and it is not shared with other tabs. It's synchronous and accessible to any JavaScript on the page.",
-    details: [
-      {
-        type: 'paragraph',
-        text: 'Session storage is part of the Web Storage API alongside `localStorage`. The difference is lifetime and scope: localStorage persists until cleared and is shared across all tabs of the same origin; sessionStorage lives only for the "page session" of one tab.',
-      },
-      { type: 'heading3', text: 'API' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `sessionStorage.setItem('wizardStep', '2');
-sessionStorage.getItem('wizardStep');   // '2'  (string | null)
-sessionStorage.removeItem('wizardStep');
-sessionStorage.clear();                 // remove everything for this origin+tab
-sessionStorage.length;                  // number of keys
-sessionStorage.key(0);                  // name of the first key`,
-      },
-      { type: 'heading3', text: 'Lifetime rules' },
-      {
-        type: 'bullets',
-        items: [
-          '✅ Survives reload and back/forward navigation in the same tab.',
-          '❌ Cleared when the tab/window is closed.',
-          '❌ Not shared between tabs — opening the same URL in a new tab starts with empty storage.',
-          'Duplicating a tab (or some "open in new tab" flows via `window.open`) **copies** the current sessionStorage into the new tab; after that they are independent.',
-          'Scoped per **origin** (protocol + host + port): `http://app.com` and `https://app.com` are separate.',
-          'Some browsers restore session storage when you reopen a closed tab or restore a session.',
-        ],
-      },
-      { type: 'heading3', text: 'Comparison with other storage' },
-      {
-        type: 'bullets',
-        items: [
-          '**sessionStorage**: per tab, ~5 MB, strings, sync, JS-readable.',
-          '**localStorage**: per origin across tabs, persists forever, ~5–10 MB, strings, sync, JS-readable; fires a `storage` event in other tabs.',
-          '**Cookies**: ~4 KB, sent with every HTTP request, can be `HttpOnly` (not JS-readable), have expiry.',
-          '**IndexedDB**: large, async, stores structured objects/blobs — for offline data.',
-        ],
-      },
-      { type: 'heading3', text: 'Angular-friendly usage (SSR-safe)' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `@Injectable({ providedIn: 'root' })
-export class SessionStore {
-  private isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
-
-  get(key: string): string | null {
-    return this.isBrowser ? sessionStorage.getItem(key) : null; // no sessionStorage on the server
-  }
-  set(key: string, value: string) {
-    if (this.isBrowser) sessionStorage.setItem(key, value);
-  }
-}`,
-      },
-      { type: 'divider' },
-      {
-        type: 'heading3',
-        text: 'Follow-up: What types of data (`strings vs objects`) can you store in browser Session Storage?',
-      },
-      {
-        type: 'paragraph',
-        text: 'Only strings — both keys and values. Any other value is converted with `String()`, so an object becomes `"[object Object]"` and a number becomes `"42"`. To store objects or arrays you serialize with `JSON.stringify()` and parse back with `JSON.parse()`, keeping in mind that Dates, Maps, Sets, functions, class instances and `undefined` don\'t survive JSON round-tripping.',
-      },
-      { type: 'heading3', text: 'The coercion trap' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `sessionStorage.setItem('user', { id: 1 } as any);
-sessionStorage.getItem('user');        // "[object Object]"  ❌ data lost
-
-sessionStorage.setItem('count', 42 as any);
-sessionStorage.getItem('count');       // "42" — a string, not a number
-sessionStorage.getItem('count') + 1;   // "421" 😬
-
-sessionStorage.setItem('flag', false as any);
-if (sessionStorage.getItem('flag')) {} // "false" is truthy → branch runs!`,
-      },
-      { type: 'heading3', text: 'Storing objects correctly with JSON' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `const cart = { items: [{ sku: 'A1', qty: 2 }], updatedAt: new Date() };
-sessionStorage.setItem('cart', JSON.stringify(cart));
-
-const raw = sessionStorage.getItem('cart');
-const restored = raw ? JSON.parse(raw) : null;
-restored.items[0].qty;        // 2 ✅
-restored.updatedAt;           // "2026-11-05T10:00:00.000Z" — a STRING, not a Date`,
-      },
-      { type: 'heading3', text: 'A typed, safe wrapper' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `export function readJson<T>(key: string, fallback: T): T {
-  try {
-    const raw = sessionStorage.getItem(key);
-    return raw === null ? fallback : (JSON.parse(raw) as T);
-  } catch {
-    return fallback;               // corrupted / manually edited value
-  }
-}
-
-export function writeJson(key: string, value: unknown): void {
-  try {
-    sessionStorage.setItem(key, JSON.stringify(value));
-  } catch (e) {
-    // QuotaExceededError (~5 MB limit) or storage disabled (some private modes)
-    console.warn('Could not persist', key, e);
-  }
-}`,
-      },
-      { type: 'heading3', text: 'What does not survive JSON' },
-      {
-        type: 'bullets',
-        items: [
-          '`Date` → ISO string (revive it manually or with a `JSON.parse` reviver).',
-          '`Map`/`Set` → `{}` — convert to arrays first: `[...map]`.',
-          'Functions, `undefined` and `Symbol` properties are dropped; class instances lose their prototype/methods.',
-          '`NaN`/`Infinity` → `null`; `BigInt` throws; circular references throw.',
-          'Binary data (files, blobs) — use IndexedDB instead of base64-encoding into storage.',
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'warning',
-        text: 'Pitfall: always treat stored data as untrusted input — users can edit it in DevTools. Validate the parsed shape (and wrap `JSON.parse` in try/catch) before using it.',
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Good use cases: multi-step form progress, a per-tab filter state, a "return to this URL after login" value. Mention that it is synchronous (blocks the main thread on big writes) and unavailable during SSR.',
-      },
-    ],
-  },
-
   'Where do you store authentication tokens? Session Storage vs Local Storage, and can tokens be stored in a service using RxJS Observables?':
     {
       summary:
@@ -484,8 +346,146 @@ fetch('https://evil.example/collect', {
           variant: 'tip',
           text: 'Interview tip: a strong answer is "access token in memory via a `BehaviorSubject`/signal in a root service, refresh token in an HttpOnly cookie, silent refresh on reload — or a BFF if we control the backend; I\'d avoid localStorage for tokens." Then explain why in one sentence each.',
         },
+        { type: 'divider' },
+        { type: 'heading3', text: 'Follow-up: What is browser Session Storage?' },
+        {
+          type: 'paragraph',
+          text: "`sessionStorage` is a Web Storage API key-value store (strings only, typically ~5 MB per origin) that is scoped to a single browser tab and origin: data survives page reloads in that tab but is cleared when the tab or window is closed, and it is not shared with other tabs. It's synchronous and accessible to any JavaScript on the page.",
+        },
+        {
+          type: 'paragraph',
+          text: 'Session storage is part of the Web Storage API alongside `localStorage`. The difference is lifetime and scope: localStorage persists until cleared and is shared across all tabs of the same origin; sessionStorage lives only for the "page session" of one tab.',
+        },
+        { type: 'heading3', text: 'API' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `sessionStorage.setItem('wizardStep', '2');
+sessionStorage.getItem('wizardStep');   // '2'  (string | null)
+sessionStorage.removeItem('wizardStep');
+sessionStorage.clear();                 // remove everything for this origin+tab
+sessionStorage.length;                  // number of keys
+sessionStorage.key(0);                  // name of the first key`,
+        },
+        { type: 'heading3', text: 'Lifetime rules' },
+        {
+          type: 'bullets',
+          items: [
+            '✅ Survives reload and back/forward navigation in the same tab.',
+            '❌ Cleared when the tab/window is closed.',
+            '❌ Not shared between tabs — opening the same URL in a new tab starts with empty storage.',
+            'Duplicating a tab (or some "open in new tab" flows via `window.open`) **copies** the current sessionStorage into the new tab; after that they are independent.',
+            'Scoped per **origin** (protocol + host + port): `http://app.com` and `https://app.com` are separate.',
+            'Some browsers restore session storage when you reopen a closed tab or restore a session.',
+          ],
+        },
+        { type: 'heading3', text: 'Comparison with other storage' },
+        {
+          type: 'bullets',
+          items: [
+            '**sessionStorage**: per tab, ~5 MB, strings, sync, JS-readable.',
+            '**localStorage**: per origin across tabs, persists forever, ~5–10 MB, strings, sync, JS-readable; fires a `storage` event in other tabs.',
+            '**Cookies**: ~4 KB, sent with every HTTP request, can be `HttpOnly` (not JS-readable), have expiry.',
+            '**IndexedDB**: large, async, stores structured objects/blobs — for offline data.',
+          ],
+        },
+        { type: 'heading3', text: 'Angular-friendly usage (SSR-safe)' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `@Injectable({ providedIn: 'root' })
+export class SessionStore {
+  private isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  get(key: string): string | null {
+    return this.isBrowser ? sessionStorage.getItem(key) : null; // no sessionStorage on the server
+  }
+  set(key: string, value: string) {
+    if (this.isBrowser) sessionStorage.setItem(key, value);
+  }
+}`,
+        },
+        { type: 'divider' },
+        {
+          type: 'heading3',
+          text: 'Follow-up: What types of data (`strings vs objects`) can you store in browser Session Storage?',
+        },
+        {
+          type: 'paragraph',
+          text: 'Only strings — both keys and values. Any other value is converted with `String()`, so an object becomes `"[object Object]"` and a number becomes `"42"`. To store objects or arrays you serialize with `JSON.stringify()` and parse back with `JSON.parse()`, keeping in mind that Dates, Maps, Sets, functions, class instances and `undefined` don\'t survive JSON round-tripping.',
+        },
+        { type: 'heading3', text: 'The coercion trap' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `sessionStorage.setItem('user', { id: 1 } as any);
+sessionStorage.getItem('user');        // "[object Object]"  ❌ data lost
+
+sessionStorage.setItem('count', 42 as any);
+sessionStorage.getItem('count');       // "42" — a string, not a number
+sessionStorage.getItem('count') + 1;   // "421" 😬
+
+sessionStorage.setItem('flag', false as any);
+if (sessionStorage.getItem('flag')) {} // "false" is truthy → branch runs!`,
+        },
+        { type: 'heading3', text: 'Storing objects correctly with JSON' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `const cart = { items: [{ sku: 'A1', qty: 2 }], updatedAt: new Date() };
+sessionStorage.setItem('cart', JSON.stringify(cart));
+
+const raw = sessionStorage.getItem('cart');
+const restored = raw ? JSON.parse(raw) : null;
+restored.items[0].qty;        // 2 ✅
+restored.updatedAt;           // "2026-11-05T10:00:00.000Z" — a STRING, not a Date`,
+        },
+        { type: 'heading3', text: 'A typed, safe wrapper' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `export function readJson<T>(key: string, fallback: T): T {
+  try {
+    const raw = sessionStorage.getItem(key);
+    return raw === null ? fallback : (JSON.parse(raw) as T);
+  } catch {
+    return fallback;               // corrupted / manually edited value
+  }
+}
+
+export function writeJson(key: string, value: unknown): void {
+  try {
+    sessionStorage.setItem(key, JSON.stringify(value));
+  } catch (e) {
+    // QuotaExceededError (~5 MB limit) or storage disabled (some private modes)
+    console.warn('Could not persist', key, e);
+  }
+}`,
+        },
+        { type: 'heading3', text: 'What does not survive JSON' },
+        {
+          type: 'bullets',
+          items: [
+            '`Date` → ISO string (revive it manually or with a `JSON.parse` reviver).',
+            '`Map`/`Set` → `{}` — convert to arrays first: `[...map]`.',
+            'Functions, `undefined` and `Symbol` properties are dropped; class instances lose their prototype/methods.',
+            '`NaN`/`Infinity` → `null`; `BigInt` throws; circular references throw.',
+            'Binary data (files, blobs) — use IndexedDB instead of base64-encoding into storage.',
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'warning',
+          text: 'Pitfall: always treat stored data as untrusted input — users can edit it in DevTools. Validate the parsed shape (and wrap `JSON.parse` in try/catch) before using it.',
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          text: 'Good use cases: multi-step form progress, a per-tab filter state, a "return to this URL after login" value. Mention that it is synchronous (blocks the main thread on big writes) and unavailable during SSR.',
+        },
       ],
     },
+
   'What is XSS (Cross-Site Scripting) and how does Angular protect against it by default?': {
     summary:
       'XSS is when an attacker gets their own JavaScript to run on your origin — usually by smuggling HTML like `<img onerror=...>` into data the app renders — so it can act as the user, read tokens in storage and call your API. Angular treats every value bound into the DOM as untrusted: interpolation is written as text, and property bindings to dangerous sinks (`[innerHTML]`, `[href]`, `[src]`, iframe `src`) go through a sanitizer for that security context. Templates themselves are trusted code, so the holes are the places where you step around Angular: `bypassSecurityTrust*`, direct DOM APIs, and templates built from user input.',

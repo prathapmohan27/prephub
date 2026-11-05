@@ -172,6 +172,84 @@ process.on('unhandledRejection', (reason) => {
         variant: 'warning',
         text: "Pitfall: `process.on('uncaughtException', err => console.log(err))` with no exit. The server keeps running in an unknown state — leaked connections, stuck locks, corrupted caches — and failures become silent and much harder to debug.",
       },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: What is the domain module and is it still recommended?',
+      },
+      {
+        type: 'paragraph',
+        text: 'The `domain` module was an early attempt (Node 0.8 era) to group multiple async operations so that errors thrown anywhere inside them would be routed to a single handler instead of crashing the process. It is **deprecated** and not recommended: it was unreliable (it did not reliably cover all async paths, especially promises) and it encouraged continuing after unknown errors. Use async/await with try/catch, Express error middleware, process-level handlers with restart, and `AsyncLocalStorage` for request context.',
+      },
+      {
+        type: 'paragraph',
+        text: "The idea was attractive: wrap a request in a domain, and any error from its callbacks lands in `domain.on('error')`, so you could send a 500 for that request without crashing the server. In practice, implicit binding of emitters and timers was leaky, it added overhead, and it conflicted with the core principle that an uncaught error leaves the process in an untrusted state.",
+      },
+      { type: 'heading3', text: 'What domain code looked like' },
+      {
+        type: 'code',
+        lang: 'javascript',
+        code: `// ⚠️ Legacy — do not use in new code
+const domain = require('node:domain');
+
+http.createServer((req, res) => {
+  const d = domain.create();
+  d.on('error', (err) => {
+    console.error('request failed', err);
+    res.statusCode = 500;
+    res.end('error');
+  });
+  d.run(() => {
+    setTimeout(() => {
+      throw new Error('async failure'); // routed to d.on('error') instead of crashing
+    }, 10);
+  });
+}).listen(3000);`,
+      },
+      { type: 'heading3', text: 'Modern replacements' },
+      {
+        type: 'code',
+        lang: 'javascript',
+        code: `// 1. Errors: async/await + central error middleware
+app.get('/report', async (req, res, next) => {
+  try {
+    res.json(await buildReport(req.query));
+  } catch (err) {
+    next(err); // Express 5 does this automatically for rejected promises
+  }
+});
+
+// 2. Request-scoped context (what domains were also used for): AsyncLocalStorage
+import { AsyncLocalStorage } from 'node:async_hooks';
+import { randomUUID } from 'node:crypto';
+
+export const requestContext = new AsyncLocalStorage();
+
+app.use((req, res, next) => {
+  requestContext.run({ requestId: req.get('x-request-id') ?? randomUUID() }, next);
+});
+
+export function log(msg) {
+  const ctx = requestContext.getStore();
+  console.log(JSON.stringify({ requestId: ctx?.requestId, msg }));
+}
+
+// 3. Truly uncaught errors: process.on('uncaughtException') → log → graceful shutdown → restart`,
+      },
+      {
+        type: 'bullets',
+        items: [
+          'The module is still present for backward compatibility but documented as deprecated — expect to see it only in very old codebases.',
+          'Promise-based code (async/await) made domains largely unnecessary: errors propagate through the awaited chain to a single try/catch.',
+          '`AsyncLocalStorage` (stable since Node 16) is the supported way to carry context such as request IDs or tenant IDs across async calls.',
+          'Process isolation (multiple instances + supervisor restart) is the accepted strategy for unexpected errors.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: answer "deprecated — don\'t use it", explain in one line why (unreliable, encouraged resuming after unknown errors), and immediately name the replacements: async/await + error middleware, `AsyncLocalStorage`, and crash-and-restart.',
+      },
     ],
   },
 
@@ -333,82 +411,6 @@ process.on('uncaughtException', (err) => {
         type: 'callout',
         variant: 'warning',
         text: 'Pitfall: calling `process.exit()` immediately in the SIGTERM handler. It cuts off in-flight requests and may lose buffered log lines — the exact problem graceful shutdown is meant to solve.',
-      },
-    ],
-  },
-
-  'What is the domain module and is it still recommended?': {
-    summary:
-      'The `domain` module was an early attempt (Node 0.8 era) to group multiple async operations so that errors thrown anywhere inside them would be routed to a single handler instead of crashing the process. It is **deprecated** and not recommended: it was unreliable (it did not reliably cover all async paths, especially promises) and it encouraged continuing after unknown errors. Use async/await with try/catch, Express error middleware, process-level handlers with restart, and `AsyncLocalStorage` for request context.',
-    details: [
-      {
-        type: 'paragraph',
-        text: "The idea was attractive: wrap a request in a domain, and any error from its callbacks lands in `domain.on('error')`, so you could send a 500 for that request without crashing the server. In practice, implicit binding of emitters and timers was leaky, it added overhead, and it conflicted with the core principle that an uncaught error leaves the process in an untrusted state.",
-      },
-      { type: 'heading3', text: 'What domain code looked like' },
-      {
-        type: 'code',
-        lang: 'javascript',
-        code: `// ⚠️ Legacy — do not use in new code
-const domain = require('node:domain');
-
-http.createServer((req, res) => {
-  const d = domain.create();
-  d.on('error', (err) => {
-    console.error('request failed', err);
-    res.statusCode = 500;
-    res.end('error');
-  });
-  d.run(() => {
-    setTimeout(() => {
-      throw new Error('async failure'); // routed to d.on('error') instead of crashing
-    }, 10);
-  });
-}).listen(3000);`,
-      },
-      { type: 'heading3', text: 'Modern replacements' },
-      {
-        type: 'code',
-        lang: 'javascript',
-        code: `// 1. Errors: async/await + central error middleware
-app.get('/report', async (req, res, next) => {
-  try {
-    res.json(await buildReport(req.query));
-  } catch (err) {
-    next(err); // Express 5 does this automatically for rejected promises
-  }
-});
-
-// 2. Request-scoped context (what domains were also used for): AsyncLocalStorage
-import { AsyncLocalStorage } from 'node:async_hooks';
-import { randomUUID } from 'node:crypto';
-
-export const requestContext = new AsyncLocalStorage();
-
-app.use((req, res, next) => {
-  requestContext.run({ requestId: req.get('x-request-id') ?? randomUUID() }, next);
-});
-
-export function log(msg) {
-  const ctx = requestContext.getStore();
-  console.log(JSON.stringify({ requestId: ctx?.requestId, msg }));
-}
-
-// 3. Truly uncaught errors: process.on('uncaughtException') → log → graceful shutdown → restart`,
-      },
-      {
-        type: 'bullets',
-        items: [
-          'The module is still present for backward compatibility but documented as deprecated — expect to see it only in very old codebases.',
-          'Promise-based code (async/await) made domains largely unnecessary: errors propagate through the awaited chain to a single try/catch.',
-          '`AsyncLocalStorage` (stable since Node 16) is the supported way to carry context such as request IDs or tenant IDs across async calls.',
-          'Process isolation (multiple instances + supervisor restart) is the accepted strategy for unexpected errors.',
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: answer "deprecated — don\'t use it", explain in one line why (unreliable, encouraged resuming after unknown errors), and immediately name the replacements: async/await + error middleware, `AsyncLocalStorage`, and crash-and-restart.',
       },
     ],
   },

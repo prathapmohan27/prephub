@@ -17,10 +17,18 @@ import { Header } from '@components/header';
 import { MockInterview, MockItem } from '../mock-interview/mock-interview';
 import { QGroup, QItem, QuestionList, questionKey } from '../question-list/question-list';
 import { QuestionReader } from '../question-reader/question-reader';
-import { Question, CategoryModel, RENAMED_QUESTIONS } from '@services/question';
+import {
+  Question,
+  CategoryModel,
+  RENAMED_QUESTIONS,
+  TRACKS,
+  Track,
+  isTrack,
+  trackOf,
+} from '@services/question';
 import { AnswerService } from '@services/answer.service';
 
-type AppMode = 'angular' | 'nodejs';
+type AppMode = Track;
 
 /** Last question opened in a mode, saved to resume the next visit. */
 interface LastViewed {
@@ -69,26 +77,23 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
             <div class="glass-panel sidebar-panel">
               <div class="sidebar-head">
                 <div class="mode-pill" role="group" aria-label="Interview track">
-                  <button
-                    type="button"
-                    (click)="switchMode('angular')"
-                    class="btn-mode-tab"
-                    [class.btn-mode-tab--active-angular]="mode() === 'angular'"
-                    [attr.aria-pressed]="mode() === 'angular'"
-                    title="Angular"
-                  >
-                    <i class="ti ti-brand-angular"></i><span class="mode-label">Angular</span>
-                  </button>
-                  <button
-                    type="button"
-                    (click)="switchMode('nodejs')"
-                    class="btn-mode-tab"
-                    [class.btn-mode-tab--active-node]="mode() === 'nodejs'"
-                    [attr.aria-pressed]="mode() === 'nodejs'"
-                    title="Node.js"
-                  >
-                    <i class="ti ti-brand-nodejs"></i><span class="mode-label">Node.js</span>
-                  </button>
+                  @for (t of tracks; track t.id) {
+                    <button
+                      type="button"
+                      (click)="switchMode(t.id)"
+                      class="btn-mode-tab"
+                      [class]="'btn-mode-tab btn-mode-tab--' + t.id"
+                      [class.btn-mode-tab--active]="mode() === t.id"
+                      [attr.aria-pressed]="mode() === t.id"
+                      [title]="
+                        t.id === 'foundations'
+                          ? 'Foundations: JavaScript, TypeScript & the web'
+                          : t.label
+                      "
+                    >
+                      <i [class]="'ti ' + t.icon"></i><span class="mode-label">{{ t.short }}</span>
+                    </button>
+                  }
                 </div>
                 <button
                   type="button"
@@ -308,6 +313,7 @@ export class Questions implements OnInit {
   activeFilter = signal<string>('all');
   selectedCategory = signal<CategoryModel | null>(null);
   mode = signal<AppMode>('angular');
+  readonly tracks = TRACKS;
 
   mockOpen = signal(false);
   private mockCard = viewChild(MockInterview);
@@ -405,9 +411,7 @@ export class Questions implements OnInit {
 
   modeCategories = computed(() => {
     const m = this.mode();
-    return this.categories().filter((cat) =>
-      m === 'nodejs' ? cat.id.startsWith('nodejs-') : !cat.id.startsWith('nodejs-'),
-    );
+    return this.categories().filter((cat) => trackOf(cat.id) === m);
   });
 
   totalDatabaseQuestions = computed(() =>
@@ -531,10 +535,10 @@ export class Questions implements OnInit {
       : undefined;
 
     const linked = topic ?? qCat;
-    const savedMode = localStorage.getItem('prep_mode') as AppMode | null;
+    const savedMode = localStorage.getItem('prep_mode');
     if (linked) {
-      this.mode.set(linked.id.startsWith('nodejs-') ? 'nodejs' : 'angular');
-    } else if (savedMode === 'angular' || savedMode === 'nodejs') {
+      this.mode.set(trackOf(linked.id));
+    } else if (isTrack(savedMode)) {
       this.mode.set(savedMode);
     }
     if (topic) this.selectedCategory.set(topic);

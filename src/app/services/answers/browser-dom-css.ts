@@ -91,13 +91,12 @@ export class CartComponent {
         variant: 'tip',
         text: 'Interview tip: define it as "a live tree of objects representing the page", then give a concrete UI example (cart badge, notification count, live form validation) and mention that frameworks automate the same DOM updates.',
       },
-    ],
-  },
-
-  'DOM manipulations': {
-    summary:
-      'DOM manipulation means using JavaScript to select, create, modify, move or remove elements, attributes, classes, styles and event listeners on a page. Core APIs are `querySelector/All`, `createElement`, `append/prepend/before/after`, `remove`, `textContent`, `classList`, `setAttribute`, `style` and `addEventListener`. In Angular you rarely touch the DOM directly — use bindings and control flow, or `Renderer2`/`ElementRef` when you must.',
-    details: [
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: DOM manipulations' },
+      {
+        type: 'paragraph',
+        text: 'DOM manipulation means using JavaScript to select, create, modify, move or remove elements, attributes, classes, styles and event listeners on a page. Core APIs are `querySelector/All`, `createElement`, `append/prepend/before/after`, `remove`, `textContent`, `classList`, `setAttribute`, `style` and `addEventListener`. In Angular you rarely touch the DOM directly — use bindings and control flow, or `Renderer2`/`ElementRef` when you must.',
+      },
       {
         type: 'paragraph',
         text: 'Every DOM change can cost the browser a style recalculation, layout (reflow) and repaint. Good DOM manipulation means using the right API, batching changes, and avoiding unsafe HTML injection.',
@@ -452,6 +451,93 @@ app.post('/auth/login', async (req, res) => {
         type: 'callout',
         variant: 'tip',
         text: 'Interview tip: say clearly that Angular has no built-in device detection, then split the answer: responsive UI → CDK `BreakpointObserver`/CSS; device info → user agent / Client Hints; security → record it server-side at login. That structure shows real-world judgement.',
+      },
+    ],
+  },
+
+  'Explain event bubbling and event capturing in JavaScript': {
+    summary:
+      "In the DOM, an event travels in three phases: **capturing** (from `window` down through ancestors to the target), **target**, then **bubbling** (from the target back up to `window`). Listeners run in the bubbling phase by default; pass `{ capture: true }` to run during capturing. `stopPropagation()` halts the journey. Node's `EventEmitter` has no propagation at all — events go only to listeners on that emitter.",
+    details: [
+      {
+        type: 'paragraph',
+        text: 'This is a browser DOM concept, but it comes up in Node interviews because full-stack developers use both, and because Node implements the web `EventTarget` API (used by `AbortSignal`, `MessagePort`, workers) — without a DOM tree, so there is nothing to bubble through.',
+      },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<div id="outer">
+  <button id="btn">Click</button>
+</div>
+
+<script>
+  const log = (msg) => () => console.log(msg);
+  outer.addEventListener('click', log('outer - capture'), { capture: true });
+  outer.addEventListener('click', log('outer - bubble'));
+  btn.addEventListener('click', log('button - target'));
+
+  // Clicking the button logs:
+  // outer - capture
+  // button - target
+  // outer - bubble
+</script>`,
+      },
+      {
+        type: 'flow',
+        title: 'The three phases of a DOM event',
+        code: `flowchart LR
+  W["window"]:::client -->|"1 capture"| D["document"]:::client
+  D -->|"1 capture"| O["div outer"]:::server
+  O -->|"2 target"| B["button"]:::highlight
+  B -->|"3 bubble"| O2["div outer"]:::server
+  O2 -->|"3 bubble"| D2["document"]:::client`,
+      },
+      { type: 'heading3', text: 'Event delegation — the main practical benefit' },
+      {
+        type: 'code',
+        lang: 'javascript',
+        code: `// One listener on the list instead of one per row (works for rows added later too)
+document.querySelector('#orders').addEventListener('click', (e) => {
+  const row = e.target.closest('[data-order-id]');
+  if (!row) return;
+  openOrder(row.dataset.orderId);
+});
+
+// stopPropagation vs preventDefault
+link.addEventListener('click', (e) => {
+  e.preventDefault();    // stop the browser's default action (navigation)
+  e.stopPropagation();   // stop the event from reaching ancestors
+});`,
+      },
+      { type: 'heading3', text: 'Contrast with Node' },
+      {
+        type: 'code',
+        lang: 'javascript',
+        code: `import { EventEmitter } from 'node:events';
+
+const emitter = new EventEmitter();
+emitter.on('order:created', (order) => console.log('listener 1', order.id));
+emitter.on('order:created', (order) => console.log('listener 2', order.id));
+emitter.emit('order:created', { id: 7 });
+// listeners run synchronously, in registration order — no capture/bubble phases
+
+// EventTarget in Node (no tree, so no propagation)
+const ac = new AbortController();
+ac.signal.addEventListener('abort', () => console.log('aborted'));
+ac.abort();`,
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Some events do not bubble (`focus`, `blur`, `mouseenter`); use `focusin`/`focusout` for delegation.',
+          '`e.target` is the element that triggered the event; `e.currentTarget` is the element whose listener is running.',
+          '`stopImmediatePropagation()` also prevents other listeners on the same element.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: "Interview tip: describe the three phases, then give event delegation as the practical payoff. If the role is backend-heavy, add that Node's EventEmitter has no propagation — a sign you know where the concept does and does not apply.",
       },
     ],
   },

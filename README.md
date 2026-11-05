@@ -8,17 +8,17 @@
 
 ## What's inside
 
-| Section            | What you get                                                                                                                                                                                                                                     |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Interview Q&A**  | **420 questions** across two tracks: **Angular** (25 topics, 255 questions) and **Node.js** (21 topics, 165 questions), each with a quick answer and a detailed explanation                                                                      |
-| **Mock Me**        | Timed mock interview sessions over any set of questions, with self-rating and a results summary                                                                                                                                                  |
-| **Daily Learning** | 10 questions a day from one topic, a mix of topics, or at random, with a daily streak                                                                                                                                                            |
-| **Core Concepts**  | 15 explainers with diagrams: how the internet, DNS, HTTP/HTTPS, browsers, APIs, databases, caching, load balancers, message queues and scaling work, plus back-of-the-envelope estimation                                                        |
-| **System Design**  | 14 worked designs: URL shortener, rate limiter, chat, news feed, notifications, payments, ride sharing, video streaming, file storage, ticket booking, search autocomplete, unique ID generator, distributed cache and distributed load balancer |
+| Section            | What you get                                                                                                                                                                                                                                         |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Interview Q&A**  | **380 questions** in three tracks: **Foundations** (JavaScript, TypeScript, browser: 3 topics, 41 questions), **Angular** (22 topics, 196 questions) and **Node.js** (19 topics, 143 questions), each with a quick answer and a detailed explanation |
+| **Mock Me**        | Timed mock interview sessions over any set of questions, with self-rating and a results summary                                                                                                                                                      |
+| **Daily Learning** | 10 questions a day from one topic, a mix of topics, or at random, with a daily streak                                                                                                                                                                |
+| **Core Concepts**  | 15 explainers with diagrams: how the internet, DNS, HTTP/HTTPS, browsers, APIs, databases, caching, load balancers, message queues and scaling work, plus back-of-the-envelope estimation                                                            |
+| **System Design**  | 14 worked designs: URL shortener, rate limiter, chat, news feed, notifications, payments, ride sharing, video streaming, file storage, ticket booking, search autocomplete, unique ID generator, distributed cache and distributed load balancer     |
 
 ## Interview Q&A
 
-- **Two tracks.** Switch between Angular and Node.js at the top of the topics sidebar. Each track remembers the last question you opened.
+- **Three tracks.** Foundations (shared JavaScript, TypeScript and browser topics), Angular and Node.js. Switch at the top of the topics sidebar; each track remembers the last question you opened.
 - **Track your progress.** Mark questions as **mastered** and **star** the ones to revisit. Every topic shows mastered/total, and the filter tabs (All · Mastered · Starred · Unprepared) show counts.
 - **List + reader.** Pick a question from the list and read the answer beside it. On phones, the reader opens full screen.
 - **Search** across all questions in the current track.
@@ -121,7 +121,7 @@ src/
 
 ## Adding content
 
-- **A question:** add the string to its topic's `questions` array in `src/app/services/question.ts`. Topics whose `id` starts with `nodejs-` belong to the Node.js track; all others belong to Angular.
+- **A question:** add the string to its topic's `questions` array in `src/app/services/question.ts`. The track comes from `trackOf()` in the same file: topics listed in `FOUNDATION_TOPICS` are Foundations, topics whose `id` starts with `nodejs-` are Node.js, and the rest are Angular.
 - **Its answer:** add an entry keyed by the exact question text to that topic's file in `src/app/services/answers/`, with a `summary` (the quick answer) and `details` (content blocks such as paragraphs, headings, bullets and code).
 - **Renaming a question?** Add the old → new text to `RENAMED_QUESTIONS` in `question.ts` so people's saved progress carries over.
 

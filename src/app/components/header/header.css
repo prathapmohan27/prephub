@@ -22,7 +22,7 @@
   padding: 10px 14px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border-strong);
-  background: rgba(24, 24, 27, 0.6);
+  background: rgb(var(--n-900) / 0.6);
 }
 
 .search-input {
@@ -41,7 +41,7 @@
   gap: 2px;
   padding: 4px;
   border-radius: var(--radius-md);
-  background: rgba(24, 24, 27, 0.7);
+  background: rgb(var(--n-900) / 0.7);
   border: 1px solid var(--color-border);
 }
 
@@ -96,7 +96,7 @@
 }
 
 .btn-filter-tab--active {
-  background: rgba(63, 63, 70, 0.8);
+  background: rgb(var(--n-700) / 0.8);
   color: var(--color-text-primary);
 }
 

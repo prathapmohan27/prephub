@@ -110,7 +110,7 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
                           cy="18"
                           r="14"
                           fill="none"
-                          stroke="rgba(63,63,70,0.4)"
+                          style="stroke: rgb(var(--n-700) / 0.4)"
                           stroke-width="3"
                         />
                         <circle

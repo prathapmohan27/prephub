@@ -3,10 +3,14 @@
 @import 'tailwindcss';
 
 /* ----------------------------------------
-   CSS Custom Properties (Design Tokens)
-   These are global because every component references them.
+   Design Tokens
+   Global because every component references them. Dark is the default;
+   light overrides below. The theme is set as <html data-theme="light|dark">
+   by an inline script in index.html (before first paint) and by ThemeService.
 ---------------------------------------- */
 :root {
+  color-scheme: dark;
+
   /* ---- Layout ---- */
   --nav-h: 60px;
   --tabbar-h: 60px;
@@ -18,11 +22,20 @@
     'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, monospace;
 
+  /* ---- Neutral ramp as RGB channels, used as rgb(var(--n-900) / 0.75) ----
+     Named after the dark-theme zinc shade they replace; light flips them. */
+  --n-950: 9 9 11; /* page */
+  --n-900: 24 24 27; /* panels */
+  --n-800: 39 39 42; /* raised chips, hovers */
+  --n-700: 63 63 70; /* borders, active chips */
+  --n-600: 82 82 91;
+  --n-400: 161 161 170;
+
   /* ---- Base Surfaces ---- */
-  --color-page-bg: #09090b; /* zinc-950 */
-  --color-surface-1: #18181b; /* zinc-900 */
-  --color-surface-2: #27272a; /* zinc-800 */
-  --color-surface-3: #3f3f46; /* zinc-700 */
+  --color-page-bg: rgb(var(--n-950));
+  --color-surface-1: rgb(var(--n-900));
+  --color-surface-2: rgb(var(--n-800));
+  --color-surface-3: rgb(var(--n-700));
 
   /* ---- Text ---- */
   --color-text-primary: #f4f4f5;
@@ -32,9 +45,9 @@
   --color-text-faint: #82828b; /* 4.6:1 on cards — lowest tier that is still readable */
 
   /* ---- Borders ---- */
-  --color-border: rgba(63, 63, 70, 0.3);
-  --color-border-muted: rgba(63, 63, 70, 0.22);
-  --color-border-strong: rgba(63, 63, 70, 0.5);
+  --color-border: rgb(var(--n-700) / 0.3);
+  --color-border-muted: rgb(var(--n-700) / 0.22);
+  --color-border-strong: rgb(var(--n-700) / 0.5);
 
   /* ---- Angular accent (rose) ---- */
   --color-angular: #f43f5e;
@@ -66,6 +79,39 @@
   /* ---- Semantic: danger ---- */
   --color-danger-text: #fb7185;
 
+  /* ---- Accent tints for text and icons ----
+     Light 200–400 shades read well on dark; light theme swaps in 700–900 shades. */
+  --t-amber-100: #fef3c7;
+  --t-amber-200: #fde68a;
+  --t-amber-300: #fcd34d;
+  --t-amber-400: #fbbf24;
+  --t-teal-100: #ccfbf1;
+  --t-teal-200: #99f6e4;
+  --t-teal-300: #5eead4;
+  --t-teal-400: #2dd4bf;
+  --t-indigo-100: #e0e7ff;
+  --t-indigo-200: #c7d2fe;
+  --t-indigo-300: #a5b4fc;
+  --t-indigo-400: #818cf8;
+  --t-violet-100: #ede9fe;
+  --t-violet-300: #c4b5fd;
+  --t-violet-400: #a78bfa;
+  --t-purple-200: #e9d5ff;
+  --t-purple-400: #c084fc;
+  --t-rose-200: #fecdd3;
+  --t-rose-400: #fb7185;
+  --t-green-400: #4ade80;
+  --t-emerald-400: #34d399;
+  --t-cyan-200: #a5f3fc;
+  --t-cyan-400: #22d3ee;
+  --t-sky-400: #38bdf8;
+  --t-blue-200: #bfdbfe;
+  --t-blue-300: #93c5fd;
+  --t-orange-300: #fdba74;
+  --t-orange-400: #fb923c;
+  --t-red-400: #f87171;
+  --t-pink-400: #f472b6;
+
   /* ---- Border Radii ---- */
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -78,6 +124,115 @@
   --shadow-logo: 0 4px 16px rgba(0, 0, 0, 0.25);
   --shadow-btn-danger: 0 4px 14px rgba(244, 63, 94, 0.2);
   --shadow-success-glow: 0 0 8px rgba(16, 185, 129, 0.3);
+}
+
+/* ---- Light theme ---- */
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --n-950: 245 245 247; /* page: soft grey so white panels stand out */
+  --n-900: 255 255 255; /* panels */
+  --n-800: 238 238 241; /* raised chips, hovers */
+  --n-700: 212 212 218; /* borders, active chips */
+  --n-600: 161 161 170;
+  --n-400: 113 113 122;
+
+  --color-text-primary: #18181b;
+  --color-text-secondary: #27272a;
+  --color-text-muted: #52525b;
+  --color-text-subtle: #63636e; /* 5.6:1 on white */
+  --color-text-faint: #71717a; /* 4.8:1 on white */
+
+  --color-border: rgb(24 24 27 / 0.1);
+  --color-border-muted: rgb(24 24 27 / 0.07);
+  --color-border-strong: rgb(24 24 27 / 0.16);
+
+  --color-angular-text: #e11d48;
+  --color-angular-glow: rgba(244, 63, 94, 0.12);
+  --color-node-text: #15803d;
+  --color-node-glow: rgba(22, 163, 74, 0.12);
+  --color-success-light: #047857;
+  --color-success-bg: rgba(16, 185, 129, 0.12);
+  --color-success-border: rgba(16, 185, 129, 0.3);
+  --color-warning-light: #b45309;
+  --color-warning-bg: rgba(245, 158, 11, 0.12);
+  --color-warning-border: rgba(245, 158, 11, 0.3);
+  --color-danger-text: #e11d48;
+
+  --t-amber-100: #78350f;
+  --t-amber-200: #92400e;
+  --t-amber-300: #b45309;
+  --t-amber-400: #b45309;
+  --t-teal-100: #134e4a;
+  --t-teal-200: #115e59;
+  --t-teal-300: #0f766e;
+  --t-teal-400: #0f766e;
+  --t-indigo-100: #312e81;
+  --t-indigo-200: #3730a3;
+  --t-indigo-300: #4338ca;
+  --t-indigo-400: #4f46e5;
+  --t-violet-100: #4c1d95;
+  --t-violet-300: #6d28d9;
+  --t-violet-400: #7c3aed;
+  --t-purple-200: #6b21a8;
+  --t-purple-400: #9333ea;
+  --t-rose-200: #9f1239;
+  --t-rose-400: #e11d48;
+  --t-green-400: #15803d;
+  --t-emerald-400: #047857;
+  --t-cyan-200: #155e75;
+  --t-cyan-400: #0e7490;
+  --t-sky-400: #0369a1;
+  --t-blue-200: #1e40af;
+  --t-blue-300: #1d4ed8;
+  --t-orange-300: #c2410c;
+  --t-orange-400: #c2410c;
+  --t-red-400: #b91c1c;
+  --t-pink-400: #be185d;
+
+  --shadow-logo: 0 4px 16px rgba(24, 24, 27, 0.12);
+}
+
+/* Code samples and diagrams stay dark in both themes (syntax colours and the
+   Mermaid palette are tuned for dark), so they get the dark tokens back. */
+:root[data-theme='light'] :is(app-code-block, app-flow-diagram) {
+  color-scheme: dark;
+  --n-950: 9 9 11;
+  --n-900: 24 24 27;
+  --n-800: 39 39 42;
+  --n-700: 63 63 70;
+  --n-600: 82 82 91;
+  --n-400: 161 161 170;
+  --color-text-primary: #f4f4f5;
+  --color-text-secondary: #e4e4e7;
+  --color-text-muted: #a1a1aa;
+  --color-text-subtle: #8b8b94;
+  --color-text-faint: #82828b;
+  --color-border: rgb(63 63 70 / 0.3);
+  --color-border-muted: rgb(63 63 70 / 0.22);
+  --color-border-strong: rgb(63 63 70 / 0.5);
+}
+
+/* Its canvas is translucent (made for the dark page); give it a solid dark base */
+:root[data-theme='light'] app-flow-diagram .fd {
+  background-color: #111114;
+}
+
+/* Smooth switch between themes, without animating every page load */
+html.theme-switching,
+html.theme-switching * {
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease !important;
+}
+
+::selection {
+  background: rgba(244, 63, 94, 0.3);
+}
+
+:root[data-theme='light'] ::selection {
+  background: rgba(244, 63, 94, 0.2);
 }
 
 /* ----------------------------------------
@@ -130,11 +285,11 @@ h6 {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(63, 63, 70, 0.5);
+  background: rgb(var(--n-700) / 0.5);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(82, 82, 91, 0.7);
+  background: rgb(var(--n-600) / 0.7);
 }
 
 /* ----------------------------------------
@@ -142,7 +297,7 @@ h6 {
 ---------------------------------------- */
 mark {
   background: rgba(251, 191, 36, 0.18);
-  color: #fcd34d;
+  color: var(--t-amber-300);
   font-weight: 500;
   border-radius: 3px;
   padding: 0 4px;
@@ -153,14 +308,14 @@ mark {
    Glassmorphism surfaces  (shared by multiple components)
 ---------------------------------------- */
 .glass-panel {
-  background: rgba(24, 24, 27, 0.75);
+  background: rgb(var(--n-900) / 0.75);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--color-border);
 }
 
 .glass-card {
-  background: rgba(39, 39, 42, 0.35);
+  background: rgb(var(--n-800) / 0.35);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--color-border-muted);
@@ -266,9 +421,9 @@ mark {
   padding: 1px 7px;
   border-radius: var(--radius-pill);
   font-weight: 600;
-  border: 1px solid rgba(63, 63, 70, 0.45);
+  border: 1px solid rgb(var(--n-700) / 0.45);
   color: var(--color-text-muted);
-  background: rgba(39, 39, 42, 0.6);
+  background: rgb(var(--n-800) / 0.6);
 }
 
 /* ----------------------------------------
@@ -280,9 +435,9 @@ mark {
   gap: 6px;
   padding: 7px 14px;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(63, 63, 70, 0.5);
-  background: rgba(39, 39, 42, 0.5);
-  color: #d4d4d8;
+  border: 1px solid rgb(var(--n-700) / 0.5);
+  background: rgb(var(--n-800) / 0.5);
+  color: var(--color-text-secondary);
   font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
@@ -291,8 +446,8 @@ mark {
     border-color 0.15s;
 }
 .btn-ghost:hover {
-  background: rgba(63, 63, 70, 0.5);
-  border-color: rgba(82, 82, 91, 0.6);
+  background: rgb(var(--n-700) / 0.5);
+  border-color: rgb(var(--n-600) / 0.6);
 }
 
 .btn-icon-bare {
@@ -309,8 +464,8 @@ mark {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: rgba(39, 39, 42, 0.6);
-  border: 1px solid rgba(63, 63, 70, 0.4);
+  background: rgb(var(--n-800) / 0.6);
+  border: 1px solid rgb(var(--n-700) / 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -377,7 +532,7 @@ a.action-link {
 .spotlight-q-box {
   padding: 16px;
   border-radius: var(--radius-lg);
-  background: rgba(9, 9, 11, 0.7);
+  background: rgb(var(--n-950) / 0.7);
   border: 1px solid var(--color-border);
 }
 .spotlight-q-text {
@@ -414,7 +569,7 @@ a.action-link {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: rgba(39, 39, 42, 0.6);
+  background: rgb(var(--n-800) / 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -436,9 +591,9 @@ a.action-link {
 .q-code {
   padding: 1px 5px;
   border-radius: 4px;
-  background: rgba(63, 63, 70, 0.55);
-  border: 1px solid rgba(82, 82, 91, 0.5);
+  background: rgb(var(--n-700) / 0.55);
+  border: 1px solid rgb(var(--n-600) / 0.5);
   font: 500 0.88em var(--font-mono);
-  color: #e9d5ff;
+  color: var(--t-purple-200);
   white-space: break-spaces;
 }

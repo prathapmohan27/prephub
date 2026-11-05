@@ -26,7 +26,7 @@ type ViewState = 'setup' | 'session';
           } @else {
             <div
               class="streak-badge streak-zero"
-              style="color: var(--color-text-subtle); background: rgba(63,63,70,.25); border-color: var(--color-border);"
+              style="color: var(--color-text-subtle); background: rgb(var(--n-700) / .25); border-color: var(--color-border);"
             >
               <i class="ti ti-flame" style="font-size:14px"></i>
               Start your streak today

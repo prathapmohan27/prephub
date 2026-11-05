@@ -117,7 +117,7 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
                           cy="18"
                           r="14"
                           fill="none"
-                          stroke="rgba(63,63,70,0.4)"
+                          style="stroke: rgb(var(--n-700) / 0.4)"
                           stroke-width="3"
                         />
                         <circle
@@ -439,7 +439,7 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
                               @if (d.keyTakeaways && d.keyTakeaways.length > 0) {
                                 <div class="diagram-takeaways">
                                   <div class="takeaways-header">
-                                    <i class="ti ti-sparkles" style="color: #fbbf24;"></i>
+                                    <i class="ti ti-sparkles" style="color: var(--t-amber-400)"></i>
                                     <span>Architecture & Engineering Insights</span>
                                   </div>
                                   <ul class="takeaways-bullets">

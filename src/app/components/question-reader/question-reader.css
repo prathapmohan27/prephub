@@ -108,7 +108,7 @@
   padding: 12px 16px;
   border-top: 1px solid var(--color-border);
   border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
-  background: #121215;
+  background: rgb(var(--n-950));
 }
 
 .reader-nav-btn,
@@ -118,8 +118,8 @@
   gap: 6px;
   padding: 9px 14px;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(63, 63, 70, 0.5);
-  background: rgba(39, 39, 42, 0.6);
+  border: 1px solid rgb(var(--n-700) / 0.5);
+  background: rgb(var(--n-800) / 0.6);
   color: var(--color-text-secondary);
   font: 600 0.75rem var(--font-sans);
   cursor: pointer;
@@ -130,7 +130,7 @@
 
 .reader-nav-btn:hover:not(:disabled),
 .reader-done:hover {
-  background: rgba(63, 63, 70, 0.6);
+  background: rgb(var(--n-700) / 0.6);
 }
 
 .reader-nav-btn:disabled {
@@ -151,7 +151,7 @@
 kbd {
   padding: 1px 5px;
   border-radius: 4px;
-  border: 1px solid rgba(82, 82, 91, 0.6);
+  border: 1px solid rgb(var(--n-600) / 0.6);
   font: 500 0.6rem var(--font-mono);
   color: var(--color-text-subtle);
 }

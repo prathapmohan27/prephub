@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { IsActiveMatchOptions, RouterLink, RouterLinkActive } from '@angular/router';
+import { ThemeService } from '@services/theme.service';
 
 interface NavItem {
   path: string;
@@ -22,27 +23,47 @@ interface NavItem {
           <span class="nav-brand-text">PrepHub</span>
         </a>
 
-        <nav class="nav-links" aria-label="Main">
-          @for (item of items; track item.path) {
-            <a
-              [routerLink]="item.path"
-              routerLinkActive="nav-link--active"
-              [routerLinkActiveOptions]="item.exact ? exactPath : subtree"
-              ariaCurrentWhenActive="page"
-              class="nav-link"
-            >
-              <i [class]="'ti ' + item.icon"></i>
-              <span class="nav-link-label">{{ item.label }}</span>
-              <span class="nav-link-short">{{ item.shortLabel }}</span>
-            </a>
-          }
-        </nav>
+        <div class="nav-end">
+          <nav class="nav-links" aria-label="Main">
+            @for (item of items; track item.path) {
+              <a
+                [routerLink]="item.path"
+                routerLinkActive="nav-link--active"
+                [routerLinkActiveOptions]="item.exact ? exactPath : subtree"
+                ariaCurrentWhenActive="page"
+                class="nav-link"
+              >
+                <i [class]="'ti ' + item.icon"></i>
+                <span class="nav-link-label">{{ item.label }}</span>
+                <span class="nav-link-short">{{ item.shortLabel }}</span>
+              </a>
+            }
+          </nav>
+
+          <button
+            type="button"
+            class="theme-toggle"
+            (click)="theme.toggle()"
+            [attr.aria-label]="
+              theme.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
+            "
+            [title]="theme.theme() === 'dark' ? 'Light theme' : 'Dark theme'"
+          >
+            <i
+              class="ti"
+              [class.ti-sun]="theme.theme() === 'dark'"
+              [class.ti-moon]="theme.theme() === 'light'"
+            ></i>
+          </button>
+        </div>
       </div>
     </header>
   `,
   styleUrl: './app-nav.css',
 })
 export class AppNav {
+  protected readonly theme = inject(ThemeService);
+
   /** Match the path only, so links stay active with ?topic=&q= or ?section= in the URL. */
   protected readonly exactPath: IsActiveMatchOptions = {
     paths: 'exact',

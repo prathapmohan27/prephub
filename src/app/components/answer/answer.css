@@ -10,7 +10,7 @@
   font: 700 0.64rem var(--font-mono);
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: #a5b4fc;
+  color: var(--t-indigo-300);
 }
 .ans-label--muted {
   color: var(--color-text-subtle);
@@ -59,7 +59,7 @@
   padding: 4px 10px;
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
-  background: rgba(39, 39, 42, 0.6);
+  background: rgb(var(--n-800) / 0.6);
   color: var(--color-text-secondary);
   font: 600 0.72rem var(--font-sans);
   cursor: pointer;

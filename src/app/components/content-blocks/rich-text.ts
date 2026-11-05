@@ -46,10 +46,10 @@ export function toSegments(text: string): Segment[] {
     .rt-code {
       padding: 1px 5px;
       border-radius: 4px;
-      background: rgba(63, 63, 70, 0.55);
-      border: 1px solid rgba(82, 82, 91, 0.5);
+      background: rgb(var(--n-700) / 0.55);
+      border: 1px solid rgb(var(--n-600) / 0.5);
       font: 500 0.88em var(--font-mono);
-      color: #e9d5ff;
+      color: var(--t-purple-200);
       white-space: break-spaces;
     }
     .rt-bold {

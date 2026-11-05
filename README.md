@@ -1,210 +1,134 @@
-# InterviewPrepHub
+# PrepHub
 
-> **A premium, interactive interview preparation dashboard** — built with a modern web framework, featuring progress tracking, personal study notes, smart filtering, and a mock interview mode.
+**Interview preparation for Angular and Node.js developers.** Questions with model answers, timed mock interviews, a daily practice routine, and visual explainers for core backend concepts and system design.
 
-🌐 **Live Demo:** [https://prathapmohan27.github.io/prephub/](https://prathapmohan27.github.io/prephub/)
-
----
-
-## 📸 Overview
-
-**InterviewPrepHub** is a fully-featured study companion for developers preparing for technical interviews in **any language, framework, or domain**. It organises a curated bank of interview questions across topic categories you define — from core fundamentals to advanced architectural patterns. Swap in questions for JavaScript, Python, Java, system design, data structures & algorithms, DevOps, SQL, or any other subject — the dashboard itself doesn't care what it's teaching you.
+🌐 **Live:** [prathapmohan27.github.io/prephub](https://prathapmohan27.github.io/prephub/)
 
 ---
 
-## ✨ Features
+## What's inside
 
-### 🎯 Smart Study Tracking
-- **Mark as Mastered** — Check off questions you've confidently prepared, with visual strikethrough and green indicator
-- **Star Questions** — Bookmark tricky or high-priority questions for focused review
-- **Preparation Progress** — Per-category progress bars and a global completion percentage tracker
-- All state is **automatically persisted** to `localStorage` — your progress survives page refreshes
+| Section            | What you get                                                                                                                                                                                                                                     |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Interview Q&A**  | **420 questions** across two tracks: **Angular** (25 topics, 255 questions) and **Node.js** (21 topics, 165 questions), each with a quick answer and a detailed explanation                                                                      |
+| **Mock Me**        | Timed mock interview sessions over any set of questions, with self-rating and a results summary                                                                                                                                                  |
+| **Daily Learning** | 10 questions a day from one topic, a mix of topics, or at random, with a daily streak                                                                                                                                                            |
+| **Core Concepts**  | 15 explainers with diagrams: how the internet, DNS, HTTP/HTTPS, browsers, APIs, databases, caching, load balancers, message queues and scaling work, plus back-of-the-envelope estimation                                                        |
+| **System Design**  | 14 worked designs: URL shortener, rate limiter, chat, news feed, notifications, payments, ride sharing, video streaming, file storage, ticket booking, search autocomplete, unique ID generator, distributed cache and distributed load balancer |
 
-### 📝 Personal Study Notes
-- Expand any question to reveal a **private notes drawer**
-- Write your own answer, key talking points, or code snippets
-- Notes auto-save silently to `localStorage`
+## Interview Q&A
 
-### 🔍 Smart Filtering & Search
-- **Live keyword search** across all questions
-- **Filter tabs**: All · Mastered · Starred · Unprepared
-- **Category sidebar** — jump to a specific topic or browse all at once
-- **Expand / Collapse All** categories with a single click
+- **Two tracks.** Switch between Angular and Node.js at the top of the topics sidebar. Each track remembers the last question you opened.
+- **Track your progress.** Mark questions as **mastered** and **star** the ones to revisit. Every topic shows mastered/total, and the filter tabs (All · Mastered · Starred · Unprepared) show counts.
+- **List + reader.** Pick a question from the list and read the answer beside it. On phones, the reader opens full screen.
+- **Search** across all questions in the current track.
+- **Shareable links.** The URL holds the topic and question (`?topic=forms&q=…`), so a refresh or a shared link opens the same question.
+- **Keyboard first:**
 
-### 🎲 Mock Interview Mode
-- Hit **Mock Me** to get a randomly selected question from the current view
-- Instantly mark it as mastered or shuffle to the next one
-- Links directly to official docs (or a reference site of your choice) for that topic
+  | Key                  | Action                        |
+  | -------------------- | ----------------------------- |
+  | `J` / `→`, `K` / `←` | Next / previous question      |
+  | `M`                  | Mark as mastered / unprepared |
+  | `S`                  | Star / unstar                 |
+  | `/`                  | Search                        |
+  | `F`                  | Focus mode (collapse topics)  |
+  | `Esc`                | Close / back to list          |
+  | `?`                  | Show all shortcuts            |
 
-### 🔗 Quick Actions on Every Question
-- **Copy** question text to clipboard
-- **Docs Search** — Google search scoped to a documentation domain you configure
-- **Search Google** — full web search with your subject prefixed
+## Mock Me
 
----
+Click **Mock Me** to practise on the questions currently on screen (the selected topic, filter and search all apply).
 
-## 📚 Question Categories
+1. **Set up.** Choose a 5, 10 or 20 question session, or endless free practice. The thinking timer is 2 minutes per question, or 5 for system design and coding rounds, and can be turned off.
+2. **Answer out loud**, then reveal the model answer.
+3. **Rate yourself.** _Nailed it_ marks the question mastered, _Blanked_ un-marks it, _Shaky_ leaves it alone. Your ratings shape the order of later sessions: missed and unmastered questions come up sooner, and recently nailed ones come up later.
+4. **Review.** See your score, time per question and weakest topics. Retry the missed questions or star them in one click.
 
-The categories below are just a starting template — replace them with whatever subject you're studying. Each category is simply a label plus an array of question strings, so it works equally well for a language, a framework, or a general CS topic.
+Mock Me shortcuts: `Enter` start · `Space` reveal · `1` `2` `3` rate · `N` skip · `T` timer · `R` retry missed · `Esc` end.
 
-| # | Category | Example Topics Covered |
-|---|----------|----------------|
-| 1 | **Language Fundamentals** | Types, syntax, core language features |
-| 2 | **Core Concepts** | Runtime behavior, memory model, execution flow |
-| 3 | **State & Reactivity** | State management patterns, reactive primitives |
-| 4 | **Performance & Optimization** | Rendering/compute efficiency, profiling |
-| 5 | **Asynchronous Programming** | Promises, streams, concurrency patterns |
-| 6 | **Scenario-Based** | Real-world problem solving |
-| 7 | **Components / Modules** | Lifecycle, composition, encapsulation |
-| 8 | **Extensibility Patterns** | Plugins, decorators, custom extensions |
-| 9 | **Data Handling** | Forms, validation, data structures |
-| 10 | **Navigation & Access Control** | Routing, guards, permissions |
-| 11 | **Architecture** | Design patterns, dependency injection, scaling |
-| 12 | **Testing & Tooling** | Unit/integration testing, CI/CD, tooling |
-| 13 | **Live Interview Q&A** | Real interview session questions |
-| 14 | **Coding Round** | Algorithms, data structure challenges |
+All progress (mastered, starred, ratings, streaks, preferences) is saved in your browser's `localStorage`. There's no account and no server.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech stack
 
-The dashboard shell can be built with any modern frontend stack. A typical setup looks like this — substitute your framework of choice:
+- **Angular 22**: standalone components, signals, built-in control flow, lazy-loaded routes
+- **Tailwind CSS 4** plus hand-written component CSS
+- **Mermaid** and **highlight.js** for diagrams and code samples
+- **Tabler Icons**, **Inter** and **Plus Jakarta Sans**
+- **ESLint** (angular-eslint), **Prettier**, **Husky** + **lint-staged** + **commitlint** (Conventional Commits)
+- **Vitest** via `ng test`
+- **GitHub Pages** via `angular-cli-ghpages`
 
-| Technology | Purpose |
-|------------|---------|
-| **Frontend Framework** | React, Vue, Angular, Svelte, or plain JS — your choice |
-| **TypeScript** | Type safety (optional but recommended) |
-| **Tailwind CSS** (or similar) | Utility classes for styling |
-| **State/Reactive Library** | RxJS, Signals, Redux, Zustand, Pinia, etc. |
-| **Test Runner** | Vitest, Jest, Jasmine, or your preferred framework |
-| **Icon Set** | Tabler Icons, Lucide, Font Awesome, etc. |
-| **Web Fonts** | Any Google Fonts pairing |
-| **Static Hosting / Deploy Tool** | GitHub Pages, Netlify, Vercel, etc. |
+## Getting started
 
-### Design Patterns Used
-- ✅ **Component-based architecture** — modular, composable UI
-- ✅ **Reactive state primitives** — signals, observables, or store-based state
-- ✅ **Declarative rendering / control flow** — whatever your framework's modern syntax offers
-- ✅ **Dependency injection or equivalent composition pattern**
-- ✅ **Custom highlight/formatting utility** — for search term highlighting
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- A recent Node.js LTS release
-- npm, pnpm, or yarn
-- The CLI for whichever framework you choose (if any)
+Requires a recent Node.js LTS (the project uses npm 11).
 
 ```bash
-# Example: install a framework CLI
-npm install -g <your-framework-cli>
-```
-
-### Installation
-
-```bash
-# Clone the repository
 git clone https://github.com/prathapmohan27/prephub.git
 cd prephub
-
-# Install dependencies
 npm install
+npm start          # http://localhost:4200
 ```
 
-### Development Server
+| Command          | What it does                            |
+| ---------------- | --------------------------------------- |
+| `npm start`      | Dev server with live reload             |
+| `npm run build`  | Production build into `dist/prephup/`   |
+| `npm run lint`   | ESLint over `src/**/*.ts` and templates |
+| `npm run format` | Prettier over the whole project         |
+| `npm test`       | Unit tests (Vitest)                     |
+
+The Angular CLI is a local dependency, so use `npx ng …` (or `npm run ng -- …`) unless you've installed it globally.
+
+## Deployment
+
+The `deploy` target in `angular.json` builds the app and publishes it to the `gh-pages` branch, with the base href set for `/prephub/`:
 
 ```bash
-npm start
-# or your framework's dev-server command
+npx ng deploy
 ```
 
-Navigate to `http://localhost:4200/` (or whatever port your dev server uses). The app hot-reloads on any file save.
-
-### Production Build
-
-```bash
-npm run build
-# Output: dist/ (path varies by framework)
-```
-
-### Run Tests
-
-```bash
-npm test
-```
-
----
-
-## 🌐 Deployment
-
-This project can be deployed to any static host — GitHub Pages, Netlify, Vercel, Cloudflare Pages, or an S3 bucket. A GitHub Pages example:
-
-```bash
-npm run build
-npx gh-pages -d dist
-```
-
-**Live URL:** `https://prathapmohan27.github.io/prephub/`
-
----
-
-## 📁 Project Structure
+## Project structure
 
 ```
 src/
-├── app/ (or src/)
-│   ├── components/
-│   │   ├── questions/           # Main dashboard layout (sidebar + main panel)
-│   │   ├── header/              # Search bar, filters, Mock Me button
-│   │   ├── stats/                # Progress metric cards
-│   │   ├── category/             # Accordion category card with progress bar
-│   │   └── question-item/        # Question card with notes, star, mastery toggle
-│   ├── utils/
-│   │   └── highlight.ts          # Search term highlighting helper
-│   ├── data/
-│   │   └── questions.ts          # All interview questions data — this is the file you edit to change subjects
-│   ├── app entry point
-│   └── routing configuration
-├── styles/                       # Global styles, glassmorphism, animations
-└── index.html                    # Fonts & icon set CDN links
+├── index.html                  # Fonts, icon font, favicons
+├── styles.css                  # Design tokens, shared panels and buttons
+└── app/
+    ├── app.routes.ts           # Home, Q&A, Daily, Core Concepts, System Design
+    ├── components/
+    │   ├── app-nav/            # Top nav (bottom tab bar on phones)
+    │   ├── home/
+    │   ├── questions/          # Q&A page: topics sidebar, list + reader, shortcuts
+    │   ├── header/             # Search, filter tabs, Mock Me button
+    │   ├── question-list/
+    │   ├── question-reader/
+    │   ├── answer/             # Quick answer + detailed explanation
+    │   ├── mock-interview/     # Mock Me sessions, timer, rating, summary
+    │   ├── daily-learning/
+    │   ├── core-concepts/
+    │   ├── system-design/
+    │   ├── content-blocks/     # Renders rich content (text, lists, code, callouts, flows)
+    │   └── flow-diagram/
+    └── services/
+        ├── question.ts         # Topics and questions for both tracks
+        ├── answers/            # One file of model answers per topic
+        ├── core-concepts/      # One file per concept
+        ├── system-design/      # One file per design
+        └── daily-learning.ts
 ```
 
----
+## Adding content
 
-## 🤝 Contributing
+- **A question:** add the string to its topic's `questions` array in `src/app/services/question.ts`. Topics whose `id` starts with `nodejs-` belong to the Node.js track; all others belong to Angular.
+- **Its answer:** add an entry keyed by the exact question text to that topic's file in `src/app/services/answers/`, with a `summary` (the quick answer) and `details` (content blocks such as paragraphs, headings, bullets and code).
+- **Renaming a question?** Add the old → new text to `RENAMED_QUESTIONS` in `question.ts` so people's saved progress carries over.
 
-Contributions are welcome! If you'd like to add more questions (for any subject), fix bugs, or improve the UI:
+## Contributing
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feat/add-questions`
-3. Commit your changes: `git commit -m "feat: add more questions"`
-4. Push to the branch: `git push origin feat/add-questions`
-5. Open a Pull Request
+1. Create a branch: `git checkout -b feat/your-change`
+2. Commit with a Conventional Commit message, e.g. `feat: add RxJS error-handling questions` (commitlint enforces this)
+3. Push and open a pull request
 
-### Adding Questions
-
-All questions live in `src/app/data/questions.ts` (or equivalent). Simply add new strings to the relevant category's `questions` array — the dashboard doesn't need any code changes to support a new subject, only new data.
-
-### Adapting to a New Subject
-
-To repurpose this dashboard for a different technology or topic:
-1. Replace the category list with your own topic breakdown
-2. Populate each category's question array
-3. Update the "docs search" link to point at the relevant documentation domain
-4. (Optional) Update branding, colors, and the emoji in the title
-
----
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
----
-
----
-
-Built with ❤️ for developers preparing for their next interview — in any language or framework.
-
-[🌐 Live Demo](https://prathapmohan27.github.io/prephub/) • [🐛 Report Bug](https://github.com/prathapmohan27/prephub/issues) • [💡 Request Feature](https://github.com/prathapmohan27/prephub/issues)
+Bugs and ideas: [open an issue](https://github.com/prathapmohan27/prephub/issues).

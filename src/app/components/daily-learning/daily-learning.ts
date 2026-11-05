@@ -1,5 +1,4 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { DailyLearningService, LearningMode } from '@services/daily-learning';
 import { Question, CategoryModel } from '@services/question';
 
@@ -8,7 +7,7 @@ type ViewState = 'setup' | 'session';
 
 @Component({
   selector: 'app-daily-learning',
-  imports: [RouterLink],
+  imports: [],
   template: `
     <div class="dl-shell">
       <div class="dl-glow"></div>
@@ -16,8 +15,6 @@ type ViewState = 'setup' | 'session';
       <div class="dl-wrapper">
         <!-- Top bar -->
         <div class="dl-topbar">
-          <a routerLink="/" class="btn-back"> <i class="ti ti-arrow-left"></i> Back to PrepHub </a>
-
           <!-- Streak badge -->
           @if (streak() > 0) {
             <div class="streak-badge">

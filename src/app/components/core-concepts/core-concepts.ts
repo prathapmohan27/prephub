@@ -1,10 +1,9 @@
-import { Component, signal, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, signal, computed, inject, input, effect } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { FlowDiagram } from '../flow-diagram/flow-diagram';
 import { CoreConceptsService } from '@services/core-concepts.service';
 import { CoreConcept } from '@services/core-concepts-data';
 import { CalloutVariant } from '@services/system-design-data';
-
-type ViewMode = 'list' | 'detail';
 
 const CALLOUT_ICONS: Record<CalloutVariant, string> = {
   info: 'ti-info-circle',
@@ -15,7 +14,7 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
 
 @Component({
   selector: 'app-core-concepts',
-  imports: [RouterLink],
+  imports: [RouterLink, FlowDiagram],
   template: `
     <div class="cc-shell">
       <div class="cc-glow"></div>
@@ -23,8 +22,6 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
       <div class="cc-wrapper">
         <!-- ── Top bar ────────────────────────────────────────────────── -->
         <div class="cc-topbar">
-          <a routerLink="/" class="btn-back"> <i class="ti ti-arrow-left"></i> Back to PrepHub </a>
-
           @if (ccService.overallRead().total > 0) {
             <div class="overall-badge">
               <i class="ti ti-checklist" style="font-size:13px"></i>
@@ -152,9 +149,9 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
             <!-- Detail header -->
             <div class="detail-header">
               <div class="detail-breadcrumb">
-                <button (click)="backToList()" class="btn-breadcrumb-back">
+                <a routerLink="/core-concepts" class="btn-breadcrumb-back">
                   <i class="ti ti-chevron-left" style="font-size:10px"></i> All Concepts
-                </button>
+                </a>
                 <i class="ti ti-slash" style="font-size:9px"></i>
                 <span [style.color]="activeConcept()!.color">
                   {{ activeConcept()!.emoji }} {{ activeConcept()!.title }}
@@ -310,6 +307,14 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
                             <div class="block-code">
                               <code>{{ block.code }}</code>
                             </div>
+                          }
+
+                          @if (block.type === 'flow' && block.code) {
+                            <app-flow-diagram
+                              [code]="block.code"
+                              [title]="block.title"
+                              [caption]="block.text"
+                            />
                           }
 
                           @if (block.type === 'divider') {
@@ -499,9 +504,39 @@ export class CoreConcepts {
   protected ccService = inject(CoreConceptsService);
 
   // ── Signals ──────────────────────────────────────────────────────────────
-  view = signal<ViewMode>('list');
-  activeConcept = signal<CoreConcept | null>(null);
-  activeSectionIdx = signal<number>(0);
+  private router = inject(Router);
+
+  // ── Route state (bound from URL via withComponentInputBinding) ───────────
+  /** Route param: /core-concepts/:conceptId */
+  readonly conceptId = input<string>();
+  /** Query param: ?section=<sectionId> */
+  readonly section = input<string>();
+
+  activeConcept = computed(() => {
+    const id = this.conceptId();
+    return id ? (this.ccService.getConcept(id) ?? null) : null;
+  });
+
+  view = computed(() => (this.activeConcept() ? 'detail' : 'list'));
+
+  activeSectionIdx = computed(() => {
+    const item = this.activeConcept();
+    const secId = this.section();
+    if (!item || !secId) return 0;
+    return Math.max(
+      0,
+      item.sections.findIndex((s) => s.id === secId),
+    );
+  });
+
+  constructor() {
+    // Unknown id in the URL → fall back to the list instead of a blank page
+    effect(() => {
+      if (this.conceptId() && !this.activeConcept()) {
+        this.router.navigate(['/core-concepts'], { replaceUrl: true });
+      }
+    });
+  }
 
   activeSection = computed(() => {
     const c = this.activeConcept();
@@ -531,44 +566,30 @@ export class CoreConcepts {
 
   calloutIconMap = CALLOUT_ICONS;
 
-  // ── Navigation ────────────────────────────────────────────────────────────
+  // ── Navigation (URL-driven so back/forward, refresh and deep links work) ─
   openConcept(concept: CoreConcept) {
-    this.activeConcept.set(concept);
-    this.activeSectionIdx.set(0);
-    this.view.set('detail');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  backToList() {
-    this.view.set('list');
-    this.activeConcept.set(null);
-    this.activeSectionIdx.set(0);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.router.navigate(['/core-concepts', concept.id]);
   }
 
   goToSection(idx: number) {
-    this.activeSectionIdx.set(idx);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const sec = this.activeConcept()?.sections[idx];
+    if (!sec) return;
+    // replaceUrl: stepping through sections shouldn't flood browser history
+    this.router.navigate([], { queryParams: { section: sec.id }, replaceUrl: true });
   }
 
   prevSection() {
-    const idx = this.activeSectionIdx();
-    if (idx > 0) this.activeSectionIdx.set(idx - 1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.goToSection(this.activeSectionIdx() - 1);
   }
 
   nextSection() {
-    const concept = this.activeConcept();
-    const idx = this.activeSectionIdx();
-    if (concept && idx < concept.sections.length - 1) {
-      // Auto-mark current section as read on Next
-      const sec = this.activeSection();
-      if (sec && !this.isSectionRead(sec.id)) {
-        this.ccService.toggleSection(concept.id, sec.id);
-      }
-      this.activeSectionIdx.set(idx + 1);
+    const item = this.activeConcept();
+    const sec = this.activeSection();
+    // Auto-mark current section as read on Next
+    if (item && sec && !this.isSectionRead(sec.id)) {
+      this.ccService.toggleSection(item.id, sec.id);
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.goToSection(this.activeSectionIdx() + 1);
   }
 
   // ── Progress ──────────────────────────────────────────────────────────────

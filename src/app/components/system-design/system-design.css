@@ -35,7 +35,7 @@
 .sd-topbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-bottom: 36px;
   flex-wrap: wrap;
   gap: 12px;
@@ -304,7 +304,7 @@
   width: 256px;
   flex-shrink: 0;
   position: sticky;
-  top: 24px;
+  top: calc(var(--nav-h) + 20px);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -713,6 +713,8 @@
 @media (max-width: 768px) {
   .detail-layout {
     flex-direction: column;
+    /* stretch so wide code blocks / diagrams scroll inside their box instead of widening the page */
+    align-items: stretch;
   }
   .detail-sidebar {
     width: 100%;

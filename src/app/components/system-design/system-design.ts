@@ -1,9 +1,8 @@
-import { Component, signal, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, computed, inject, input, effect } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { FlowDiagram } from '../flow-diagram/flow-diagram';
 import { SystemDesignService } from '@services/system-design.service';
 import { SystemDesignSystem, CalloutVariant } from '@services/system-design-data';
-
-type ViewMode = 'list' | 'detail';
 
 const CALLOUT_ICONS: Record<CalloutVariant, string> = {
   info: 'ti-info-circle',
@@ -14,7 +13,7 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
 
 @Component({
   selector: 'app-system-design',
-  imports: [RouterLink],
+  imports: [RouterLink, FlowDiagram],
   template: `
     <div class="sd-shell">
       <div class="sd-glow"></div>
@@ -22,8 +21,6 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
       <div class="sd-wrapper">
         <!-- ── Top bar ────────────────────────────────────────────────── -->
         <div class="sd-topbar">
-          <a routerLink="/" class="btn-back"> <i class="ti ti-arrow-left"></i> Back to PrepHub </a>
-
           @if (sdService.overallRead().total > 0) {
             <div class="overall-badge">
               <i class="ti ti-checklist" style="font-size:13px"></i>
@@ -144,12 +141,12 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
             <!-- Detail header -->
             <div class="detail-header">
               <div class="detail-breadcrumb">
-                <button
-                  (click)="backToList()"
-                  style="background:none;border:none;cursor:pointer;color:inherit;font:inherit;display:flex;align-items:center;gap:5px;padding:0;"
+                <a
+                  routerLink="/system-design"
+                  style="color:inherit;font:inherit;display:flex;align-items:center;gap:5px;text-decoration:none;"
                 >
                   <i class="ti ti-chevron-left" style="font-size:10px"></i> All Systems
-                </button>
+                </a>
                 <i class="ti ti-slash" style="font-size:9px"></i>
                 <span [style.color]="activeSystem()!.color">{{ activeSystem()!.title }}</span>
               </div>
@@ -307,6 +304,14 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
                             </div>
                           }
 
+                          @if (block.type === 'flow' && block.code) {
+                            <app-flow-diagram
+                              [code]="block.code"
+                              [title]="block.title"
+                              [caption]="block.text"
+                            />
+                          }
+
                           @if (block.type === 'divider') {
                             <div class="block-divider"></div>
                           }
@@ -369,9 +374,39 @@ export class SystemDesign {
   protected sdService = inject(SystemDesignService);
 
   // ── Signals ──────────────────────────────────────────────────────────────
-  view = signal<ViewMode>('list');
-  activeSystem = signal<SystemDesignSystem | null>(null);
-  activeSectionIdx = signal<number>(0);
+  private router = inject(Router);
+
+  // ── Route state (bound from URL via withComponentInputBinding) ───────────
+  /** Route param: /system-design/:systemId */
+  readonly systemId = input<string>();
+  /** Query param: ?section=<sectionId> */
+  readonly section = input<string>();
+
+  activeSystem = computed(() => {
+    const id = this.systemId();
+    return id ? (this.sdService.getSystem(id) ?? null) : null;
+  });
+
+  view = computed(() => (this.activeSystem() ? 'detail' : 'list'));
+
+  activeSectionIdx = computed(() => {
+    const item = this.activeSystem();
+    const secId = this.section();
+    if (!item || !secId) return 0;
+    return Math.max(
+      0,
+      item.sections.findIndex((s) => s.id === secId),
+    );
+  });
+
+  constructor() {
+    // Unknown id in the URL → fall back to the list instead of a blank page
+    effect(() => {
+      if (this.systemId() && !this.activeSystem()) {
+        this.router.navigate(['/system-design'], { replaceUrl: true });
+      }
+    });
+  }
 
   activeSection = computed(() => {
     const sys = this.activeSystem();
@@ -401,44 +436,30 @@ export class SystemDesign {
 
   calloutIconMap = CALLOUT_ICONS;
 
-  // ── Navigation ────────────────────────────────────────────────────────────
+  // ── Navigation (URL-driven so back/forward, refresh and deep links work) ─
   openSystem(sys: SystemDesignSystem) {
-    this.activeSystem.set(sys);
-    this.activeSectionIdx.set(0);
-    this.view.set('detail');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  backToList() {
-    this.view.set('list');
-    this.activeSystem.set(null);
-    this.activeSectionIdx.set(0);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.router.navigate(['/system-design', sys.id]);
   }
 
   goToSection(idx: number) {
-    this.activeSectionIdx.set(idx);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const sec = this.activeSystem()?.sections[idx];
+    if (!sec) return;
+    // replaceUrl: stepping through sections shouldn't flood browser history
+    this.router.navigate([], { queryParams: { section: sec.id }, replaceUrl: true });
   }
 
   prevSection() {
-    const idx = this.activeSectionIdx();
-    if (idx > 0) this.activeSectionIdx.set(idx - 1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.goToSection(this.activeSectionIdx() - 1);
   }
 
   nextSection() {
-    const sys = this.activeSystem();
-    const idx = this.activeSectionIdx();
-    if (sys && idx < sys.sections.length - 1) {
-      // Auto-mark current section as read on Next
-      const sec = this.activeSection();
-      if (sec && !this.isSectionRead(sec.id)) {
-        this.sdService.toggleSection(sys.id, sec.id);
-      }
-      this.activeSectionIdx.set(idx + 1);
+    const item = this.activeSystem();
+    const sec = this.activeSection();
+    // Auto-mark current section as read on Next
+    if (item && sec && !this.isSectionRead(sec.id)) {
+      this.sdService.toggleSection(item.id, sec.id);
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.goToSection(this.activeSectionIdx() + 1);
   }
 
   // ── Progress ──────────────────────────────────────────────────────────────

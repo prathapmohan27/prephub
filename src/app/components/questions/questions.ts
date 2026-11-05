@@ -1,5 +1,4 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { Header } from '@components/header';
 import { Stats } from '@components/stats';
 import { Category } from '@components/category';
@@ -9,7 +8,7 @@ type AppMode = 'angular' | 'nodejs';
 
 @Component({
   selector: 'app-questions',
-  imports: [Header, Stats, Category, RouterLink],
+  imports: [Header, Stats, Category],
   template: `
     <div class="page-shell">
       <div class="radial-glow radial-glow-overlay"></div>
@@ -27,7 +26,7 @@ type AppMode = 'angular' | 'nodejs';
               <i [class]="mode() === 'angular' ? 'ti ti-brand-angular' : 'ti ti-brand-nodejs'"></i>
             </div>
             <div>
-              <h1 class="title-main">PrepHub</h1>
+              <h1 class="title-main">Interview Q&amp;A</h1>
               <span class="subtitle-main">
                 {{
                   mode() === 'angular'
@@ -57,25 +56,6 @@ type AppMode = 'angular' | 'nodejs';
             >
               <i class="ti ti-brand-nodejs text-[16px]"></i> Node.js
             </button>
-          </div>
-
-          <!-- Feature CTAs -->
-          <div class="header-ctas">
-            <a routerLink="/core-concepts" class="btn-core-concepts" id="btn-core-concepts">
-              <i class="ti ti-bulb"></i>
-              Core Concepts
-              <span class="btn-cc-badge">11 topics</span>
-            </a>
-            <a routerLink="/daily" class="btn-daily-learning" id="btn-daily-learning">
-              <i class="ti ti-calendar-stats"></i>
-              Daily Learning
-              <span class="btn-daily-badge">10 Q/day</span>
-            </a>
-            <a routerLink="/system-design" class="btn-system-design" id="btn-system-design">
-              <i class="ti ti-topology-star"></i>
-              System Design
-              <span class="btn-sd-badge">11 systems</span>
-            </a>
           </div>
         </div>
 

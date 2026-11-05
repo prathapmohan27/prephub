@@ -31,33 +31,12 @@
   padding: 32px 24px 64px;
 }
 
-/* ─── Back navigation bar ─────────────────────────────────────────────────── */
+/* ─── Top bar ─────────────────────────────────────────────────────────────── */
 .dl-topbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-bottom: 36px;
-}
-
-.btn-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 8px 16px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-strong);
-  background: rgba(39, 39, 42, 0.5);
-  color: var(--color-text-muted);
-  font: 600 0.75rem var(--font-sans);
-  cursor: pointer;
-  transition:
-    background 0.15s,
-    color 0.15s;
-  text-decoration: none;
-}
-.btn-back:hover {
-  background: rgba(63, 63, 70, 0.6);
-  color: var(--color-text-primary);
 }
 
 .streak-badge {

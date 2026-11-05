@@ -172,7 +172,7 @@ mark {
 .radial-glow {
   background: radial-gradient(
     ellipse 80% 60% at 50% -10%,
-    rgba(244, 63, 94, 0.07) 0%,
+    rgba(244, 63, 94, 0.035) 0%,
     rgba(99, 102, 241, 0.05) 50%,
     transparent 100%
   );

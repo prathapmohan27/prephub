@@ -4,7 +4,9 @@
 
 .reader {
   border-radius: var(--radius-2xl);
-  border-top: 3px solid var(--reader-accent, var(--color-border-strong));
+  /* A quiet hint of the topic colour, not a second red bar competing with Mock Me */
+  border-top: 2px solid
+    color-mix(in srgb, var(--reader-accent, var(--color-border-strong)) 45%, transparent);
 }
 
 .reader-top {

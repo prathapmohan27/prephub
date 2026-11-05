@@ -57,20 +57,29 @@
   font-size: 15px;
 }
 
+.btn-mode-tab--active-angular .ti {
+  color: var(--color-angular-text);
+}
+
+.btn-mode-tab--active-node .ti {
+  color: var(--color-node-text);
+}
+
 .btn-mode-tab:hover {
   color: var(--color-text-secondary);
 }
 
 .btn-mode-tab--active-angular {
-  background: linear-gradient(135deg, var(--color-angular-glow), rgba(225, 29, 72, 0.1));
-  color: var(--color-angular-text);
-  box-shadow: 0 0 0 1px var(--color-angular-ring);
+  /* Neutral selected state; only the icon carries the brand colour */
+  background: var(--color-surface-2);
+  color: var(--color-text-primary);
+  box-shadow: 0 0 0 1px var(--color-border-strong);
 }
 
 .btn-mode-tab--active-node {
-  background: linear-gradient(135deg, var(--color-node-glow), rgba(21, 128, 61, 0.1));
-  color: var(--color-node-text);
-  box-shadow: 0 0 0 1px var(--color-node-ring);
+  background: var(--color-surface-2);
+  color: var(--color-text-primary);
+  box-shadow: 0 0 0 1px var(--color-border-strong);
 }
 
 .grid-sidebar-main {
@@ -147,6 +156,20 @@
   color: var(--color-text-primary);
   border-color: var(--color-border-strong);
   background: rgba(39, 39, 42, 0.6);
+}
+
+/* Desktop: the sidebar is exactly as tall as the sticky question list beside it,
+   and its topic list fills the rest of the panel */
+@media (min-width: 1101px) {
+  .sidebar-panel {
+    max-height: calc(100vh - var(--nav-h) - 40px);
+  }
+
+  .sidebar-list {
+    flex: 1;
+    min-height: 0;
+    max-height: none;
+  }
 }
 
 /* Collapsed: a narrow icon rail (desktop only — below 1100px topics are a chip row) */

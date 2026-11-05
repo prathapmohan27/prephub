@@ -691,4 +691,765 @@ const authorLoader = new DataLoader(async (ids: readonly number[]) => {
       },
     ],
   },
+
+  'How do you read an `EXPLAIN ANALYZE` plan to find out why a query is slow?': {
+    summary:
+      'First find the queries worth fixing with `pg_stat_statements` (highest total time, not just slowest single call). Then run `EXPLAIN (ANALYZE, BUFFERS)` and read the plan bottom-up: inner nodes run first and feed their parents. I look for the node where most of the time goes, for big gaps between estimated and actual rows (stale or missing statistics), for scans that read far more rows than they return, and for many buffer reads from disk.',
+    details: [
+      {
+        type: 'paragraph',
+        text: '`EXPLAIN` shows the plan the optimizer chose with its estimates. `EXPLAIN ANALYZE` also **runs** the query and adds actual timings and row counts per node. `BUFFERS` adds how many 8 kB pages came from shared buffers (`hit`) versus the OS or disk (`read`). Together they tell you where the time goes and why the planner picked that path.',
+      },
+      { type: 'heading3', text: 'Step 1: find the slow queries first' },
+      {
+        type: 'code',
+        lang: 'sql',
+        code: `-- Needs shared_preload_libraries = 'pg_stat_statements' + CREATE EXTENSION
+SELECT query,
+       calls,
+       round(total_exec_time) AS total_ms,
+       round(mean_exec_time::numeric, 2) AS mean_ms,
+       rows
+FROM pg_stat_statements
+ORDER BY total_exec_time DESC
+LIMIT 10;`,
+      },
+      {
+        type: 'paragraph',
+        text: 'Sort by **total** time: a 5 ms query called 2 million times a day usually matters more than one 3 s report. `auto_explain` (with `log_min_duration`) can log the plans of slow queries in production so you see the real plan, with real parameters.',
+      },
+      { type: 'heading3', text: 'Step 2: a worked example' },
+      {
+        type: 'code',
+        lang: 'sql',
+        code: `EXPLAIN (ANALYZE, BUFFERS)
+SELECT o.id, o.total, c.name
+FROM orders o
+JOIN customers c ON c.id = o.customer_id
+WHERE o.status = 'pending'
+ORDER BY o.created_at DESC
+LIMIT 20;
+
+Limit  (cost=98012.4..98012.5 rows=20) (actual time=1843.1..1843.2 rows=20 loops=1)
+  Buffers: shared hit=1204 read=88412
+  ->  Sort  (cost=98012.4..98012.7 rows=120) (actual time=1843.1..1843.1 rows=20 loops=1)
+        Sort Key: o.created_at DESC
+        Sort Method: top-N heapsort  Memory: 27kB
+        ->  Hash Join  (cost=310.0..98009.2 rows=120) (actual time=4.1..1821.7 rows=48210 loops=1)
+              Hash Cond: (o.customer_id = c.id)
+              ->  Seq Scan on orders o  (cost=0..97650.0 rows=120) (actual time=0.03..1790.5 rows=48210 loops=1)
+                    Filter: (status = 'pending')
+                    Rows Removed by Filter: 4951790
+              ->  Hash  (actual time=4.0..4.0 rows=10000 loops=1)
+                    ->  Seq Scan on customers c  (actual time=0.01..2.1 rows=10000 loops=1)
+Planning Time: 0.4 ms
+Execution Time: 1843.4 ms`,
+      },
+      {
+        type: 'numbered',
+        items: [
+          '**Start at the deepest nodes.** The `Seq Scan on orders` takes ~1790 ms of the 1843 ms total. That is the problem; the join, sort and limit are cheap.',
+          '**Rows Removed by Filter: 4,951,790.** It read 5 million rows to keep 48 thousand. That is a missing index on `status`.',
+          '**Estimate vs actual: 120 vs 48,210.** A 400x miss means the statistics are stale or the value distribution is skewed. Run `ANALYZE orders;` and check autovacuum. Bad estimates are the root cause of most bad join choices.',
+          '**Buffers read=88412** means about 690 MB came from outside shared buffers. That is real I/O, not just CPU.',
+          '**Fix:** `CREATE INDEX CONCURRENTLY ON orders (status, created_at DESC);` lets Postgres walk the index in order and stop after 20 rows. The Sort node disappears and the query drops to about a millisecond.',
+        ],
+      },
+      { type: 'heading3', text: 'Node types to recognise' },
+      {
+        type: 'bullets',
+        items: [
+          '**Seq Scan:** reads the whole table. Fine for small tables or when most rows match.',
+          '**Index Scan:** walks the index, then fetches each row from the heap. Best for few rows.',
+          '**Index Only Scan:** answered from the index alone. Watch `Heap Fetches`: high values mean the visibility map is stale and the table needs VACUUM.',
+          '**Bitmap Index Scan + Bitmap Heap Scan:** collects matching row locations first, then reads heap pages in physical order. Used for medium selectivity or to combine several indexes. `Recheck Cond` and `lossy` blocks mean `work_mem` was too small for an exact bitmap.',
+          '**Nested Loop:** for each outer row, probe the inner side. Great when the outer side is small and the inner side is indexed; terrible when the estimate said 10 rows and it was really 100 thousand.',
+          '**Hash Join:** builds a hash table on the smaller input. Good for large unsorted inputs; `Batches: > 1` means it spilled to disk.',
+          '**Merge Join:** both inputs sorted on the join key. Good for large inputs that are already sorted (for example, from indexes).',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: '`EXPLAIN ANALYZE` really executes the statement. For `UPDATE`/`DELETE`/`INSERT`, wrap it in `BEGIN; ... ROLLBACK;`. Also remember that `actual time` and `rows` are **per loop**: multiply by `loops` (common under a Nested Loop) to get the real total.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: describe a routine, not a single trick: pg_stat_statements to pick the target, `EXPLAIN (ANALYZE, BUFFERS)` with production-like data and parameters, find the most expensive node, compare estimated vs actual rows, then fix with an index, a query rewrite or fresh statistics, and measure again.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'Why might the same query be fast in staging and slow in production? (Data volume, distribution, statistics, cache state, generic vs custom plans for prepared statements.)',
+          'What is the difference between cost and actual time? (Cost is in abstract planner units; time is measured.)',
+          'How do you get a plan for a query an ORM generated? (Log it, or use `auto_explain`.)',
+          'When would you raise `default_statistics_target` or create extended statistics with `CREATE STATISTICS`?',
+        ],
+      },
+    ],
+  },
+
+  'How do you design a composite index, and why does column order matter?': {
+    summary:
+      'A composite B-tree index is sorted by the first column, then by the second within each value of the first, and so on, so it can only be used efficiently from the left. My rule: equality-filter columns first, then the one range or sort column, then optionally `INCLUDE` extra columns so the query becomes an index-only scan. I design indexes from the real queries, and I keep the count low because every index slows every write.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'The basic left-prefix rule is covered in the indexes answer. At senior level the question is how to choose the order for a real query, and when to stop adding indexes. Think of a phone book sorted by (last name, first name): finding "Kumar, Asha" is fast, finding everyone named "Asha" means reading the whole book.',
+      },
+      { type: 'heading3', text: 'Equality first, then range or sort' },
+      {
+        type: 'code',
+        lang: 'sql',
+        code: `-- The hot query
+SELECT id, total
+FROM orders
+WHERE tenant_id = $1
+  AND status = 'paid'
+  AND created_at >= now() - interval '30 days'
+ORDER BY created_at DESC
+LIMIT 50;
+
+-- Good: equality columns, then the range/sort column
+CREATE INDEX CONCURRENTLY orders_tenant_status_created_idx
+  ON orders (tenant_id, status, created_at DESC)
+  INCLUDE (total);   -- covering: id/total come from the index, no heap fetch
+
+-- Worse: range column in the middle
+CREATE INDEX orders_bad_idx ON orders (tenant_id, created_at, status);
+-- Postgres scans every row of the tenant in the date range and
+-- checks status for each one, and cannot return rows already sorted
+-- for "WHERE status = 'paid' ORDER BY created_at".`,
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**Equality columns first.** With `=` on the leading columns, all matching entries sit next to each other in the index, so one range of the B-tree covers them.',
+          '**One range or sort column next.** After a range condition, later columns cannot narrow the scan; they can only be checked as filters on each entry.',
+          '**Match the sort.** If the index order matches `ORDER BY`, Postgres reads in order and stops at `LIMIT`, with no Sort node. Mixed directions (`ORDER BY a ASC, b DESC`) need an index declared the same way.',
+          '**"Most selective first" is a weaker rule** than "equality before range". With only equality filters, order matters less for that query; choose the order that also serves your other queries.',
+          'In PostgreSQL 17 and earlier, a query that skips the leading column usually cannot use the index well (PostgreSQL 18 adds a limited skip scan, which helps when the leading column has few distinct values).',
+        ],
+      },
+      { type: 'heading3', text: 'Covering and partial indexes' },
+      {
+        type: 'code',
+        lang: 'sql',
+        code: `-- Partial: only index the rows the hot query touches
+CREATE INDEX CONCURRENTLY jobs_pending_idx
+  ON jobs (run_at)
+  WHERE status = 'pending';
+-- Used only when the query also says WHERE status = 'pending'
+
+-- Partial unique: one active subscription per user
+CREATE UNIQUE INDEX one_active_sub
+  ON subscriptions (user_id)
+  WHERE cancelled_at IS NULL;`,
+      },
+      {
+        type: 'paragraph',
+        text: '`INCLUDE` columns are stored only in the leaf pages; they are not part of the sort key, so they make the index cover the query without changing what it can search on. An index-only scan still checks the visibility map, so it works best on tables that VACUUM keeps up with.',
+      },
+      { type: 'heading3', text: 'The cost of too many indexes' },
+      {
+        type: 'bullets',
+        items: [
+          'Every `INSERT` and `DELETE` updates every index; every `UPDATE` of an indexed column does too.',
+          'Updating an indexed column prevents a HOT (heap-only tuple) update, so even untouched indexes get new entries.',
+          'More indexes means more WAL, bigger backups, slower replicas and less of the hot data fitting in memory.',
+          'An index on `(a, b)` usually makes a separate index on `(a)` redundant.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'sql',
+        code: `-- Indexes never used since stats were last reset
+SELECT relname, indexrelname, idx_scan,
+       pg_size_pretty(pg_relation_size(indexrelid)) AS size
+FROM pg_stat_user_indexes
+WHERE idx_scan = 0
+ORDER BY pg_relation_size(indexrelid) DESC;
+-- Check replicas too before dropping: stats are per server.`,
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Do not create an index for every column the team filters on "just in case". Start from `pg_stat_statements`, design one composite index per hot access pattern, and remove the unused ones. Unique and primary key indexes are never "unused": they enforce constraints.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: write the query on the whiteboard first, then derive the index from it out loud: "tenant_id and status are equality, created_at is the range and the sort, total is only selected, so (tenant_id, status, created_at DESC) INCLUDE (total)." Then mention the write cost.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'Can Postgres combine two single-column indexes? (Yes, with a BitmapAnd, but usually slower than one good composite index.)',
+          'Why is my index not used? (Function on the column, type mismatch, low selectivity, stale stats, leading column missing.)',
+          'How do you add an index to a big table in production? (`CREATE INDEX CONCURRENTLY`.)',
+          'When is a GIN or BRIN index a better fit than a B-tree?',
+        ],
+      },
+    ],
+  },
+
+  'What causes deadlocks, and how do you prevent and handle them?': {
+    summary:
+      'A deadlock happens when two transactions each hold a lock the other one needs, so neither can continue. PostgreSQL detects the cycle and aborts one of them with SQLSTATE `40P01`, so the application must retry that transaction. I prevent most deadlocks by always locking rows in the same order, keeping transactions short, and using `lock_timeout` so nothing waits forever.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Deadlocks are not the same as the lost-update race (covered in the backend operations answers). A lost update silently loses data; a deadlock is loud: the database kills one transaction. The classic cause is two transactions touching the same rows in **opposite orders**.',
+      },
+      { type: 'heading3', text: 'How it happens' },
+      {
+        type: 'code',
+        lang: 'sql',
+        code: `-- Tx A: transfer 1 -> 2            -- Tx B: transfer 2 -> 1
+BEGIN;                                BEGIN;
+UPDATE accounts SET balance = balance - 10 WHERE id = 1;   -- A locks row 1
+                                      UPDATE accounts SET balance = balance - 5 WHERE id = 2;  -- B locks row 2
+UPDATE accounts SET balance = balance + 10 WHERE id = 2;   -- A waits for B
+                                      UPDATE accounts SET balance = balance + 5 WHERE id = 1;  -- B waits for A: cycle
+
+-- After deadlock_timeout (default 1s) Postgres checks for a cycle:
+-- ERROR:  deadlock detected   (SQLSTATE 40P01)
+-- DETAIL: Process 4211 waits for ShareLock on transaction 9912; blocked by process 4207 ...`,
+      },
+      {
+        type: 'paragraph',
+        text: 'Postgres aborts one transaction and the other continues. The server log contains both statements, which is how you find the pair of code paths involved. Other common sources: bulk updates whose rows arrive in different orders, foreign key checks (inserting a child takes a `FOR KEY SHARE` lock on the parent row), and upserts on the same keys from parallel workers.',
+      },
+      { type: 'heading3', text: 'Prevention' },
+      {
+        type: 'numbered',
+        items: [
+          '**Consistent lock order.** Lock rows in a fixed order, for example by primary key, in every code path.',
+          '**Lock up front.** Take all the row locks you need at the start with one `SELECT ... FOR UPDATE`, instead of locking more rows as the transaction goes along.',
+          '**Keep transactions short.** No HTTP calls, emails or user think-time inside a transaction. Less time holding locks means fewer chances for a cycle.',
+          '**Batch in sorted order.** For bulk updates, sort the keys before updating.',
+          '**Set `lock_timeout`** so a request fails fast with `55P03` instead of piling up behind a long lock.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'sql',
+        code: `BEGIN;
+SET LOCAL lock_timeout = '2s';
+
+-- Lock both accounts in id order, whichever direction the transfer goes
+SELECT id, balance
+FROM accounts
+WHERE id = ANY(ARRAY[2, 1])
+ORDER BY id
+FOR UPDATE;
+
+UPDATE accounts SET balance = balance - 10 WHERE id = 1;
+UPDATE accounts SET balance = balance + 10 WHERE id = 2;
+COMMIT;`,
+      },
+      { type: 'heading3', text: 'Handling: retry the whole transaction' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `import { Pool } from 'pg';
+const pool = new Pool();
+
+const RETRYABLE = new Set(['40P01', '40001']); // deadlock, serialization failure
+
+export async function withTx<T>(fn: (c: any) => Promise<T>, attempts = 4): Promise<T> {
+  for (let i = 1; ; i++) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await fn(client);
+      await client.query('COMMIT');
+      return result;
+    } catch (err: any) {
+      await client.query('ROLLBACK').catch(() => {});
+      if (!RETRYABLE.has(err.code) || i >= attempts) throw err;
+      const delay = 2 ** i * 20 + Math.random() * 50; // backoff + jitter
+      await new Promise((r) => setTimeout(r, delay));
+    } finally {
+      client.release();
+    }
+  }
+}`,
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Retry the **whole** transaction from `BEGIN`, never just the failed statement: the aborted transaction has already rolled back everything. And only retry if the work inside is safe to repeat; side effects such as sending an email must happen after `COMMIT`.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: say clearly that deadlocks cannot be fully eliminated in a busy system, so you design for both sides: lock ordering and short transactions to make them rare, and a retry wrapper plus monitoring (`log_lock_waits`, the deadlocks counter in `pg_stat_database`) to handle the rest.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'What is the difference between `lock_timeout` and `statement_timeout`?',
+          'When would you use `FOR UPDATE SKIP LOCKED` or `NOWAIT`? (Job queues; fail fast instead of waiting.)',
+          'How do you find who is blocking whom right now? (`pg_stat_activity` with `pg_blocking_pids(pid)`.)',
+          'Can a single `UPDATE` statement deadlock with another? (Yes, if both touch several rows in different orders.)',
+        ],
+      },
+    ],
+  },
+
+  'How do you change a database schema with zero downtime (expand and contract)?': {
+    summary:
+      'During a rolling deploy, old and new versions of the app run against the same database at the same time, so every schema change must work with both. Expand and contract splits a breaking change into safe steps: add the new structure (nullable), backfill in batches, dual-write, switch reads, and only then drop the old structure in a later release. On the database side, I avoid long `ACCESS EXCLUSIVE` locks: `CREATE INDEX CONCURRENTLY`, `NOT VALID` constraints that are validated later, and a short `lock_timeout` on every migration.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Two things cause downtime. **Compatibility:** renaming `name` to `full_name` in one step breaks every old pod still running during the rollout, and makes rollback impossible. **Locking:** many `ALTER TABLE` forms take an `ACCESS EXCLUSIVE` lock, and some rewrite the whole table while holding it, blocking even reads.',
+      },
+      { type: 'heading3', text: 'Expand and contract: renaming a column' },
+      {
+        type: 'numbered',
+        items: [
+          '**Expand:** `ALTER TABLE users ADD COLUMN full_name text;` (nullable, no default: metadata-only, instant).',
+          '**Dual-write:** deploy app v2 that writes both `name` and `full_name`, still reading `name`.',
+          '**Backfill** old rows in small batches.',
+          '**Switch reads:** deploy v3 that reads `full_name` (still writing both, so a rollback to v2 is safe).',
+          '**Stop writing** the old column (v4), then add any `NOT NULL` constraint safely.',
+          '**Contract:** in a later release, `ALTER TABLE users DROP COLUMN name;`.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Backfill in batches: short transactions, small locks, replicas keep up
+async function backfill(pool: import('pg').Pool) {
+  for (;;) {
+    const { rowCount } = await pool.query(
+      'UPDATE users SET full_name = name ' +
+      'WHERE id IN (SELECT id FROM users WHERE full_name IS NULL LIMIT 5000)'
+    );
+    if (rowCount === 0) break;
+    await new Promise((r) => setTimeout(r, 100)); // throttle
+  }
+}`,
+      },
+      { type: 'heading3', text: 'Lock-safe DDL in PostgreSQL' },
+      {
+        type: 'code',
+        lang: 'sql',
+        code: `-- Never wait long for a lock: a queued ALTER blocks everyone behind it
+SET lock_timeout = '3s';
+
+-- Indexes without blocking writes (cannot run inside a transaction block)
+CREATE INDEX CONCURRENTLY orders_customer_idx ON orders (customer_id);
+-- If it fails it leaves an INVALID index: DROP INDEX CONCURRENTLY and retry
+
+-- Foreign key without a long scan under a strong lock
+ALTER TABLE orders
+  ADD CONSTRAINT orders_customer_fk FOREIGN KEY (customer_id)
+  REFERENCES customers (id) NOT VALID;          -- new rows checked from now on
+ALTER TABLE orders VALIDATE CONSTRAINT orders_customer_fk;  -- weaker lock, writes continue
+
+-- NOT NULL without a full-table scan under ACCESS EXCLUSIVE
+ALTER TABLE users ADD CONSTRAINT users_full_name_nn
+  CHECK (full_name IS NOT NULL) NOT VALID;
+ALTER TABLE users VALIDATE CONSTRAINT users_full_name_nn;
+ALTER TABLE users ALTER COLUMN full_name SET NOT NULL;  -- uses the valid CHECK, no scan
+ALTER TABLE users DROP CONSTRAINT users_full_name_nn;`,
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**Safe and fast:** adding a nullable column; adding a column with a constant default (no rewrite since PostgreSQL 11).',
+          '**Dangerous on big tables:** changing a column type (usually a full rewrite), adding a column with a volatile default such as `random()`, plain `CREATE INDEX` (blocks writes), `VACUUM FULL`.',
+          '**The lock queue trap:** even a quick `ALTER` must wait for long-running queries to finish, and every new query queues behind it. `lock_timeout` plus a retry turns an outage into a failed, retryable migration.',
+          '**Tooling:** most migration tools run each file in a transaction. For `CONCURRENTLY`, turn that off (for example, Knex: `exports.config = { transaction: false }`), and keep such statements in their own migration file.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Run migrations as a separate step before the new code rolls out, and make each migration compatible with the code that is already running. A migration that only works with the new code is a coupled deploy, and a rollback becomes a data-loss incident.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: walk through one concrete example (a column rename or a type change) across 3 to 4 deploys, and name the lock each step takes. Interviewers listen for "backward compatible with the running version" and "never hold `ACCESS EXCLUSIVE` for long".',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'How would you change a column from `int` to `bigint` on a billion-row table? (New column, trigger or dual-write, batched backfill, swap.)',
+          'How do you roll back a migration? (Prefer forward fixes; contract steps are not reversible.)',
+          'How do you test migrations? (Against a production-sized copy, measuring lock time and duration.)',
+          'What do tools like pgroll or Reshape automate here?',
+        ],
+      },
+    ],
+  },
+
+  'How do read replicas work, and how do you deal with replication lag?': {
+    summary:
+      'The primary streams its write-ahead log (WAL) to replicas, which replay it and serve read-only queries. By default this is asynchronous, so replicas are slightly behind: usually milliseconds, sometimes seconds under heavy load. The main problem is read-your-writes: after a user saves something, read from the primary (or wait until the replica has replayed that write), and monitor lag so you can stop sending traffic to a replica that falls too far behind.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Every change in PostgreSQL is first written to the WAL. With streaming replication, a WAL sender on the primary sends those records to each replica (a hot standby), which applies them in order. Replicas scale reads (reports, search pages, dashboards) and are failover candidates, but they do not scale writes.',
+      },
+      { type: 'heading3', text: 'Asynchronous vs synchronous' },
+      {
+        type: 'bullets',
+        items: [
+          '**Asynchronous (default):** the primary commits without waiting for replicas. Fast, but replicas lag, and a crash can lose the last commits that were not yet shipped.',
+          '**Synchronous** (`synchronous_standby_names`): the commit waits for the chosen standbys. `synchronous_commit = on` waits for the WAL to be flushed on the standby; `remote_apply` waits until it is replayed and visible to queries there. Safer, but every write pays a network round trip, and writes stall if the synchronous standby is down.',
+        ],
+      },
+      { type: 'heading3', text: 'Read-your-writes strategies' },
+      {
+        type: 'numbered',
+        items: [
+          '**Route after write:** for a short window (for example, 5 s) after a user writes, send that user’s reads to the primary. Easy and common; store the timestamp in the session or a cookie.',
+          '**Stickiness per request:** inside a request that wrote, all later reads use the primary connection.',
+          '**Wait for the LSN:** after the write, read `pg_current_wal_lsn()` on the primary; before reading from a replica, check that `pg_last_wal_replay_lsn()` has reached it, otherwise fall back to the primary.',
+          '**Accept staleness** where it is fine: analytics, public listings, search results.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `import { Pool } from 'pg';
+const primary = new Pool({ connectionString: process.env.PRIMARY_URL });
+const replica = new Pool({ connectionString: process.env.REPLICA_URL });
+
+// After a write: remember the primary position for this user
+async function afterWrite(session: { lsn?: string }) {
+  const { rows } = await primary.query('SELECT pg_current_wal_lsn() AS lsn');
+  session.lsn = rows[0].lsn;
+}
+
+// For a read: use the replica only if it has caught up
+async function poolForRead(session: { lsn?: string }) {
+  if (!session.lsn) return replica;
+  const { rows } = await replica.query(
+    'SELECT pg_last_wal_replay_lsn() >= $1::pg_lsn AS ok', [session.lsn]);
+  return rows[0].ok ? replica : primary;
+}`,
+      },
+      {
+        type: 'paragraph',
+        text: 'With Prisma, the `@prisma/extension-read-replicas` extension routes reads to replicas and lets you force the primary with `$primary()`. With TypeORM, `replication: { master, slaves }` sends `find` queries to replicas and writes to the master.',
+      },
+      { type: 'heading3', text: 'Monitoring lag' },
+      {
+        type: 'code',
+        lang: 'sql',
+        code: `-- On the primary: per replica
+SELECT application_name, state, write_lag, flush_lag, replay_lag
+FROM pg_stat_replication;
+
+-- On a replica: how old is the last replayed transaction?
+SELECT now() - pg_last_xact_replay_timestamp() AS replay_delay;
+-- (This grows on an idle primary too, so alert on it together with write activity.)`,
+      },
+      { type: 'heading3', text: 'Failover and in-flight writes' },
+      {
+        type: 'bullets',
+        items: [
+          'When the primary dies, a replica is promoted (by Patroni, RDS/Aurora or similar). Open connections and in-flight transactions on the old primary fail; the app must reconnect, usually via a DNS name or proxy that now points at the new primary.',
+          'With asynchronous replication, commits acknowledged to the client but not yet shipped are **lost**. If that is unacceptable for some data, use synchronous replication for it.',
+          'Clients that retry after a connection error do not know whether their last commit succeeded. Idempotency keys make those retries safe.',
+          'Long queries on a replica can be cancelled when they conflict with replayed changes (`max_standby_streaming_delay`, `hot_standby_feedback`).',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Never read from a replica and then write based on that read (for example, check stock, then decrement). The value may be stale. Reads that lead to writes belong on the primary, inside the same transaction.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: start with "replicas are eventually consistent", then give a concrete user-facing bug (user edits their profile, page reloads, old name appears) and your fix for it. That shows you have run replicas in production, not just drawn them.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'Streaming vs logical replication: when would you use logical? (Selected tables, upgrades across major versions, feeding other systems.)',
+          'How does Aurora replication differ? (Shared storage, typically lower lag.)',
+          'How many replicas would you add, and how do you load-balance across them?',
+          'What happens to sequences and caches after a failover?',
+        ],
+      },
+    ],
+  },
+
+  'When and how do you partition or shard a relational table?': {
+    summary:
+      'Partitioning splits one large table into smaller tables on the same server, and Postgres routes queries to the right ones; I use it when a table is huge, queries filter on a natural key such as time, and I need cheap retention by dropping old partitions. Sharding spreads data across several servers, which is needed only when one machine can no longer handle the writes or the data size. Partition first, shard last: sharding brings shard-key design, cross-shard queries and much more operational work.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Partitioning is not mainly a speed feature. A well-indexed 500 GB table can be fast. The big wins are **maintenance** (vacuum and indexes per partition), **retention** (dropping a month is instant, deleting 200 million rows is not) and **pruning** for queries that always filter on the partition key.',
+      },
+      { type: 'heading3', text: 'Declarative partitioning in PostgreSQL' },
+      {
+        type: 'code',
+        lang: 'sql',
+        code: `CREATE TABLE events (
+  id          bigint GENERATED ALWAYS AS IDENTITY,
+  tenant_id   uuid        NOT NULL,
+  created_at  timestamptz NOT NULL,
+  payload     jsonb,
+  PRIMARY KEY (id, created_at)          -- must include the partition key
+) PARTITION BY RANGE (created_at);
+
+CREATE TABLE events_2026_10 PARTITION OF events
+  FOR VALUES FROM ('2026-10-01') TO ('2026-11-01');
+CREATE TABLE events_2026_11 PARTITION OF events
+  FOR VALUES FROM ('2026-11-01') TO ('2026-12-01');
+
+-- Created on the parent, copied to every partition
+CREATE INDEX ON events (tenant_id, created_at);
+
+-- Other strategies
+-- PARTITION BY LIST (region)        -> FOR VALUES IN ('eu', 'uk')
+-- PARTITION BY HASH (tenant_id)     -> FOR VALUES WITH (MODULUS 8, REMAINDER 0)`,
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**Range:** time series, logs, orders by month. The most common choice.',
+          '**List:** a small, known set of values such as region or country.',
+          '**Hash:** spread rows evenly when no natural range exists.',
+          "**Partition pruning:** `WHERE created_at >= now() - interval '7 days'` scans only the recent partitions. Pruning happens at planning time and also at execution time for parameters. If the query does not filter on the partition key, it touches every partition and can be slower than one big table.",
+          '**Constraints:** primary keys and unique indexes must include the partition key.',
+          '**Keep the count sensible:** hundreds of partitions are fine, many thousands slow down planning. Tools like `pg_partman` create future partitions automatically.',
+        ],
+      },
+      { type: 'heading3', text: 'Retention by dropping partitions' },
+      {
+        type: 'code',
+        lang: 'sql',
+        code: `-- Instant, no table bloat, no huge DELETE in the WAL
+ALTER TABLE events DETACH PARTITION events_2025_10 CONCURRENTLY;  -- PG 14+
+DROP TABLE events_2025_10;   -- or archive it to S3 first`,
+      },
+      { type: 'heading3', text: 'Sharding: across servers' },
+      {
+        type: 'paragraph',
+        text: 'Sharding is a different decision. Each shard is a separate database holding a subset of rows, and the app (or a layer such as **Citus**) routes queries by a **shard key**. Before sharding, check the cheaper options: query and index tuning, a bigger instance, read replicas, caching, archiving cold data, partitioning.',
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**Choosing the shard key:** it should appear in almost every query, spread load evenly, and keep related data together. In B2B SaaS, `tenant_id` is the usual choice; a single huge tenant can still become a hot shard.',
+          '**Cross-shard queries:** queries without the shard key fan out to every shard and merge the results. Joins and aggregates across shards are slow and complex.',
+          '**Cross-shard transactions:** need two-phase commit or a saga; most designs avoid them by keeping one business transaction inside one shard.',
+          '**Resharding:** moving data when you add shards is the hardest operational part. Use many logical shards mapped to fewer physical servers so you move whole shards, not rows.',
+          "**Citus:** a Postgres extension that distributes tables by a column, `SELECT create_distributed_table('events', 'tenant_id');`, and routes or parallelises queries for you.",
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Choose the partition key from your query patterns. If most queries filter by tenant but you partition by month, every query scans all months. Also, converting an existing large table into a partitioned one is itself a migration project, so plan it before the table gets huge.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: say "partitioning is one server, sharding is many", then justify each with a trigger: retention and maintenance for partitioning, write throughput or data size beyond one machine for sharding. Mention that you would exhaust vertical scaling and replicas first.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'How do you migrate a live unpartitioned table to a partitioned one?',
+          'What is a default partition, and why can it be a problem?',
+          'How would you pick between `tenant_id` and `created_at` as the key?',
+          'How do IDs work across shards? (UUIDs, UUIDv7, or ID ranges per shard.)',
+        ],
+      },
+    ],
+  },
+
+  'PostgreSQL `JSONB` vs a document database: when is each the better choice?': {
+    summary:
+      'PostgreSQL `JSONB` stores parsed, binary JSON that you can index with GIN and query with operators like `@>`, inside the same ACID transactions and joins as your relational data. That makes a hybrid model, with relational columns for the core fields and `JSONB` for the variable attributes, a strong default. A document database like MongoDB is the better fit when almost everything is document-shaped, the schema changes per document, and you need built-in horizontal sharding at large scale.',
+    details: [
+      {
+        type: 'paragraph',
+        text: '`json` stores the raw text; `jsonb` stores a decomposed binary form (keys deduplicated, no whitespace) that is slightly slower to write and much faster to query and index. In practice you almost always want `jsonb`.',
+      },
+      { type: 'heading3', text: 'Hybrid model: relational core, JSONB for the variable part' },
+      {
+        type: 'code',
+        lang: 'sql',
+        code: `CREATE TABLE products (
+  id          bigint PRIMARY KEY,
+  sku         text UNIQUE NOT NULL,
+  price_cents int  NOT NULL CHECK (price_cents >= 0),
+  category_id int  NOT NULL REFERENCES categories(id),
+  attrs       jsonb NOT NULL DEFAULT '{}'   -- {"color":"red","size":"M","voltage":220}
+);
+
+-- GIN index: supports containment (@>) and key-exists (?) queries
+CREATE INDEX products_attrs_gin ON products USING gin (attrs);
+-- Smaller and faster if you only need @>:
+-- CREATE INDEX ... USING gin (attrs jsonb_path_ops);
+
+SELECT id, sku FROM products
+WHERE category_id = 7
+  AND attrs @> '{"color": "red", "size": "M"}';
+
+-- Expression B-tree index for one hot key (equality, ranges, sorting)
+CREATE INDEX products_brand_idx ON products ((attrs ->> 'brand'));
+SELECT * FROM products WHERE attrs ->> 'brand' = 'Acme';`,
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Prisma: Json field filters on PostgreSQL
+const red = await prisma.product.findMany({
+  where: { categoryId: 7, attrs: { path: ['color'], equals: 'red' } },
+});
+
+// node-postgres: pass an object, pg serialises it
+await pool.query('SELECT id FROM products WHERE attrs @> $1', [{ color: 'red' }]);`,
+      },
+      { type: 'heading3', text: 'When JSONB in Postgres wins' },
+      {
+        type: 'bullets',
+        items: [
+          'Most data is relational (users, orders, payments) and only some parts vary: product attributes, settings, form answers, webhook payloads.',
+          'You need ACID transactions and joins across the JSON data and the relational data.',
+          'You want one database to run, back up and secure instead of two.',
+          "You can promote a hot key to a real column later, for example with a stored generated column: `ADD COLUMN brand text GENERATED ALWAYS AS (attrs ->> 'brand') STORED`.",
+        ],
+      },
+      { type: 'heading3', text: 'When a document database is the better fit' },
+      {
+        type: 'bullets',
+        items: [
+          'The whole domain is aggregate-shaped (a content item, a catalog entry, a user profile with nested lists) and is read and written as one document.',
+          'Schemas evolve quickly and differ between documents, and teams want to ship without migrations.',
+          'You need built-in sharding and high write throughput across many nodes. MongoDB was designed around this; Postgres needs Citus or custom sharding.',
+          'Features like change streams, flexible secondary indexes on nested arrays and a document-native query language fit the team.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'JSONB pitfalls: the planner has no per-key statistics, so estimates on JSON filters are often poor; updating one key rewrites the whole value, so large, frequently updated documents are expensive; and there are no foreign keys or types inside the JSON unless you add `CHECK` constraints. Do not put the fields you join, sort or filter on most often inside JSONB.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: avoid "Postgres can do everything". Say the hybrid model is your default for a mostly relational product, then name the concrete signals (document-shaped domain, per-document schema, horizontal write scale) that would make you pick MongoDB.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'What is the difference between `->` and `->>`? (JSON value vs text.)',
+          'How do you validate the shape of a JSONB column? (`CHECK` with `jsonb_typeof`, or validate in the app with Zod.)',
+          'What are SQL/JSON path queries (`@?`, `jsonb_path_query`)?',
+          'How would you migrate a JSONB key into a real column without downtime?',
+        ],
+      },
+    ],
+  },
+
+  'How do you design a multi-tenant database: shared schema, schema per tenant, or database per tenant?':
+    {
+      summary:
+        'There are three main models. Shared schema with a `tenant_id` column on every table is the cheapest and simplest to operate, and Row-Level Security makes the database enforce isolation. Schema per tenant gives some separation but makes migrations and catalog size painful at thousands of tenants. Database per tenant gives the strongest isolation and per-tenant backup and restore, at the highest cost. Many SaaS products use shared schema for most tenants and a dedicated database for large or regulated customers.',
+      details: [
+        {
+          type: 'paragraph',
+          text: 'The choice is a trade-off between isolation, cost, operational effort and noisy neighbours (one tenant’s heavy workload slowing everyone else). The number of tenants matters a lot: 20 enterprise customers and 50,000 self-serve sign-ups lead to different answers.',
+        },
+        { type: 'heading3', text: 'Shared schema + Row-Level Security' },
+        {
+          type: 'code',
+          lang: 'sql',
+          code: `ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE invoices FORCE ROW LEVEL SECURITY;   -- applies to the table owner too
+
+CREATE POLICY tenant_isolation ON invoices
+  USING (tenant_id = current_setting('app.tenant_id', true)::uuid)
+  WITH CHECK (tenant_id = current_setting('app.tenant_id', true)::uuid);
+
+-- Every index starts with tenant_id
+CREATE INDEX invoices_tenant_created_idx ON invoices (tenant_id, created_at DESC);`,
+        },
+        {
+          type: 'paragraph',
+          text: '`USING` filters the rows a query can see, update or delete; `WITH CHECK` stops inserts or updates that would write another tenant’s `tenant_id`. With `missing_ok = true`, an unset `app.tenant_id` gives NULL, so the query returns no rows instead of all rows.',
+        },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `// Set the tenant per transaction, so pooled connections never leak it
+export async function withTenant<T>(tenantId: string, fn: (c: any) => Promise<T>) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    // third argument true = local to this transaction
+    await client.query("SELECT set_config('app.tenant_id', $1, true)", [tenantId]);
+    const result = await fn(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
+// Even a query that forgets "WHERE tenant_id = ..." only sees this tenant
+await withTenant(req.user.tenantId, (c) => c.query('SELECT * FROM invoices'));`,
+        },
+        {
+          type: 'callout',
+          variant: 'warning',
+          text: 'RLS is bypassed by superusers and roles with `BYPASSRLS`, and by the table owner unless you use `FORCE ROW LEVEL SECURITY`. Connect the app as a separate, non-owner role. Use `set_config(..., true)` or `SET LOCAL` inside a transaction; a session-level `SET` on a pooled connection can leak one tenant’s ID to the next request.',
+        },
+        { type: 'heading3', text: 'Comparing the three models' },
+        {
+          type: 'bullets',
+          items: [
+            '**Shared schema (`tenant_id`):** cheapest, one migration run, easy cross-tenant analytics, scales to many thousands of tenants. Weakest isolation (a bug or missing policy leaks data), noisy neighbours, and per-tenant restore means filtering rows out of a full backup.',
+            '**Schema per tenant:** the app sets `search_path` per tenant; data is separated by name, and dropping a tenant is `DROP SCHEMA`. But migrations must run across N schemas (and can fail halfway), and thousands of schemas bloat the system catalog and slow tooling. Same server, so still noisy neighbours.',
+            '**Database per tenant:** strongest isolation, per-tenant backup, restore, region and encryption keys, and easy to move one big tenant to its own hardware. Highest cost, many connection pools, and migrations, monitoring and upgrades across a fleet need automation.',
+            '**Hybrid ("pool" and "silo"):** shared schema for small tenants, dedicated database for enterprise or regulated tenants. A tenant catalog maps each tenant to its database, so the app routes per request.',
+          ],
+        },
+        {
+          type: 'paragraph',
+          text: 'Shared schema also sets you up for growth: with `tenant_id` in every table and key, you can later shard by tenant (for example with Citus) without redesigning the data model.',
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          text: 'Interview tip: ask about the number of tenants, compliance needs and tenant size first, then choose. A strong default answer is "shared schema with `tenant_id` everywhere, enforced by RLS as a safety net behind the app checks, plus a path to move big tenants to their own database".',
+        },
+        { type: 'heading3', text: 'Follow-ups they may ask' },
+        {
+          type: 'bullets',
+          items: [
+            'How do you test that tenant isolation cannot be bypassed? (Integration tests that query as tenant A and assert no tenant B rows.)',
+            'How do you handle noisy neighbours? (Per-tenant rate limits, query timeouts, moving heavy tenants out.)',
+            'Does RLS hurt performance? (Small cost if policies are simple and `tenant_id` leads the indexes.)',
+            'How do you delete all data for a tenant on request (GDPR)?',
+          ],
+        },
+      ],
+    },
 };

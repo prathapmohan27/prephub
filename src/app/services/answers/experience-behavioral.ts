@@ -808,4 +808,694 @@ Use TestBed with a mocked UserService. Do not use deprecated APIs."`,
       },
     ],
   },
+
+  'Tell me about yourself.': {
+    summary:
+      'Give a 60–90 second pitch in three parts: **present** (your current role, stack and one result you are proud of), **past** (the two or three experiences that explain how you got here), and **future** (why this role is the logical next step). Tailor every sentence to the job description — this is a pitch for the role, not your life story or a reading of your CV.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'This is almost always the first question, and it sets the frame for the whole interview. The interviewer is judging **communication** (can you be concise and structured?), **relevance** (do you understand what this role needs?) and **self-awareness** (do you know what you are good at?). Whatever you mention here becomes the menu they pick follow-up questions from — so mention the things you want to be asked about.',
+      },
+      { type: 'heading3', text: 'What the interviewer is looking for' },
+      {
+        type: 'bullets',
+        items: [
+          'A clear, confident summary in about 90 seconds — not 5 minutes.',
+          'Evidence that matches the job description: the stack, the scale, the type of product.',
+          'One or two concrete achievements with numbers, not a list of responsibilities.',
+          'A believable reason why this role fits where you are heading.',
+        ],
+      },
+      { type: 'heading3', text: 'Structure: present → past → future' },
+      {
+        type: 'numbered',
+        items: [
+          '**Present (~30 s):** "I am a [frontend / full-stack] engineer at [company] with [N] years of experience, currently working on [product] with [Angular, TypeScript, Node.js]." Add one recent achievement with a number.',
+          '**Past (~30 s):** 2–3 steps that explain your growth — where you started, a key project, a skill you built. Skip anything irrelevant to this role.',
+          '**Future (~20 s):** what you want next and why this company and role fit it. "That is why this role caught my attention — [specific reason from the job description]."',
+        ],
+      },
+      { type: 'heading3', text: 'Tailoring checklist' },
+      {
+        type: 'bullets',
+        items: [
+          'Underline the top 3 requirements in the job description and make sure each appears in your pitch.',
+          'Applying for a senior role? Mention ownership, mentoring or architecture decisions, not just tickets delivered.',
+          'Applying for full-stack? Mention the backend side (Node.js APIs, databases) even if it is a smaller part of your work.',
+          'Prepare a 30-second version too — some interviewers say "briefly".',
+        ],
+      },
+      { type: 'heading3', text: 'Sample answer (replace the placeholders)' },
+      {
+        type: 'paragraph',
+        text: '"I am a frontend engineer with [5] years of experience, currently at [company], where I work on [a B2B analytics platform] used by [20,000] users daily. I own the Angular side of [the reporting module] — recently I led its migration to standalone components and signals, which cut the initial load from [6 s] to [2.5 s]. I started my career at [previous company] building [internal dashboards] in Angular [8], where I learned the fundamentals of RxJS and testing, and over time I took on more full-stack work — I now build the [Node.js / NestJS] endpoints my features need. Recently I have also been mentoring [two] junior developers. What I am looking for next is a product company where frontend performance and architecture really matter, which is why this role stood out — [you are scaling the web app to new markets and the description mentions owning the design system]."',
+      },
+      { type: 'heading3', text: 'Likely follow-ups' },
+      {
+        type: 'bullets',
+        items: [
+          '"Tell me more about [the migration / achievement] you mentioned." — have the STAR version ready.',
+          '"What was your exact role in that?" — be precise about what you did versus the team.',
+          '"Why are you looking for a change?" — have a positive answer ready (see that question).',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common mistakes: reciting your CV line by line, starting with your school or hometown, going past 2 minutes, listing every technology you have touched, or ending without a link to the role. Also avoid a memorised script that sounds robotic — memorise the structure and the key numbers, not the sentences.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: end your pitch with a hook into the role ("…which is why this position stood out"). It gives the conversation a natural next step and shows you prepared for this specific company.',
+      },
+    ],
+  },
+
+  'How do you structure answers to behavioral questions using the STAR method?': {
+    summary:
+      'STAR stands for **Situation, Task, Action, Result**: set the context briefly, state what you were responsible for, spend most of the time on what **you** did and why, then give a measurable result — and finish with what you learned. Aim for about 2 minutes, use "I" rather than "we", and prepare a story bank of 5–6 real stories you can adapt to most behavioral questions.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Behavioral questions ("Tell me about a time…") assume that past behaviour predicts future behaviour. The interviewer is scoring specific competencies — ownership, collaboration, handling conflict, dealing with ambiguity, learning from failure. STAR keeps your answer focused so the evidence for those competencies is easy to hear and write down.',
+      },
+      { type: 'heading3', text: 'The four parts (with time split)' },
+      {
+        type: 'bullets',
+        items: [
+          '**Situation (~15%):** where, when, what product, what was at stake. One or two sentences — just enough context.',
+          '**Task (~10%):** your specific responsibility or goal. "I owned…", "I was asked to…".',
+          '**Action (~50–60%):** the steps you took, the decisions you made and why, the alternatives you considered, how you worked with others. This is where you are actually scored.',
+          '**Result (~15–20%):** the outcome with numbers (time saved, errors reduced, load time, revenue, deadline met) plus the reflection: what you learned or would do differently.',
+        ],
+      },
+      { type: 'heading3', text: 'Rules that make STAR answers strong' },
+      {
+        type: 'numbered',
+        items: [
+          '**Use "I", not "we".** "We migrated the app" hides your contribution. Say "I proposed…, I built…, I convinced…", while still crediting the team.',
+          '**Be specific.** One real incident with real details beats a generic "I always communicate well".',
+          '**Quantify the result.** "Load time from [6 s] to [2 s]", "incidents from [8] to [1] per month", "released [3 days] early". If you have no exact number, give an honest estimate.',
+          '**Add the reflection.** "What I would do differently is…" shows maturity, especially in failure and conflict stories.',
+          '**Stop after about 2 minutes.** Let the interviewer dig in with follow-ups rather than covering everything.',
+        ],
+      },
+      { type: 'heading3', text: 'Build a story bank' },
+      {
+        type: 'paragraph',
+        text: 'Prepare 5–6 stories in advance and map each to the themes it can cover. Most behavioral questions are variations of the same handful of themes, so one well-prepared story can answer several questions.',
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**Conflict / disagreement:** a technical disagreement with a reviewer, PM or another team.',
+          '**Failure / mistake:** a production bug, a missed estimate, a wrong technical bet.',
+          '**Leadership / influence:** leading a migration, mentoring, driving a new practice without formal authority.',
+          '**Ambiguity:** vague requirements, a POC with unknowns, a new domain.',
+          '**Impact / achievement:** a performance win, a feature that moved a business metric.',
+          '**Pressure / deadline:** a critical release, an incident, a last-minute change.',
+        ],
+      },
+      { type: 'heading3', text: 'Sample answer (replace the placeholders)' },
+      {
+        type: 'paragraph',
+        text: 'Question: "Tell me about a time you improved performance." — "**S:** On [project], our Angular [order-management] app took [8 s] to become interactive on mid-range laptops, and [support tickets about slowness] were rising. **T:** I was asked to bring it under [3 s] before [the Q3 launch]. **A:** I first measured with Lighthouse and the bundle analyser and found a [4 MB] initial bundle — every feature was eagerly loaded and we imported [all of lodash and moment]. I split the app into lazy-loaded routes, replaced moment with [date-fns], added @defer for [the charts below the fold], and set bundle budgets in CI so it could not regress. I paired with [a teammate] on the routing changes so the knowledge was shared. **R:** Time to interactive dropped from [8 s] to [2.4 s], the bundle shrank by [60%], and [slowness tickets dropped by about half] in the next month. What I learned: measure first — my initial guess was the API, and I would have wasted a week on it."',
+      },
+      { type: 'heading3', text: 'Likely follow-ups' },
+      {
+        type: 'bullets',
+        items: [
+          '"What would you do differently?" — always have an honest answer.',
+          '"What did your teammates do?" — credit others accurately.',
+          '"How did you measure that?" — know where your numbers came from.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common mistakes: a 2-minute Situation and a 20-second Action; using "we" throughout; hypothetical answers ("I would…") when asked for a real example; no result, or a result with no number; and stories where you are a passive spectator.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: write your story bank down as bullet points (not scripts) and rehearse each one out loud once. When a question comes, take two seconds to pick the best-fitting story — a short pause is far better than a rambling answer.',
+      },
+    ],
+  },
+
+  'Tell me about a time you disagreed with a teammate or reviewer on a technical decision.': {
+    summary:
+      "Pick a real, professional disagreement about a technical trade-off — not a personality clash — and show that you listened, understood the other person's reasoning, used data or a small experiment instead of opinion, and committed to the final decision even if it was not yours. The result should include both the technical outcome and the working relationship staying healthy.",
+    details: [
+      {
+        type: 'paragraph',
+        text: 'The interviewer is assessing **collaboration and maturity**: can you disagree without making it personal, change your mind when the evidence says so, and "disagree and commit" when the team chooses differently? They are also checking that you have opinions at all — a candidate who claims never to disagree sounds passive.',
+      },
+      { type: 'heading3', text: 'What the interviewer is looking for' },
+      {
+        type: 'bullets',
+        items: [
+          'You raised the concern respectfully and early, in the right forum.',
+          'You sought to understand the other side before arguing your own.',
+          'You moved from opinion to evidence: benchmarks, a spike, docs, user impact.',
+          'You accepted the outcome and supported it fully — no "I told you so".',
+        ],
+      },
+      { type: 'heading3', text: 'Structure' },
+      {
+        type: 'numbered',
+        items: [
+          '**Situation:** the project and the decision (e.g. NgRx vs a lighter signal-based store, a library choice, an API design).',
+          '**Task:** your role and why the decision mattered (cost, timeline, maintainability).',
+          '**Action:** how you understood their view, what evidence you gathered, how you discussed it (1:1, design doc, time-boxed spike), who decided.',
+          '**Result:** what was decided, the measurable outcome, and the relationship afterwards.',
+          '**Reflection:** what you learned about yourself or about handling disagreements.',
+        ],
+      },
+      { type: 'heading3', text: 'Sample answer (replace the placeholders)' },
+      {
+        type: 'paragraph',
+        text: '"**S:** On [project], [a senior teammate] proposed adding NgRx Store to manage state for a new [settings module]. **T:** I was building that module and felt NgRx would add a lot of boilerplate for what was mostly form state with two API calls. **A:** Instead of arguing in PR comments, I asked for a 20-minute call to understand his reasoning — his real concern was consistency, because [the rest of the app] already used NgRx and new joiners would see two patterns. That was a fair point I had not weighed. I suggested a time-boxed spike: I built the same feature both ways in a day and compared lines of code, test effort and readability. The signal-based service was [about 60% less code], but I also wrote a short guideline on when to use each approach to address his consistency concern. We took both to the team\'s architecture sync and agreed: [NgRx for shared, cross-feature state; signal stores for local feature state]. **R:** The module shipped [a week earlier than estimated], the guideline became part of our [frontend handbook], and that teammate and I later co-led [the signals migration]. What I learned: most disagreements are about different priorities, not right vs wrong — finding the underlying concern resolves them faster than defending my solution."',
+      },
+      { type: 'heading3', text: 'Variations you can adapt' },
+      {
+        type: 'bullets',
+        items: [
+          'A reviewer requests a change you disagree with: discuss the why, agree, or escalate only if it is important.',
+          'You were the one who was wrong: this can be an excellent story if you show how quickly you updated your view.',
+          'Disagreement with a PM or designer about scope or UX: bring user data or an accessibility standard.',
+        ],
+      },
+      { type: 'heading3', text: 'Likely follow-ups' },
+      {
+        type: 'bullets',
+        items: [
+          '"What if the team had chosen the other option?" — "I would have committed to it and made it work."',
+          '"Have you ever been wrong in a disagreement?"',
+          '"How do you handle a reviewer who blocks your PR on style preferences?"',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common mistakes: picking a story where the other person was simply incompetent, describing a heated argument with no resolution, "winning" at the cost of the relationship, or choosing something trivial like tabs vs spaces. Never badmouth the colleague by name or tone.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: the strongest version includes a moment where you acknowledged the other person had a valid point. It shows you can be persuaded by evidence — which is exactly what makes someone easy to work with.',
+      },
+    ],
+  },
+
+  'Tell me about a time you missed a deadline or a project went off track.': {
+    summary:
+      'Choose a real slip where you owned part of the cause, then show how you noticed early, communicated with options (cut scope, move the date, add help), recovered as much as possible, and changed your process afterwards. The interviewer cares less about the miss and more about transparency, ownership and what you learned.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Every engineer misses deadlines. The interviewer is testing **honesty, ownership and judgment**: do you hide problems until the last day or raise them early? Do you blame others or own your part? Do you learn and change how you plan? A polished story with a real lesson scores higher than pretending it never happened.',
+      },
+      { type: 'heading3', text: 'What the interviewer is looking for' },
+      {
+        type: 'bullets',
+        items: [
+          'Early, honest communication — stakeholders heard about the risk from you, with options.',
+          'Ownership of your part of the cause, without throwing teammates or other teams under the bus.',
+          'Practical recovery: scope trade-offs, prioritisation, asking for help.',
+          'A concrete process change that prevented it from happening again.',
+        ],
+      },
+      { type: 'heading3', text: 'Structure' },
+      {
+        type: 'numbered',
+        items: [
+          '**Situation:** the project, the deadline and why it mattered.',
+          '**Task:** what you were responsible for delivering.',
+          '**What went wrong:** the cause, including your part (underestimated complexity, hidden dependency, scope creep).',
+          '**Action:** when you noticed, who you told, the options you proposed, what you did to recover.',
+          '**Result:** what was delivered and when, the impact, and what you changed afterwards.',
+        ],
+      },
+      { type: 'heading3', text: 'Sample answer (replace the placeholders)' },
+      {
+        type: 'paragraph',
+        text: '"**S:** At [company], I was responsible for [the new checkout flow] in our Angular app, planned for [a 4-week] sprint cycle ahead of [a marketing campaign]. **T:** I had estimated the frontend work and committed to the date. **A:** At the end of week two I realised I had underestimated the [payment-provider integration] — their SDK did not support our [3-D Secure] flow without extra work, and I had not spiked it upfront. That was my mistake. The same day I told my lead and the PM, explained the gap was about [6 days], and offered three options: move the date, launch without [saved cards] and add it a sprint later, or bring in [a teammate] to parallelise the form validation work. They chose to cut saved cards. I split the remaining work into smaller tickets, gave daily status updates in the channel, and paired with the backend developer to unblock the 3-D Secure callback. **R:** The core checkout launched on the original date, saved cards followed [8 days] later, and the campaign was not affected. Since then, I always time-box a short spike on any third-party integration before estimating, and I flag risky assumptions in the estimate itself — on the next [two] integrations my estimates were within [10%]."',
+      },
+      { type: 'heading3', text: 'Recovery options worth naming' },
+      {
+        type: 'bullets',
+        items: [
+          '**Reduce scope:** ship the critical path first, defer nice-to-haves behind a feature flag.',
+          '**Move the date:** with a new, realistic estimate and the reason.',
+          '**Add capacity:** only if the work can genuinely be split — adding people late often slows things down.',
+          '**Remove blockers:** escalate a dependency with a clear ask and deadline.',
+        ],
+      },
+      { type: 'heading3', text: 'Likely follow-ups' },
+      {
+        type: 'bullets',
+        items: [
+          '"How did you notice it was off track?"',
+          '"How did the stakeholders react?"',
+          '"What do you do now to avoid this?"',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common mistakes: blaming the PM, the backend team or "changing requirements" for everything; choosing a story where you were not involved in the cause; claiming you have never missed a deadline; or a story where you stayed silent until the deadline passed.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: the key sentence is "I raised it as soon as I knew, with options". If your story has that moment and a process change at the end, a missed deadline becomes evidence of good judgment.',
+      },
+    ],
+  },
+
+  'Tell me about a production bug you caused and how you handled it.': {
+    summary:
+      'Own it clearly ("I shipped a change that…"), then walk through the incident response: immediate mitigation (rollback, feature flag, hotfix), clear communication with the team and stakeholders, root-cause analysis, and the prevention you added — tests, alerts, review checklist. Keep the tone blameless and factual, and finish with what you learned.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'This question tests **ownership, calm under pressure and engineering maturity**. Everyone who ships code ships bugs; the interviewer wants to see that you prioritise users (stop the bleeding first), communicate instead of hiding, fix the cause rather than the symptom, and improve the system so the same class of bug cannot recur.',
+      },
+      { type: 'heading3', text: 'What the interviewer is looking for' },
+      {
+        type: 'bullets',
+        items: [
+          '**Ownership:** you say "I caused it" without excuses or blaming QA for not catching it.',
+          '**Mitigation first:** restore service before investigating in depth.',
+          '**Communication:** you told the team, support and stakeholders what was happening and when it would be fixed.',
+          '**Root cause and prevention:** a test, alert, monitoring or process change — not just "I was more careful".',
+          '**Blameless mindset:** focus on why the system allowed the bug, not on guilt.',
+        ],
+      },
+      { type: 'heading3', text: 'Structure' },
+      {
+        type: 'numbered',
+        items: [
+          '**Situation:** what you shipped and how the bug showed up (alert, user report, error spike).',
+          '**Impact:** who was affected, how many, for how long.',
+          '**Mitigation:** rollback, feature flag off, hotfix — and how fast.',
+          '**Communication:** who you informed and how often.',
+          '**Root cause:** why it happened and why it was not caught.',
+          '**Prevention and lessons:** tests, alerts, review changes, and what you personally do differently.',
+        ],
+      },
+      { type: 'heading3', text: 'Sample answer (replace the placeholders)' },
+      {
+        type: 'paragraph',
+        text: "\"**S:** At [company], I refactored the HTTP interceptor in our Angular app to add [token refresh]. It passed review and tests and went out on [a Thursday release]. **Impact:** about [30 minutes] later, [Sentry] showed a spike of 401 errors — users whose sessions expired were stuck in a loop and logged out, roughly [8%] of active users. **A:** I recognised my change from the stack trace, told the on-call channel 'this is from my interceptor change, I am rolling back', and we redeployed the previous build within [15 minutes]. I posted updates in the incident channel and gave support a short message for affected users. Then I reproduced it locally: when several requests failed at once, each triggered its own refresh, and the later refreshes invalidated the earlier token. Our tests only covered a single request. I fixed it by queueing concurrent requests behind one refresh call, added unit tests for parallel 401s and an e2e test with an expired token, and we added an alert on the 401 rate. **R:** The fix shipped [the next day] with no recurrence, and in the blameless post-mortem we added 'auth and interceptor changes need a concurrency test' to our PR checklist. My lesson: test the failure paths under realistic conditions, not just the happy path — and roll back first, debug second.\"",
+      },
+      { type: 'heading3', text: 'Prevention ideas worth mentioning' },
+      {
+        type: 'bullets',
+        items: [
+          'Feature flags and gradual rollouts (canary, percentage rollout) to limit blast radius.',
+          'Error monitoring and alerts (Sentry, Datadog, Application Insights) on error rate and key user journeys.',
+          'Tests for edge cases that caused the bug: concurrency, empty data, slow network, expired sessions.',
+          'A tested, one-click rollback path.',
+          'Post-mortems focused on systems and processes, shared with the team.',
+        ],
+      },
+      { type: 'heading3', text: 'Likely follow-ups' },
+      {
+        type: 'bullets',
+        items: [
+          '"How did you find out about the bug?"',
+          '"Why was it not caught in review or testing?"',
+          '"What would you do if you could not roll back?"',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common mistakes: picking a trivial bug (a typo in a label), blaming QA or the reviewer, describing a heroic all-night fix without mentioning mitigation or prevention, or claiming you have never caused a production bug — that signals either little production experience or a lack of honesty.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: say "I caused it" in the first sentence. It disarms the question immediately and lets you spend the rest of the time on the part that impresses: fast mitigation, clear communication and lasting prevention.',
+      },
+    ],
+  },
+
+  'How do you give and receive code review feedback?': {
+    summary:
+      'When giving feedback, be kind and specific: comment on the code, not the person, explain the why, ask questions rather than issue commands, and clearly separate blocking issues from nits. When receiving it, assume good intent, do not get defensive, ask for clarification, and either change the code or explain your reasoning — then take larger debates to a quick call.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'The interviewer is checking whether you raise the quality bar **and** make the team better to work in. Code review is where collaboration happens daily: harsh or vague reviews slow teams down, and defensive authors stop learning. A good answer has a clear personal approach, concrete examples of comments, and an example of feedback you received and acted on.',
+      },
+      { type: 'heading3', text: 'Giving feedback' },
+      {
+        type: 'bullets',
+        items: [
+          '**Review the right things first:** correctness, security, edge cases, design and readability matter more than style (let Prettier and ESLint handle formatting).',
+          '**Explain the why:** "This subscription is never unsubscribed, so the component leaks on navigation — could we use takeUntilDestroyed or toSignal here?"',
+          '**Label severity:** "blocking:", "suggestion:", "nit:", "question:" — the author knows what must change before merge.',
+          '**Ask, do not command:** "What do you think about extracting this into a service?" invites discussion.',
+          '**Praise good work:** a short "nice approach to caching here" makes critical comments easier to accept.',
+          '**Keep it timely:** review within [a day]; large PRs left for days block the author.',
+          '**Move long threads offline:** after 2–3 back-and-forths, a 10-minute call is faster.',
+        ],
+      },
+      { type: 'heading3', text: 'Receiving feedback' },
+      {
+        type: 'bullets',
+        items: [
+          'Assume good intent — the reviewer is improving the code, not judging you.',
+          'Ask for clarification if a comment is unclear instead of guessing.',
+          'Accept good suggestions quickly; if you disagree, explain your reasoning with evidence.',
+          'Separate ego from code: "my PR" is the team\'s code once merged.',
+          'If the same comment appears repeatedly, turn it into a lint rule or a team guideline.',
+          'Make PRs easy to review: small, focused, with a clear description and screenshots for UI changes.',
+        ],
+      },
+      { type: 'heading3', text: 'Structure for the answer' },
+      {
+        type: 'numbered',
+        items: [
+          'Your principles for giving feedback (2–3 points).',
+          'Your principles for receiving feedback (2–3 points).',
+          'One concrete example — ideally feedback you received that changed how you work.',
+          'Any process improvement you drove (templates, checklists, automation).',
+        ],
+      },
+      { type: 'heading3', text: 'Sample answer (replace the placeholders)' },
+      {
+        type: 'paragraph',
+        text: '"When I review, I focus on correctness, edge cases and maintainability first, and I prefix comments with blocking, suggestion or nit so the author knows what actually needs to change. I always try to explain the why — for example, rather than writing \'use OnPush\', I explain that this list re-renders on every keystroke and link our performance guideline. On receiving feedback, one example stands out: early at [company], a senior reviewer pointed out that my [Angular forms] code mixed validation logic into the component, making it hard to test. My first instinct was to defend it, but after a quick call I saw her point, refactored the validators into pure functions and our test coverage on that module went from [40%] to [85%]. Since then I treat review comments as free mentoring. On my current team I also introduced a PR template with a checklist and screenshots section, which [cut review round-trips by roughly a third] because reviewers had the context upfront."',
+      },
+      { type: 'heading3', text: 'Likely follow-ups' },
+      {
+        type: 'bullets',
+        items: [
+          '"What do you do if a reviewer keeps blocking your PR on preferences?"',
+          '"How do you review a very large PR?" — ask to split it, or review in a call.',
+          '"How do you give feedback to a more senior developer?"',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common mistakes: saying you approve quickly to avoid slowing people down, focusing only on formatting, describing reviews as "finding mistakes", or admitting you get frustrated by comments without showing how you handle it.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: quote an actual comment you would write, including its label and the why. A single realistic example ("nit: …", "blocking: …") shows your review style far better than general statements about being constructive.',
+      },
+    ],
+  },
+
+  'Tell me about a time you mentored or helped a junior developer.': {
+    summary:
+      'Describe a specific person and situation, how you understood what they needed, and how you helped them grow rather than doing the work for them — pairing, guided questions, small ownership, regular feedback. End with a measurable outcome for them and the team (they shipped a feature independently, onboarding time dropped) and what mentoring taught you.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'This tests **leadership without authority, communication and patience** — essential for senior roles. The interviewer wants to see that you invest in others, adapt to how they learn, and measure success by their growth rather than by how much you know. Even if you have never been a formal mentor, onboarding a new joiner or helping a teammate through a tough bug counts.',
+      },
+      { type: 'heading3', text: 'What the interviewer is looking for' },
+      {
+        type: 'bullets',
+        items: [
+          'You noticed the need (or were asked) and took initiative.',
+          'You taught rather than fixed — the person ended up able to do it alone.',
+          'You adapted your approach to their level and learning style.',
+          'There was a visible outcome: confidence, speed, quality, independence.',
+        ],
+      },
+      { type: 'heading3', text: 'Structure' },
+      {
+        type: 'numbered',
+        items: [
+          '**Situation:** who they were (role, experience) and the challenge (new to Angular, struggling with RxJS, slow PRs).',
+          '**Task:** your role — assigned mentor, buddy, or you stepped in.',
+          '**Action:** what you did over time — pairing, explaining concepts, gradually increasing ownership, giving feedback.',
+          '**Result:** their progress with specifics, and the effect on the team.',
+          '**Reflection:** what you learned about teaching or about your own understanding.',
+        ],
+      },
+      { type: 'heading3', text: 'Mentoring techniques worth naming' },
+      {
+        type: 'bullets',
+        items: [
+          '**Pair programming** with them driving — you navigate and ask questions.',
+          '**Guided questions** instead of answers: "What do you expect this observable to emit? Let\'s log it."',
+          '**Right-sized ownership:** start with a small, well-defined ticket, then a full feature.',
+          '**Regular 1:1s** (e.g. 30 minutes weekly) to discuss blockers and goals.',
+          '**Reviews as teaching:** explain the why, link docs, suggest reading.',
+          '**Safe space:** make it normal to ask "stupid" questions.',
+        ],
+      },
+      { type: 'heading3', text: 'Sample answer (replace the placeholders)' },
+      {
+        type: 'paragraph',
+        text: '"**S:** At [company], [a junior developer] joined our team from a [React / backend] background and was struggling with RxJS — her PRs had nested subscriptions and kept coming back with [10+] review comments, which was hurting her confidence. **T:** My lead asked me to be her onboarding buddy for [the first three months]. **A:** I set up a weekly 30-minute session and started with the concepts she found hardest — the difference between switchMap, mergeMap and concatMap — using a small search-box example from our own code. I paired with her on two tickets where she drove and I only asked questions. I then gave her ownership of [the notifications feature], with me as the reviewer, and in reviews I explained the why and linked our internal guide. I also wrote that guide — [a two-page RxJS cheat sheet] — because I realised others had the same gaps. **R:** Within [two months] her PRs were averaging [1–2] comments, she shipped [the notifications feature] on her own, and the cheat sheet is now part of every frontend onboarding. Personally, explaining the operators made my own understanding much sharper, and I learned to hold back from just giving the answer."',
+      },
+      { type: 'heading3', text: 'Likely follow-ups' },
+      {
+        type: 'bullets',
+        items: [
+          '"How did you balance mentoring with your own deadlines?"',
+          '"What did you do when they were not improving?"',
+          '"How do you mentor someone who is more senior in another area?"',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common mistakes: a story where you simply fixed their bug for them, a condescending tone about the junior, no measurable outcome, or taking credit for their success instead of describing your contribution.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: mention something that scaled beyond one person — a guide, a checklist, an onboarding doc, a lunch-and-learn. It turns a kind act into evidence of senior-level impact on the whole team.',
+      },
+    ],
+  },
+
+  'How do you estimate a feature, and what do you do when your estimate turns out to be wrong?': {
+    summary:
+      'Break the feature into small tasks, estimate each with a range (or a three-point optimistic / likely / pessimistic estimate), and explicitly include testing, code review, integration, deployment and a buffer for unknowns — spiking anything risky first. When you discover the estimate is wrong, communicate immediately with a revised estimate and options (cut scope, move the date, add help), then feed what you learned back into the next estimate.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'The interviewer is assessing **planning skill and trustworthiness**. Nobody estimates perfectly; what matters is a systematic method, honesty about uncertainty, and early communication when reality changes. Teams can plan around a developer who says "3–5 days, the risk is the payment API" — they cannot plan around one who says "2 days" and delivers in 8 without warning.',
+      },
+      { type: 'heading3', text: 'A practical estimation process' },
+      {
+        type: 'numbered',
+        items: [
+          '**Clarify scope:** acceptance criteria, designs, edge cases, non-functional needs (performance, accessibility, i18n). Ambiguity is the biggest source of error.',
+          '**Break it down:** split into tasks of roughly half a day to two days — UI components, state, API integration, backend endpoint, tests, docs.',
+          '**Identify unknowns:** new library, third-party API, legacy code you have not touched. Time-box a spike before committing.',
+          '**Estimate each task with a range:** use three-point estimation (optimistic, most likely, pessimistic) for risky items.',
+          '**Add the hidden work:** unit and e2e tests, code review cycles, QA fixes, deployment, meetings and context switching.',
+          '**Compare with history:** how long did a similar feature actually take last time?',
+          '**Communicate the estimate with its assumptions and risks:** "4–6 days, assuming the API contract is ready by [date]".',
+        ],
+      },
+      { type: 'heading3', text: 'Three-point estimation (quick formula)' },
+      {
+        type: 'paragraph',
+        text: 'For a risky task: expected ≈ (optimistic + 4 × likely + pessimistic) / 6. Example: integrating a payment SDK — optimistic 2 days, likely 3, pessimistic 8 → (2 + 12 + 8) / 6 ≈ 3.7 days. The gap between optimistic and pessimistic tells everyone how uncertain the task really is.',
+      },
+      { type: 'heading3', text: 'When the estimate turns out wrong' },
+      {
+        type: 'bullets',
+        items: [
+          '**Notice early:** check progress against the plan daily; if half the time is gone and less than half the work is done, it is already off track.',
+          '**Communicate immediately:** tell your lead / PM as soon as you know, not at the deadline.',
+          '**Bring options:** reduce scope (ship the core, defer the rest), move the date, or get help on a parallelisable part.',
+          '**Re-plan with a new estimate** based on what you now know.',
+          '**Learn:** compare estimate vs actual in the retro and adjust how you estimate similar work.',
+        ],
+      },
+      { type: 'heading3', text: 'Sample answer (replace the placeholders)' },
+      {
+        type: 'paragraph',
+        text: "\"For a feature like [a bulk-edit table in our Angular app], I start by clarifying the acceptance criteria with the PM and designer, then break it into tasks: the table component with selection, the edit dialog with reactive form validation, the [Node.js] bulk-update endpoint, error handling for partial failures, unit and e2e tests, and review. I estimate each as a range and add a buffer for anything new — here, partial-failure handling was unclear, so I did a half-day spike first. My estimate was [6–8 days]. Midway I found the backend needed [a database migration for audit logs] that nobody had planned, adding about [3 days]. I flagged it in stand-up that day, and proposed shipping bulk edit without the audit history first, behind a feature flag, with audit following in the next sprint. The PM agreed, we released on time, and audit followed [a week] later. Since then I always ask 'does this need data or audit changes?' during breakdown — that question is now on our team's refinement checklist.\"",
+      },
+      { type: 'heading3', text: 'Likely follow-ups' },
+      {
+        type: 'bullets',
+        items: [
+          '"Do you prefer story points or time?" — explain your team\'s approach and that both need breaking down.',
+          '"What if the manager pushes back on your estimate?" — explain the assumptions and offer a smaller scope for the requested date.',
+          '"How accurate are your estimates usually?"',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common mistakes: giving a single optimistic number, estimating only the coding time, padding secretly instead of stating risks openly, and staying silent when behind because you hope to catch up.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: say "I estimate in ranges and state my assumptions" — then show the moment you raised a slip early with options. Those two habits are exactly what makes an engineer predictable and trusted.',
+      },
+    ],
+  },
+
+  'Why are you looking for a change, and why do you want to join this company?': {
+    summary:
+      'Frame the move positively as moving **towards** something — bigger technical challenges, a product you care about, more ownership — rather than running **away** from your current employer. Then show you have researched this company: name something specific about its product, engineering practices or challenges, and connect it directly to your experience and to what the role needs.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'The interviewer is checking **motivation and fit**: will you be engaged here, will you stay, and are your reasons healthy? They are also looking for red flags — bitterness about your current company, purely financial motivation, or a generic answer that could apply to any employer.',
+      },
+      { type: 'heading3', text: 'Part 1: why you are looking for a change' },
+      {
+        type: 'bullets',
+        items: [
+          '**Growth:** "I have learned a lot in [N] years, and I want to work on [larger scale / harder problems / architecture]."',
+          '**Product or domain:** "I want to work on a product used directly by customers, not internal tools."',
+          '**Ownership:** "I want end-to-end ownership of features, including the backend."',
+          '**Technology:** "I want to work with modern Angular / signals / a performance-critical app" — only if true.',
+          '**Honest circumstances:** a reorganisation, project ending or relocation can be stated plainly and briefly.',
+        ],
+      },
+      { type: 'heading3', text: 'Part 2: why this company' },
+      {
+        type: 'numbered',
+        items: [
+          '**Research first:** the product (try it), recent news, funding or launches, the engineering blog, tech stack, Glassdoor and LinkedIn for team size and culture.',
+          '**Pick 1–2 specific reasons:** a product you find valuable, a technical challenge (scale, real-time, accessibility), an engineering practice (testing culture, open source, design system).',
+          '**Connect to yourself:** "You are [scaling to new markets], and I have [built i18n and performance work for an app with N users]."',
+          '**Connect to the role:** show what you will contribute in the first months.',
+        ],
+      },
+      { type: 'heading3', text: 'Sample answer (replace the placeholders)' },
+      {
+        type: 'paragraph',
+        text: '"I have been at [current company] for [3] years and I have grown a lot — I led [the Angular 19 migration] and built [our component library]. The product is now mostly in maintenance mode, though, and I want to work somewhere the frontend is a core part of the product and is still scaling. That is what attracted me here. I have used [your product] and read your engineering blog post about [moving to micro-frontends / improving Core Web Vitals], which is exactly the kind of problem I enjoy — on my current project I [reduced load time from 6 s to 2 s with lazy loading and @defer]. The role also mentions [owning the design system and mentoring], which matches what I have been doing and where I want to grow. So it feels like a place where I can contribute from the start and keep learning."',
+      },
+      { type: 'heading3', text: 'Reframing negative reasons' },
+      {
+        type: 'bullets',
+        items: [
+          '"My manager micromanages" → "I am looking for more ownership and autonomy over technical decisions."',
+          '"The codebase is a mess and nobody cares" → "I want a team that invests in engineering quality — testing, reviews, modern practices."',
+          '"I am underpaid" → focus on growth and scope; discuss compensation in the salary conversation, not here.',
+          '"Layoffs / restructuring" → state it factually in one sentence; it is common and not a red flag.',
+        ],
+      },
+      { type: 'heading3', text: 'Likely follow-ups' },
+      {
+        type: 'bullets',
+        items: [
+          '"What do you know about our product?"',
+          '"What would make you stay at your current company?"',
+          '"Where do you see yourself in [3] years?"',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common mistakes: badmouthing your current employer, manager or colleagues; "I want more money" as the main reason; a generic answer ("you are a great company with great culture") that shows no research; or confusing the company with a competitor.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: prepare one specific fact about the company that most candidates would not mention — a recent feature, a blog post, a talk by their engineers — and link it to something you have done. Specificity is what makes "why us" sound genuine.',
+      },
+    ],
+  },
+
+  'What questions should you ask the interviewer at the end of an interview?': {
+    summary:
+      'Always ask 2–3 thoughtful questions — it shows genuine interest and helps you decide whether the job is right for you. Good topics are the team and how it works, engineering practices (reviews, testing, releases), what success looks like in the first 90 days, and the biggest current challenges. Avoid opening with salary, leave or remote-work perks in early rounds; save those for HR or the offer stage.',
+    details: [
+      {
+        type: 'paragraph',
+        text: '"Do you have any questions for us?" is part of the evaluation. Saying "no, I think you covered everything" can signal low interest. Thoughtful questions show curiosity, seniority and that you are evaluating them too — and the answers give you real information about whether you would enjoy the job.',
+      },
+      { type: 'heading3', text: 'About the team and role' },
+      {
+        type: 'bullets',
+        items: [
+          '"What does a typical week look like for someone in this role?"',
+          '"How is the team structured — how many frontend, backend and QA engineers, and who would I work most closely with?"',
+          '"What would success look like for me in the first 90 days?"',
+          '"What are the biggest challenges the team is facing right now?"',
+        ],
+      },
+      { type: 'heading3', text: 'About engineering practices' },
+      {
+        type: 'bullets',
+        items: [
+          '"How does code review work here, and how long does a PR typically take to merge?"',
+          '"How do you approach testing — unit, e2e, and who owns quality?"',
+          '"How often do you release, and what does the deployment process look like?"',
+          '"Which Angular version are you on, and how do you handle upgrades and technical debt?"',
+          '"How are technical decisions made — is there an architecture review or RFC process?"',
+        ],
+      },
+      { type: 'heading3', text: 'About growth and culture' },
+      {
+        type: 'bullets',
+        items: [
+          '"How do engineers grow here — is there a career framework, mentoring or learning budget?"',
+          '"What do you personally enjoy most about working here?"',
+          '"How does the team handle production incidents and on-call?"',
+        ],
+      },
+      { type: 'heading3', text: 'Questions to avoid early on' },
+      {
+        type: 'bullets',
+        items: [
+          '**Only salary, bonus, leave or perks** in a first technical round — not wrong to care, but ask HR or wait for the offer stage.',
+          '**Things easily found online:** "What does your company do?"',
+          '**Yes/no questions** that end the conversation quickly.',
+          '**"Did I get the job?"** — instead ask "What are the next steps in the process?"',
+        ],
+      },
+      { type: 'heading3', text: 'Matching questions to the interviewer' },
+      {
+        type: 'bullets',
+        items: [
+          '**Engineer:** codebase, tools, reviews, what they like and find hard.',
+          '**Engineering manager:** team goals, expectations for the role, how performance is measured.',
+          '**HR / recruiter:** process, timeline, compensation and benefits — this is the right place.',
+          '**Director / founder:** product direction, priorities for the next year.',
+        ],
+      },
+      { type: 'heading3', text: 'Sample answer (replace the placeholders)' },
+      {
+        type: 'paragraph',
+        text: '"Thanks — I have a few. First, what would success look like for this role in the first 90 days? Second, you mentioned [migrating to signals / the new design system] earlier — what is the biggest challenge the team is facing with that right now? And finally, how does the team handle code review and releases — how often do you ship to production? … And what are the next steps in the process?"',
+      },
+      { type: 'heading3', text: 'Tips' },
+      {
+        type: 'bullets',
+        items: [
+          'Prepare 5–6 questions in advance; some will be answered during the interview.',
+          'Reference something from the conversation — it shows you were listening.',
+          'Listen to the answer and ask a short follow-up; it becomes a conversation, not a checklist.',
+          'Watch for red flags in answers: no testing, constant firefighting, unclear ownership.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common mistakes: having no questions, asking only about salary and leave in an early technical round, asking ten questions when time is up, or asking something the interviewer explicitly covered ten minutes ago.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: "What would success look like in the first 90 days?" is one of the best questions you can ask — it shows you are already thinking about delivering, and the answer tells you exactly what to emphasise in any remaining rounds.',
+      },
+    ],
+  },
 };

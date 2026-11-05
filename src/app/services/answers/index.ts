@@ -22,6 +22,7 @@ export const ANSWER_LOADERS: Record<string, () => Promise<AnswerMap>> = {
   'component-communication': () => import('./component-communication').then((m) => m.answers),
   ngrx: () => import('./ngrx').then((m) => m.answers),
   architecture: () => import('./architecture').then((m) => m.answers),
+  'frontend-system-design': () => import('./frontend-system-design').then((m) => m.answers),
   performance: () => import('./performance').then((m) => m.answers),
   'security-storage': () => import('./security-storage').then((m) => m.answers),
   testing: () => import('./testing').then((m) => m.answers),
@@ -47,4 +48,5 @@ export const ANSWER_LOADERS: Record<string, () => Promise<AnswerMap>> = {
   'nodejs-microservices': () => import('./nodejs-microservices').then((m) => m.answers),
   'nodejs-system-design': () => import('./nodejs-system-design').then((m) => m.answers),
   'nodejs-backend-operations': () => import('./nodejs-backend-operations').then((m) => m.answers),
+  'nodejs-coding-round': () => import('./nodejs-coding-round').then((m) => m.answers),
 };

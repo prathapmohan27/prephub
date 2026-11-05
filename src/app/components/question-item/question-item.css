@@ -80,46 +80,15 @@
 .question-drawer {
   border-top: 1px solid var(--color-border);
   margin-top: 12px;
-  padding-top: 14px;
+  padding-top: 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
-.notes-textarea {
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: 8px;
-  border: 1px solid rgba(63, 63, 70, 0.45);
-  background: rgba(9, 9, 11, 0.7);
-  color: #d4d4d8;
-  font-size: 0.8rem;
-  font-family: var(--font-sans);
-  line-height: 1.6;
-  resize: vertical;
-  min-height: 88px;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.notes-label-row {
-  gap: 4px;
-  font-size: 0.68rem;
-}
-
-.notes-edit-icon {
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-.notes-saved-label {
-  font-size: 0.62rem;
-  gap: 4px;
-}
-
-.notes-autosave-icon {
-  color: var(--color-success);
-  font-size: 11px;
+.q-actions {
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
 }
 
 .btn-action {

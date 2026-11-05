@@ -565,3 +565,30 @@
     padding: 20px 16px 48px;
   }
 }
+
+/* ─── Model answer ────────────────────────────────────────────────────────── */
+.q-answer {
+  margin: 14px 0;
+}
+
+.btn-reveal {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 12px 8px 0 0;
+  padding: 9px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  background: rgba(99, 102, 241, 0.1);
+  color: #c7d2fe;
+  font: 600 0.78rem var(--font-sans);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-reveal:hover {
+  background: rgba(99, 102, 241, 0.2);
+}
+.btn-reveal:focus-visible {
+  outline: 2px solid #818cf8;
+  outline-offset: 2px;
+}

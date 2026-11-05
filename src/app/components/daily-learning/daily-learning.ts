@@ -1,13 +1,14 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DailyLearningService, LearningMode } from '@services/daily-learning';
 import { Question, CategoryModel } from '@services/question';
+import { Answer } from '../answer/answer';
 
 type AppMode = 'angular' | 'nodejs';
 type ViewState = 'setup' | 'session';
 
 @Component({
   selector: 'app-daily-learning',
-  imports: [],
+  imports: [Answer],
   template: `
     <div class="dl-shell">
       <div class="dl-glow"></div>
@@ -260,6 +261,26 @@ type ViewState = 'setup' | 'session';
                           setting.
                         </p>
                       </div>
+
+                      @if (revealed().has(i)) {
+                        <div class="q-answer">
+                          <app-answer [categoryId]="q.categoryId" [question]="q.text" />
+                        </div>
+                      }
+
+                      <button
+                        type="button"
+                        class="btn-reveal"
+                        (click)="toggleReveal(i)"
+                        [attr.aria-expanded]="revealed().has(i)"
+                      >
+                        <i
+                          class="ti"
+                          [class.ti-eye]="!revealed().has(i)"
+                          [class.ti-eye-off]="revealed().has(i)"
+                        ></i>
+                        {{ revealed().has(i) ? 'Hide Answer' : 'Reveal Answer' }}
+                      </button>
                       <button
                         class="btn-understood"
                         [class.btn-understood--done]="session()!.completed[i]"
@@ -408,6 +429,18 @@ export class DailyLearning implements OnInit {
   }
 
   // ── Card interaction ──────────────────────────────────────────────────────
+  /** Indexes of questions whose model answer is shown */
+  revealed = signal<Set<number>>(new Set());
+
+  toggleReveal(index: number) {
+    this.revealed.update((set) => {
+      const next = new Set(set);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  }
+
   toggleExpand(index: number) {
     this.expandedIndex.update((cur) => (cur === index ? null : index));
   }

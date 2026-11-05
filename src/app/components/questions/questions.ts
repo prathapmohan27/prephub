@@ -2,13 +2,14 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { Header } from '@components/header';
 import { Stats } from '@components/stats';
 import { Category } from '@components/category';
+import { Answer } from '../answer/answer';
 import { Question, CategoryModel } from '@services/question';
 
 type AppMode = 'angular' | 'nodejs';
 
 @Component({
   selector: 'app-questions',
-  imports: [Header, Stats, Category],
+  imports: [Header, Stats, Category, Answer],
   template: `
     <div class="page-shell">
       <div class="radial-glow radial-glow-overlay"></div>
@@ -151,7 +152,25 @@ type AppMode = 'angular' | 'nodejs';
                   >
                 </div>
 
+                <!-- Try answering out loud first, then reveal the model answer -->
+                @if (spotlightRevealed()) {
+                  <div class="spotlight-answer animate-fade-in">
+                    <app-answer
+                      [categoryId]="spotlightCategory()!.id"
+                      [question]="spotlightQuestion()!"
+                    />
+                  </div>
+                }
+
                 <div class="flex-wrap-gap">
+                  <button (click)="spotlightRevealed.update((v) => !v)" class="btn-ghost">
+                    <i
+                      class="ti"
+                      [class.ti-eye]="!spotlightRevealed()"
+                      [class.ti-eye-off]="spotlightRevealed()"
+                    ></i>
+                    {{ spotlightRevealed() ? 'Hide Answer' : 'Reveal Answer' }}
+                  </button>
                   <button (click)="togglePreparedSpotlight()" class="btn-mastered">
                     <i
                       class="ti"
@@ -193,11 +212,9 @@ type AppMode = 'angular' | 'nodejs';
                     [forceOpen]="allOpen()"
                     [preparedSet]="preparedSet()"
                     [starredSet]="starredSet()"
-                    [notesMap]="notesMap()"
                     [mode]="mode()"
                     (togglePrepared)="togglePrepared($event)"
                     (toggleStarred)="toggleStarred($event)"
-                    (notesChange)="onNotesChange($event)"
                   />
                 }
               }
@@ -216,7 +233,6 @@ export class Questions implements OnInit {
 
   preparedSet = signal<Set<string>>(new Set());
   starredSet = signal<Set<string>>(new Set());
-  notesMap = signal<Record<string, string>>({});
 
   activeFilter = signal<string>('all');
   selectedCategory = signal<CategoryModel | null>(null);
@@ -224,6 +240,7 @@ export class Questions implements OnInit {
 
   spotlightQuestion = signal<string | null>(null);
   spotlightCategory = signal<CategoryModel | null>(null);
+  spotlightRevealed = signal(false);
 
   private questionService: Question = inject(Question);
 
@@ -297,10 +314,8 @@ export class Questions implements OnInit {
     try {
       const prepared = JSON.parse(localStorage.getItem('prep_prepared') || '[]');
       const starred = JSON.parse(localStorage.getItem('prep_starred') || '[]');
-      const notes = JSON.parse(localStorage.getItem('prep_notes') || '{}');
       this.preparedSet.set(new Set<string>(prepared));
       this.starredSet.set(new Set<string>(starred));
-      this.notesMap.set(notes);
     } catch (e) {
       console.error('Failed to load storage state', e);
     }
@@ -328,12 +343,6 @@ export class Questions implements OnInit {
     localStorage.setItem('prep_starred', JSON.stringify(Array.from(updated)));
   }
 
-  onNotesChange(event: { question: string; notes: string }) {
-    const updated = { ...this.notesMap(), [event.question]: event.notes };
-    this.notesMap.set(updated);
-    localStorage.setItem('prep_notes', JSON.stringify(updated));
-  }
-
   triggerSpotlight() {
     const pool = this.visibleCategories().reduce<{ q: string; cat: CategoryModel }[]>(
       (acc, cat) => {
@@ -350,11 +359,13 @@ export class Questions implements OnInit {
     const item = pool[Math.floor(Math.random() * pool.length)];
     this.spotlightQuestion.set(item.q);
     this.spotlightCategory.set(item.cat);
+    this.spotlightRevealed.set(false);
   }
 
   clearSpotlight() {
     this.spotlightQuestion.set(null);
     this.spotlightCategory.set(null);
+    this.spotlightRevealed.set(false);
   }
 
   togglePreparedSpotlight() {

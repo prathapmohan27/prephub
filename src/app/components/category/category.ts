@@ -70,11 +70,10 @@ import { CategoryModel } from '@services/question';
                 [searchFilter]="searchFilter()"
                 [isPrepared]="isQuestionPrepared(q)"
                 [isStarred]="isQuestionStarred(q)"
-                [notes]="getQuestionNotes(q)"
+                [categoryId]="category().id"
                 [mode]="mode()"
                 (togglePrepared)="togglePrepared.emit(q)"
                 (toggleStarred)="toggleStarred.emit(q)"
-                (notesChange)="onNotesChange(q, $event)"
               />
             }
           }
@@ -90,12 +89,10 @@ export class Category {
   forceOpen = input<boolean>(false);
   preparedSet = input<Set<string>>(new Set());
   starredSet = input<Set<string>>(new Set());
-  notesMap = input<Record<string, string>>({});
   mode = input<string>('angular');
 
   togglePrepared = output<string>();
   toggleStarred = output<string>();
-  notesChange = output<{ question: string; notes: string }>();
 
   isOpen = signal(false);
 
@@ -126,12 +123,5 @@ export class Category {
   }
   isQuestionStarred(q: string) {
     return this.starredSet().has(q);
-  }
-  getQuestionNotes(q: string) {
-    return this.notesMap()[q] ?? '';
-  }
-
-  onNotesChange(question: string, notes: string) {
-    this.notesChange.emit({ question, notes });
   }
 }

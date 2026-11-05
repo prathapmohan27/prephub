@@ -1,0 +1,109 @@
+:host {
+  display: block;
+}
+
+.cb {
+  border: 1px solid rgba(63, 63, 70, 0.55);
+  border-radius: var(--radius-lg);
+  background: #0b0b0e;
+  overflow: hidden;
+}
+
+.cb-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px 6px 14px;
+  border-bottom: 1px solid rgba(63, 63, 70, 0.4);
+  background: rgba(24, 24, 27, 0.8);
+}
+
+.cb-lang {
+  font: 700 0.62rem var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.cb-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  color: var(--color-text-subtle);
+  font: 600 0.68rem var(--font-sans);
+  cursor: pointer;
+}
+.cb-copy:hover {
+  background: rgba(63, 63, 70, 0.5);
+  color: var(--color-text-primary);
+}
+.cb-copy:focus-visible {
+  outline: 2px solid #818cf8;
+  outline-offset: 1px;
+}
+
+.cb-pre {
+  margin: 0;
+  padding: 14px 16px;
+  overflow-x: auto;
+}
+.cb-pre code {
+  font: 400 0.78rem/1.7 var(--font-mono);
+  color: #e4e4e7;
+  white-space: pre;
+}
+
+/* ── Syntax colours (dark, tuned to the app palette) ───────────────── */
+.cb-pre ::ng-deep .hljs-keyword,
+.cb-pre ::ng-deep .hljs-selector-tag,
+.cb-pre ::ng-deep .hljs-built_in {
+  color: #c4b5fd;
+}
+.cb-pre ::ng-deep .hljs-string,
+.cb-pre ::ng-deep .hljs-attr-value,
+.cb-pre ::ng-deep .hljs-template-string,
+.cb-pre ::ng-deep .hljs-regexp {
+  color: #86efac;
+}
+.cb-pre ::ng-deep .hljs-number,
+.cb-pre ::ng-deep .hljs-literal {
+  color: #fdba74;
+}
+.cb-pre ::ng-deep .hljs-comment,
+.cb-pre ::ng-deep .hljs-quote {
+  color: #71717a;
+  font-style: italic;
+}
+.cb-pre ::ng-deep .hljs-title,
+.cb-pre ::ng-deep .hljs-title.function_,
+.cb-pre ::ng-deep .hljs-section {
+  color: #7dd3fc;
+}
+.cb-pre ::ng-deep .hljs-title.class_,
+.cb-pre ::ng-deep .hljs-type {
+  color: #fcd34d;
+}
+.cb-pre ::ng-deep .hljs-attr,
+.cb-pre ::ng-deep .hljs-attribute,
+.cb-pre ::ng-deep .hljs-property {
+  color: #93c5fd;
+}
+.cb-pre ::ng-deep .hljs-tag,
+.cb-pre ::ng-deep .hljs-name {
+  color: #f9a8d4;
+}
+.cb-pre ::ng-deep .hljs-meta,
+.cb-pre ::ng-deep .hljs-decorator {
+  color: #f472b6;
+}
+.cb-pre ::ng-deep .hljs-variable,
+.cb-pre ::ng-deep .hljs-params {
+  color: #e4e4e7;
+}
+.cb-pre ::ng-deep .hljs-subst {
+  color: #e4e4e7;
+}

@@ -24,7 +24,11 @@ for (const k of [
 const { default: mermaid } = await import('mermaid');
 mermaid.initialize({ startOnLoad: false });
 
-const roots = ['src/app/services/core-concepts', 'src/app/services/system-design'];
+const roots = [
+  'src/app/services/core-concepts',
+  'src/app/services/system-design',
+  'src/app/services/answers',
+];
 const filter = process.argv[2] ?? '';
 const files = roots
   .flatMap((r) => (fs.existsSync(r) ? fs.readdirSync(r).map((f) => path.join(r, f)) : []))

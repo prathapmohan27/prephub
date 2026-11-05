@@ -1,9 +1,10 @@
 import { Component, input, output, signal } from '@angular/core';
 import { Highlight } from '@pipes/highlight';
+import { Answer } from '../answer/answer';
 
 @Component({
   selector: 'app-question-item',
-  imports: [Highlight],
+  imports: [Highlight, Answer],
   template: `
     <div class="glass-card question-card" [class.question-card--prepared]="isPrepared()">
       <!-- Question row -->
@@ -63,26 +64,10 @@ import { Highlight } from '@pipes/highlight';
       <!-- Expandable drawer -->
       @if (isExpanded()) {
         <div class="question-drawer">
-          <!-- Notes header -->
-          <div class="flex-between">
-            <span class="section-label flex-row-center notes-label-row">
-              <i class="ti ti-edit-circle notes-edit-icon"></i> My Study Notes
-            </span>
-            <span class="text-subtle text-monospace flex-row-center notes-saved-label">
-              <i class="ti ti-cloud-check notes-autosave-icon"></i> Autosaved
-            </span>
-          </div>
-
-          <!-- Notes textarea -->
-          <textarea
-            [value]="notes()"
-            (input)="onNotesChange($event)"
-            class="notes-textarea"
-            placeholder="Write your answer, key points, or code snippets here..."
-          ></textarea>
+          <app-answer [categoryId]="categoryId()" [question]="questionText()" />
 
           <!-- Action buttons -->
-          <div class="flex-between flex-wrap gap-2">
+          <div class="flex-between flex-wrap gap-2 q-actions">
             <div class="flex-row-center flex-wrap gap-2">
               <button (click)="copyQuestion()" class="btn-action">
                 <i
@@ -117,22 +102,17 @@ export class QuestionItem {
   searchFilter = input<string>('');
   isPrepared = input<boolean>(false);
   isStarred = input<boolean>(false);
-  notes = input<string>('');
+  categoryId = input.required<string>();
   mode = input<string>('angular');
 
   togglePrepared = output<void>();
   toggleStarred = output<void>();
-  notesChange = output<string>();
 
   isExpanded = signal<boolean>(false);
   copied = signal<boolean>(false);
 
   toggleExpand() {
     this.isExpanded.update((v) => !v);
-  }
-
-  onNotesChange(event: Event) {
-    this.notesChange.emit((event.target as HTMLTextAreaElement).value);
   }
 
   copyQuestion() {

@@ -1,6 +1,7 @@
 // Core Concepts Learning Data — PrepHub
-// 11 foundational concepts ordered progressively:
+// 15 foundational concepts ordered progressively:
 // Internet → DNS → Browser → HTTP → HTTPS → Load Balancers → Web Serving → APIs → Backend → Databases → File Storage
+// → Caching → Scaling → Message Queues → Back-of-the-Envelope Estimation
 // Each concept lives in ./core-concepts/<slug>.ts
 import { ContentBlock } from './content-model';
 
@@ -39,6 +40,10 @@ import { howApisWork } from './core-concepts/how-apis-work';
 import { howBackendWorks } from './core-concepts/how-backend-works';
 import { howDatabasesWork } from './core-concepts/how-databases-work';
 import { howFilesWork } from './core-concepts/how-files-work';
+import { howCachingWorks } from './core-concepts/how-caching-works';
+import { howScalingWorks } from './core-concepts/how-scaling-works';
+import { howMessageQueuesWork } from './core-concepts/how-message-queues-work';
+import { backOfTheEnvelopeEstimation } from './core-concepts/back-of-the-envelope-estimation';
 
 export const CORE_CONCEPTS: CoreConcept[] = [
   howInternetWorks,
@@ -52,4 +57,8 @@ export const CORE_CONCEPTS: CoreConcept[] = [
   howBackendWorks,
   howDatabasesWork,
   howFilesWork,
+  howCachingWorks,
+  howScalingWorks,
+  howMessageQueuesWork,
+  backOfTheEnvelopeEstimation,
 ];

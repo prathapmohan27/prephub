@@ -630,17 +630,14 @@ button.addEventListener('click', function () {
           variant: 'warning',
           text: "Common pitfall: defining object methods or prototype methods as arrows. They won't see the object as `this`. Use method shorthand instead.",
         },
-      ],
-    },
-
-  'Why do we need Arrow Functions when regular function declarations already exist (`lexical this binding`)?':
-    {
-      summary:
-        'Arrow functions exist mainly to fix the "lost `this`" problem in callbacks. A regular function gets its `this` from how it is called, so passing a method\'s inner callback to `setTimeout`, `forEach` or a subscription loses the object context. Arrows use lexical `this` — they inherit it from where they are written — which replaced old workarounds like `var self = this` and `.bind(this)`.',
-      details: [
+        { type: 'divider' },
+        {
+          type: 'heading3',
+          text: 'Follow-up: Why do we need Arrow Functions when regular function declarations already exist (`lexical this binding`)?',
+        },
         {
           type: 'paragraph',
-          text: 'Before ES6 every function had its own dynamic `this`. Inside a class method, any nested callback (timer, event, array method, HTTP callback) ran with a different `this`, so developers had to save a reference or bind manually. Arrow functions removed that whole class of bugs and made callback-heavy code shorter.',
+          text: 'Arrow functions exist mainly to fix the "lost `this`" problem in callbacks. A regular function gets its `this` from how it is called, so passing a method\'s inner callback to `setTimeout`, `forEach` or a subscription loses the object context. Arrows use lexical `this` — they inherit it from where they are written — which replaced old workarounds like `var self = this` and `.bind(this)`.',
         },
         { type: 'heading3', text: 'The problem — and the old workarounds' },
         {
@@ -705,11 +702,6 @@ export class UsersComponent {
             'Trade-off: class-field arrows are created per instance (not on the prototype), so they use a little more memory and cannot be easily overridden via `super`.',
             "Arrows don't replace regular functions: you still need them for constructors, methods using dynamic `this`, generators and `arguments`.",
           ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: show the `var self = this` / `.bind(this)` workaround and then the arrow version. Explaining the problem arrows solve is exactly what this question is testing.',
         },
       ],
     },

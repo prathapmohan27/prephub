@@ -352,79 +352,6 @@ function routePattern(snapshot: ActivatedRouteSnapshot): string {
     ],
   },
 
-  'How to implement lazy loading in Angular?': {
-    summary:
-      'Use dynamic `import()` in the route config: `loadComponent` for a single standalone component and `loadChildren` for a group of routes (a `routes.ts` file, or a legacy NgModule). The bundler splits that code into a separate chunk that is downloaded only when the user first navigates to the route, shrinking the initial bundle. Beyond routes, `@defer` blocks lazy-load parts of a template.',
-    details: [
-      {
-        type: 'paragraph',
-        text: 'Lazy loading means "do not ship code the user has not asked for yet". The router is the natural split point: an admin section, settings or reports can each be a separate chunk. The only requirement is that nothing in the eager part of the app imports those files statically — otherwise they get pulled into the main bundle.',
-      },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// app.routes.ts
-export const routes: Routes = [
-  { path: '', component: HomeComponent },                    // eager
-
-  // Lazy single component
-  {
-    path: 'about',
-    loadComponent: () => import('./about/about').then(m => m.AboutComponent),
-  },
-
-  // Lazy feature with its own child routes
-  {
-    path: 'admin',
-    loadChildren: () => import('./admin/admin.routes').then(m => m.ADMIN_ROUTES),
-  },
-];`,
-      },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// admin/admin.routes.ts
-export const ADMIN_ROUTES: Routes = [
-  {
-    path: '',
-    component: AdminShellComponent,
-    providers: [AdminApiService],                    // scoped to this lazy section
-    children: [
-      { path: 'users', loadComponent: () => import('./users/users').then(m => m.UsersComponent) },
-      { path: 'reports', loadComponent: () => import('./reports/reports').then(m => m.ReportsComponent) },
-    ],
-  },
-];`,
-      },
-      { type: 'heading3', text: 'Lazy loading inside a template with @defer' },
-      {
-        type: 'code',
-        lang: 'html',
-        code: `@defer (on viewport) {
-  <app-heavy-chart [data]="sales()" />
-} @placeholder {
-  <div class="chart-skeleton"></div>
-} @loading (minimum 300ms) {
-  <app-spinner />
-}`,
-      },
-      {
-        type: 'bullets',
-        items: [
-          'Verify it worked: `ng build` lists "Lazy chunk files", and the Network tab shows a new `chunk-XXXX.js` on first navigation.',
-          "Default exports allow a shorter form: `loadComponent: () => import('./about/about')` if the file does `export default class AboutComponent`.",
-          'Combine with a preloading strategy so chunks are fetched in the background after the app starts.',
-          'Guards like `canMatch` run before the chunk is downloaded on navigation, so unauthorised users do not fetch the admin code (unless a preloading strategy fetches it in the background).',
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'warning',
-        text: "Common pitfall: importing a lazy component's class (or a barrel `index.ts` that re-exports it) somewhere eager. The bundler then includes it in the main bundle and the lazy route silently becomes eager.",
-      },
-    ],
-  },
-
   'How do you implement route-level lazy loading of standalone components or feature modules in Angular (`loadChildren` / `loadComponent`)?':
     {
       summary:
@@ -482,19 +409,83 @@ export class OrdersModule {}
             'Migration path: an existing NgModule feature can stay lazy-loaded as-is while you convert its components to standalone one by one.',
           ],
         },
+        { type: 'divider' },
+        { type: 'heading3', text: 'Follow-up: How to implement lazy loading in Angular?' },
+        {
+          type: 'paragraph',
+          text: 'Use dynamic `import()` in the route config: `loadComponent` for a single standalone component and `loadChildren` for a group of routes (a `routes.ts` file, or a legacy NgModule). The bundler splits that code into a separate chunk that is downloaded only when the user first navigates to the route, shrinking the initial bundle. Beyond routes, `@defer` blocks lazy-load parts of a template.',
+        },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `// app.routes.ts
+export const routes: Routes = [
+  { path: '', component: HomeComponent },                    // eager
+
+  // Lazy single component
+  {
+    path: 'about',
+    loadComponent: () => import('./about/about').then(m => m.AboutComponent),
+  },
+
+  // Lazy feature with its own child routes
+  {
+    path: 'admin',
+    loadChildren: () => import('./admin/admin.routes').then(m => m.ADMIN_ROUTES),
+  },
+];`,
+        },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `// admin/admin.routes.ts
+export const ADMIN_ROUTES: Routes = [
+  {
+    path: '',
+    component: AdminShellComponent,
+    providers: [AdminApiService],                    // scoped to this lazy section
+    children: [
+      { path: 'users', loadComponent: () => import('./users/users').then(m => m.UsersComponent) },
+      { path: 'reports', loadComponent: () => import('./reports/reports').then(m => m.ReportsComponent) },
+    ],
+  },
+];`,
+        },
+        { type: 'heading3', text: 'Lazy loading inside a template with @defer' },
+        {
+          type: 'code',
+          lang: 'html',
+          code: `@defer (on viewport) {
+  <app-heavy-chart [data]="sales()" />
+} @placeholder {
+  <div class="chart-skeleton"></div>
+} @loading (minimum 300ms) {
+  <app-spinner />
+}`,
+        },
+        {
+          type: 'bullets',
+          items: [
+            'Verify it worked: `ng build` lists "Lazy chunk files", and the Network tab shows a new `chunk-XXXX.js` on first navigation.',
+            "Default exports allow a shorter form: `loadComponent: () => import('./about/about')` if the file does `export default class AboutComponent`.",
+            'Combine with a preloading strategy so chunks are fetched in the background after the app starts.',
+            'Guards like `canMatch` run before the chunk is downloaded on navigation, so unauthorised users do not fetch the admin code (unless a preloading strategy fetches it in the background).',
+          ],
+        },
         {
           type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: mention that a lazy `Routes` file plus route-level `providers` gives you everything a feature NgModule used to — separate chunk, scoped services, own child routes — without the module boilerplate.',
+          variant: 'warning',
+          text: "Common pitfall: importing a lazy component's class (or a barrel `index.ts` that re-exports it) somewhere eager. The bundler then includes it in the main bundle and the lazy route silently becomes eager.",
         },
-      ],
-    },
-
-  'Write the exact routing configuration code (`app.routes.ts` / `router.js`) to implement lazy loading for an Angular component or module.':
-    {
-      summary:
-        'Define `routes` in `app.routes.ts` with `loadComponent` / `loadChildren` using dynamic `import()`, register them with `provideRouter(routes)` in `app.config.ts`, and place `<router-outlet />` in the root component. For a module-based app the same `loadChildren` goes in `AppRoutingModule` with `RouterModule.forRoot(routes)`.',
-      details: [
+        { type: 'divider' },
+        {
+          type: 'heading3',
+          text: 'Follow-up: Write the exact routing configuration code (`app.routes.ts` / `router.js`) to implement lazy loading for an Angular component or module.',
+        },
+        {
+          type: 'paragraph',
+          text: 'Define `routes` in `app.routes.ts` with `loadComponent` / `loadChildren` using dynamic `import()`, register them with `provideRouter(routes)` in `app.config.ts`, and place `<router-outlet />` in the root component. For a module-based app the same `loadChildren` goes in `AppRoutingModule` with `RouterModule.forRoot(routes)`.',
+        },
         { type: 'heading3', text: 'Standalone app — complete setup' },
         {
           type: 'code',
@@ -602,7 +593,7 @@ export class AppRoutingModule {}`,
         {
           type: 'callout',
           variant: 'tip',
-          text: 'Interview tip: write the three pieces (routes, provideRouter, router-outlet) — many candidates forget that the routes must be registered and that the component needs an outlet.',
+          text: 'Interview tip: mention that a lazy `Routes` file plus route-level `providers` gives you everything a feature NgModule used to — separate chunk, scoped services, own child routes — without the module boilerplate.',
         },
       ],
     },
@@ -682,58 +673,6 @@ provideRouter(routes, withPreloading(SelectivePreloadingStrategy));`,
     ],
   },
 
-  'What are route guards?': {
-    summary:
-      'Route guards are functions the router runs during navigation to decide whether it may continue: they return `true` to allow, `false` to cancel, or a `UrlTree`/`RedirectCommand` to redirect — synchronously or as an Observable/Promise. They are used for authentication, role checks, unsaved-changes prompts and feature flags. Modern Angular uses functional guards (`CanActivateFn` etc.) with `inject()`.',
-    details: [
-      {
-        type: 'paragraph',
-        text: 'A guard is a checkpoint in the navigation pipeline. The router recognises the URL, runs the guards, then resolvers, and only then activates components. If any guard says no, the navigation is cancelled and the current page stays as it is.',
-      },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// auth.guard.ts — functional guard
-export const authGuard: CanActivateFn = (route, state) => {
-  const auth = inject(AuthService);
-  const router = inject(Router);
-
-  return auth.isLoggedIn()
-    ? true
-    : router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
-};
-
-// app.routes.ts
-{ path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] }`,
-      },
-      {
-        type: 'flow',
-        title: 'Where guards run in a navigation',
-        code: `flowchart LR
-  N["Navigation start"]:::client --> M["Match routes<br/>canMatch"]:::security
-  M --> D["canDeactivate<br/>(leaving page)"]:::security
-  D --> A["canActivateChild<br/>canActivate"]:::security
-  A --> R["resolve<br/>(fetch data)"]:::db
-  R --> C["Activate components"]:::highlight
-  A -->|"false or UrlTree"| X["Cancel or redirect"]:::external`,
-      },
-      {
-        type: 'bullets',
-        items: [
-          'Types: `canMatch`, `canActivate`, `canActivateChild`, `canDeactivate`, and the deprecated `canLoad`. `resolve` is not a guard but runs in the same pipeline.',
-          'Return values: `boolean`, `UrlTree`, `RedirectCommand` (newer versions; lets you pass navigation extras) or an `Observable`/`Promise` of these.',
-          'Legacy: classes implementing `CanActivate` etc. Class-based guard interfaces are deprecated; wrap old ones with `mapToCanActivate([OldGuard])` during migration.',
-          'Multiple guards in an array all must pass.',
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'warning',
-        text: 'Guards are a UX feature, not security. Anyone can bypass client-side JavaScript; the API must still authorise every request on the server.',
-      },
-    ],
-  },
-
   'What are the different Route Guards (`canActivate`, `canActivateChild`, `canDeactivate`, `canMatch`, `resolve`) in Angular?':
     {
       summary:
@@ -790,6 +729,53 @@ export const profileResolver: ResolveFn<Profile> = () => inject(ProfileService).
             '**resolve** — returns data, not a decision; navigation waits for it. Data appears in `route.data` or as an input.',
             'Order: canDeactivate (old routes) → canActivateChild/canActivate (top-down) → resolve. canMatch runs earlier, during recognition.',
           ],
+        },
+        { type: 'divider' },
+        { type: 'heading3', text: 'Follow-up: What are route guards?' },
+        {
+          type: 'paragraph',
+          text: 'Route guards are functions the router runs during navigation to decide whether it may continue: they return `true` to allow, `false` to cancel, or a `UrlTree`/`RedirectCommand` to redirect — synchronously or as an Observable/Promise. They are used for authentication, role checks, unsaved-changes prompts and feature flags. Modern Angular uses functional guards (`CanActivateFn` etc.) with `inject()`.',
+        },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `// auth.guard.ts — functional guard
+export const authGuard: CanActivateFn = (route, state) => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+
+  return auth.isLoggedIn()
+    ? true
+    : router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
+};
+
+// app.routes.ts
+{ path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] }`,
+        },
+        {
+          type: 'flow',
+          title: 'Where guards run in a navigation',
+          code: `flowchart LR
+  N["Navigation start"]:::client --> M["Match routes<br/>canMatch"]:::security
+  M --> D["canDeactivate<br/>(leaving page)"]:::security
+  D --> A["canActivateChild<br/>canActivate"]:::security
+  A --> R["resolve<br/>(fetch data)"]:::db
+  R --> C["Activate components"]:::highlight
+  A -->|"false or UrlTree"| X["Cancel or redirect"]:::external`,
+        },
+        {
+          type: 'bullets',
+          items: [
+            'Types: `canMatch`, `canActivate`, `canActivateChild`, `canDeactivate`, and the deprecated `canLoad`. `resolve` is not a guard but runs in the same pipeline.',
+            'Return values: `boolean`, `UrlTree`, `RedirectCommand` (newer versions; lets you pass navigation extras) or an `Observable`/`Promise` of these.',
+            'Legacy: classes implementing `CanActivate` etc. Class-based guard interfaces are deprecated; wrap old ones with `mapToCanActivate([OldGuard])` during migration.',
+            'Multiple guards in an array all must pass.',
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'warning',
+          text: 'Guards are a UX feature, not security. Anyone can bypass client-side JavaScript; the API must still authorise every request on the server.',
         },
         {
           type: 'callout',
@@ -857,79 +843,6 @@ export const routes: Routes = [
         type: 'callout',
         variant: 'tip',
         text: 'Interview tip: the key phrases are "canLoad is deprecated", "canMatch runs on every navigation", and "false means skip this route, not cancel". The same-path admin/user dashboard example makes it click.',
-      },
-    ],
-  },
-
-  'How can you restrict routes based on user in Angular?': {
-    summary:
-      'Store the current user and roles/permissions in an auth service (ideally as signals), and attach guards to routes: `canActivate`/`canActivateChild` with a role check for entering pages, `canMatch` when unauthorised users should not even download the chunk or should see a different route. Put the required roles in `route.data` so one reusable guard covers all routes, and hide links in the UI with the same permission logic — while the backend still enforces authorisation.',
-    details: [
-      { type: 'heading3', text: 'Auth state' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `export type Role = 'admin' | 'editor' | 'viewer';
-
-@Injectable({ providedIn: 'root' })
-export class AuthService {
-  private readonly _user = signal<{ id: string; roles: Role[] } | null>(null);
-  readonly user = this._user.asReadonly();
-  readonly isLoggedIn = computed(() => this._user() !== null);
-
-  hasAnyRole(roles: Role[]) {
-    return roles.some(r => this._user()?.roles.includes(r));
-  }
-}`,
-      },
-      { type: 'heading3', text: 'One reusable role guard driven by route data' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `export const roleGuard: CanActivateFn = (route, state) => {
-  const auth = inject(AuthService);
-  const router = inject(Router);
-  const required = (route.data['roles'] ?? []) as Role[];
-
-  if (!auth.isLoggedIn()) {
-    return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
-  }
-  if (required.length && !auth.hasAnyRole(required)) {
-    return router.createUrlTree(['/forbidden']);
-  }
-  return true;
-};
-
-export const routes: Routes = [
-  { path: 'reports', component: ReportsComponent, canActivate: [roleGuard], data: { roles: ['admin', 'editor'] } },
-  {
-    path: 'admin',
-    canMatch: [() => inject(AuthService).hasAnyRole(['admin'])], // chunk never loads for others
-    loadChildren: () => import('./admin/admin.routes').then(m => m.ADMIN_ROUTES),
-  },
-];`,
-      },
-      { type: 'heading3', text: 'Hide what users cannot open' },
-      {
-        type: 'code',
-        lang: 'html',
-        code: `@if (auth.hasAnyRole(['admin'])) {
-  <a routerLink="/admin">Admin</a>
-}`,
-      },
-      {
-        type: 'bullets',
-        items: [
-          'If the user is loaded asynchronously (e.g. `/api/me` on startup), make the guard wait: return an Observable that filters until the user is known, or load the user in `provideAppInitializer`.',
-          "Permission-based checks (`can('invoice:approve')`) scale better than hard-coded role names in large apps.",
-          'When the user logs out or roles change, re-run guards on the current route (e.g. navigate again) or redirect to login.',
-          'Return a `UrlTree` instead of calling `router.navigate()` inside a guard — it avoids competing navigations.',
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'warning',
-        text: 'Client-side route restrictions only control what the UI shows. Any user can edit local storage or call the API directly, so every protected endpoint must check the token and permissions on the server.',
       },
     ],
   },
@@ -1011,6 +924,81 @@ export const routes: Routes = [
             'Validate `returnUrl` is an internal path to avoid open-redirect vulnerabilities.',
             'Also handle token expiry mid-session: a 401 from the API (via an interceptor) should redirect to login even if the guard passed earlier.',
           ],
+        },
+        { type: 'divider' },
+        {
+          type: 'heading3',
+          text: 'Follow-up: How can you restrict routes based on user in Angular?',
+        },
+        {
+          type: 'paragraph',
+          text: 'Store the current user and roles/permissions in an auth service (ideally as signals), and attach guards to routes: `canActivate`/`canActivateChild` with a role check for entering pages, `canMatch` when unauthorised users should not even download the chunk or should see a different route. Put the required roles in `route.data` so one reusable guard covers all routes, and hide links in the UI with the same permission logic — while the backend still enforces authorisation.',
+        },
+        { type: 'heading3', text: 'Auth state' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `export type Role = 'admin' | 'editor' | 'viewer';
+
+@Injectable({ providedIn: 'root' })
+export class AuthService {
+  private readonly _user = signal<{ id: string; roles: Role[] } | null>(null);
+  readonly user = this._user.asReadonly();
+  readonly isLoggedIn = computed(() => this._user() !== null);
+
+  hasAnyRole(roles: Role[]) {
+    return roles.some(r => this._user()?.roles.includes(r));
+  }
+}`,
+        },
+        { type: 'heading3', text: 'One reusable role guard driven by route data' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `export const roleGuard: CanActivateFn = (route, state) => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  const required = (route.data['roles'] ?? []) as Role[];
+
+  if (!auth.isLoggedIn()) {
+    return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
+  }
+  if (required.length && !auth.hasAnyRole(required)) {
+    return router.createUrlTree(['/forbidden']);
+  }
+  return true;
+};
+
+export const routes: Routes = [
+  { path: 'reports', component: ReportsComponent, canActivate: [roleGuard], data: { roles: ['admin', 'editor'] } },
+  {
+    path: 'admin',
+    canMatch: [() => inject(AuthService).hasAnyRole(['admin'])], // chunk never loads for others
+    loadChildren: () => import('./admin/admin.routes').then(m => m.ADMIN_ROUTES),
+  },
+];`,
+        },
+        { type: 'heading3', text: 'Hide what users cannot open' },
+        {
+          type: 'code',
+          lang: 'html',
+          code: `@if (auth.hasAnyRole(['admin'])) {
+  <a routerLink="/admin">Admin</a>
+}`,
+        },
+        {
+          type: 'bullets',
+          items: [
+            'If the user is loaded asynchronously (e.g. `/api/me` on startup), make the guard wait: return an Observable that filters until the user is known, or load the user in `provideAppInitializer`.',
+            "Permission-based checks (`can('invoice:approve')`) scale better than hard-coded role names in large apps.",
+            'When the user logs out or roles change, re-run guards on the current route (e.g. navigate again) or redirect to login.',
+            'Return a `UrlTree` instead of calling `router.navigate()` inside a guard — it avoids competing navigations.',
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'warning',
+          text: 'Client-side route restrictions only control what the UI shows. Any user can edit local storage or call the API directly, so every protected endpoint must check the token and permissions on the server.',
         },
         {
           type: 'callout',

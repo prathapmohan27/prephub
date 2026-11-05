@@ -200,16 +200,14 @@ test('retries after 1s', async () => {
         variant: 'warning',
         text: 'Common pitfall: `expect(promise).rejects.toThrow()` without `await` — the test always passes. Lint rules like `jest/valid-expect` catch this.',
       },
-    ],
-  },
-
-  'How do you write unit tests for async functions in Jest?': {
-    summary:
-      'Isolate the async function by mocking its I/O dependencies (DB, HTTP, queue) with `jest.fn().mockResolvedValue()` / `mockRejectedValue()`, then `await` the function in an `async` test and assert both the result and how the dependencies were called. Cover the success path, the error path and edge cases like empty results.',
-    details: [
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: How do you write unit tests for async functions in Jest?',
+      },
       {
         type: 'paragraph',
-        text: 'A unit test should not hit a real database or network. The easiest way is to design the function so its dependencies are passed in (dependency injection) — then the test passes fakes. Otherwise use `jest.mock()` to replace the module.',
+        text: 'Isolate the async function by mocking its I/O dependencies (DB, HTTP, queue) with `jest.fn().mockResolvedValue()` / `mockRejectedValue()`, then `await` the function in an `async` test and assert both the result and how the dependencies were called. Cover the success path, the error path and edge cases like empty results.',
       },
       { type: 'heading3', text: 'Function under test' },
       {
@@ -274,11 +272,6 @@ export function createUserService(deps: { repo: UserRepo; mailer: Mailer }) {
           'Test parallel logic (`Promise.all`) by checking all calls were made and that one rejection fails the whole call.',
           "Don't over-assert implementation details; assert behaviour that matters (result, side effects).",
         ],
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: point out that you test the error path as carefully as the happy path — most production bugs in async code are unhandled rejections and missing error handling.',
       },
     ],
   },

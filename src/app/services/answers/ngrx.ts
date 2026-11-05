@@ -87,28 +87,20 @@ export class OrdersPage {
           'Why not everywhere: boilerplate and indirection — overkill for small apps or purely local state.',
         ],
       },
+      { type: 'divider' },
       {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: interviewers often follow up with "what would you NOT put in the store?" — have an answer ready: form drafts, UI toggles, one-screen data.',
+        type: 'heading3',
+        text: 'Follow-up: What is NgRx and how does its Redux-pattern architecture (`Store, Actions, Reducers, Effects, Selectors`) work in Angular?',
       },
-    ],
-  },
-
-  'What is NgRx and how does its Redux-pattern architecture (`Store, Actions, Reducers, Effects, Selectors`) work in Angular?':
-    {
-      summary:
-        'NgRx implements the Redux pattern with RxJS: the **Store** holds one immutable state tree; **Actions** are plain objects describing events; **Reducers** are pure functions `(state, action) => newState`; **Selectors** are memoised queries that derive data from state; **Effects** listen to the action stream, perform side effects such as HTTP, and dispatch new actions. Data flows in one direction.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'The three Redux principles apply: single source of truth, state is read-only (only actions describe changes), and changes are made by pure functions. NgRx adds Angular-specific pieces: DI, RxJS streams, Effects as the side-effect model, and signal-based selection.',
-        },
-        { type: 'heading3', text: 'Each piece' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// ACTION — "what happened" (an event, not a command)
+      {
+        type: 'paragraph',
+        text: 'NgRx implements the Redux pattern with RxJS: the **Store** holds one immutable state tree; **Actions** are plain objects describing events; **Reducers** are pure functions `(state, action) => newState`; **Selectors** are memoised queries that derive data from state; **Effects** listen to the action stream, perform side effects such as HTTP, and dispatch new actions. Data flows in one direction.',
+      },
+      { type: 'heading3', text: 'Each piece' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// ACTION — "what happened" (an event, not a command)
 export const addToCart = createAction('[Product Page] Add To Cart', props<{ productId: string }>());
 // { type: '[Product Page] Add To Cart', productId: 'p1' }
 
@@ -137,11 +129,11 @@ export const persistCart = createEffect(
 const store = inject(Store);
 store.dispatch(addToCart({ productId: 'p1' }));
 const count = store.selectSignal(selectCartCount); // Signal<number>`,
-        },
-        {
-          type: 'flow',
-          title: 'Unidirectional data flow',
-          code: `sequenceDiagram
+      },
+      {
+        type: 'flow',
+        title: 'Unidirectional data flow',
+        code: `sequenceDiagram
   participant C as Component
   participant S as Store
   participant R as Reducer
@@ -157,24 +149,24 @@ const count = store.selectSignal(selectCartCount); // Signal<number>`,
   S->>R: (state, action)
   R-->>S: new state with users
   S-->>C: selector emits new value`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '**Store** — an observable of state + `dispatch()`; also `selectSignal()` for signals.',
-            '**Actions** — name them as events with a source: `[Login Page] Submit`, not `setUser`.',
-            '**Reducers** — no HTTP, no `Date.now()`, no mutation; always return a new object for changes.',
-            '**Selectors** — memoised; recompute only when inputs change; composeable.',
-            '**Effects** — the only place for async/side effects; can be `dispatch: false` for fire-and-forget.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: stress that reducers run **before** effects receive the action, and that effects never mutate state directly — they can only dispatch more actions.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**Store** — an observable of state + `dispatch()`; also `selectSignal()` for signals.',
+          '**Actions** — name them as events with a source: `[Login Page] Submit`, not `setUser`.',
+          '**Reducers** — no HTTP, no `Date.now()`, no mutation; always return a new object for changes.',
+          '**Selectors** — memoised; recompute only when inputs change; composeable.',
+          '**Effects** — the only place for async/side effects; can be `dispatch: false` for fire-and-forget.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: interviewers often follow up with "what would you NOT put in the store?" — have an answer ready: form drafts, UI toggles, one-screen data.',
+      },
+    ],
+  },
 
   'What are the steps to set up NgRx in an Angular application?': {
     summary:

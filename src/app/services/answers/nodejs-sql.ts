@@ -216,16 +216,14 @@ FROM sizes s CROSS JOIN colours c;   -- 3 sizes × 4 colours = 12 rows`,
         variant: 'warning',
         text: "Common pitfall: putting a filter on the right table in `WHERE` turns a LEFT JOIN into an INNER JOIN (`WHERE o.status = 'paid'` drops customers whose `o.*` is NULL). Put that condition in the `ON` clause instead if you want to keep unmatched rows.",
       },
-    ],
-  },
-
-  'What is the difference between INNER JOIN, LEFT JOIN, and FULL OUTER JOIN?': {
-    summary:
-      'INNER JOIN returns only rows that match in both tables. LEFT JOIN returns every row from the left table plus matches from the right (NULLs where none). FULL OUTER JOIN returns every row from both tables, matched where possible and NULL-filled on whichever side has no match.',
-    details: [
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: What is the difference between INNER JOIN, LEFT JOIN, and FULL OUTER JOIN?',
+      },
       {
         type: 'paragraph',
-        text: 'Think in Venn-diagram terms: INNER is the intersection, LEFT is the whole left circle, FULL OUTER is both circles. The difference only matters for rows that have no partner on the other side.',
+        text: 'INNER JOIN returns only rows that match in both tables. LEFT JOIN returns every row from the left table plus matches from the right (NULLs where none). FULL OUTER JOIN returns every row from both tables, matched where possible and NULL-filled on whichever side has no match.',
       },
       {
         type: 'code',
@@ -272,11 +270,6 @@ SELECT p.id AS ours, s.id AS provider
 FROM payments p
 FULL OUTER JOIN provider_settlements s ON s.payment_ref = p.ref
 WHERE p.id IS NULL OR s.id IS NULL;`,
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: draw small sample tables and show the row counts for each join — it proves you understand NULL-filling, and mention the LEFT JOIN + `WHERE right.col IS NULL` anti-join pattern.',
       },
     ],
   },

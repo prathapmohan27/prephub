@@ -364,10 +364,68 @@ export class CartEvents {
     ],
   },
 
-  'Difference between Subject, BehaviorSubject, and ReplaySubject in RxJS': {
+  'What is the difference between Subject, BehaviorSubject, ReplaySubject, and AsyncSubject?': {
     summary:
-      'They differ in what a **late subscriber** receives. `Subject` has no memory — you only get values emitted after you subscribe. `BehaviorSubject` requires an initial value and always holds the **current** value, which it emits immediately to new subscribers (and exposes via `.value`). `ReplaySubject(n)` buffers the **last n** values (optionally within a time window) and replays them all to new subscribers.',
+      'All four are multicast Subjects; they differ in what they deliver and when. `Subject`: only future values. `BehaviorSubject`: needs an initial value and replays the current value to each new subscriber. `ReplaySubject(n, windowTime?)`: replays the last n values. `AsyncSubject`: emits **only the last value, and only when it completes** — to all current and future subscribers, much like a Promise.',
     details: [
+      {
+        type: 'paragraph',
+        text: 'This version of the question adds `AsyncSubject`, which is the odd one out: it stays silent while values are pushed and delivers just the final value on `complete()`.',
+      },
+      { type: 'heading3', text: 'All four with the same timeline' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `const subjects = {
+  subject: new Subject<number>(),
+  behavior: new BehaviorSubject<number>(0),
+  replay: new ReplaySubject<number>(2),
+  async: new AsyncSubject<number>(),
+};
+
+Object.values(subjects).forEach((s) => { s.next(1); s.next(2); });
+
+Object.entries(subjects).forEach(([name, s]) =>
+  s.subscribe({ next: (v) => console.log(name, v), complete: () => console.log(name, 'done') }),
+);
+// behavior 2
+// replay 1, replay 2
+// (subject and async print nothing yet)
+
+Object.values(subjects).forEach((s) => { s.next(3); s.complete(); });
+// subject 3, subject done
+// behavior 3, behavior done
+// replay 3, replay done
+// async 3, async done        ← AsyncSubject's first and only emission`,
+      },
+      { type: 'heading3', text: 'Quick reference' },
+      {
+        type: 'bullets',
+        items: [
+          '**Subject** — no initial value, no replay. Use for events.',
+          '**BehaviorSubject(initial)** — always has a value, replays 1 (current), `.value` getter. Use for state.',
+          '**ReplaySubject(bufferSize, windowTime)** — replays last n (within time window). Use for history/caching.',
+          '**AsyncSubject** — emits last value only on complete; late subscribers after completion still get it. Use for one-shot results computed once and shared (rare in practice; `shareReplay(1)` on a completing source or a Promise often replaces it).',
+        ],
+      },
+      {
+        type: 'flow',
+        title: 'Choosing a Subject',
+        code: `flowchart TD
+  Q{"Do late subscribers<br/>need past values?"} -->|No| S["Subject"]:::external
+  Q -->|"Yes, the current state"| B["BehaviorSubject"]:::server
+  Q -->|"Yes, last N values"| R["ReplaySubject(n)"]:::cache
+  Q -->|"Only the final result<br/>after completion"| A["AsyncSubject"]:::highlight`,
+      },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: Difference between Subject, BehaviorSubject, and ReplaySubject in RxJS',
+      },
+      {
+        type: 'paragraph',
+        text: 'They differ in what a **late subscriber** receives. `Subject` has no memory — you only get values emitted after you subscribe. `BehaviorSubject` requires an initial value and always holds the **current** value, which it emits immediately to new subscribers (and exposes via `.value`). `ReplaySubject(n)` buffers the **last n** values (optionally within a time window) and replays them all to new subscribers.',
+      },
       { type: 'heading3', text: 'Same sequence, three behaviours' },
       {
         type: 'code',
@@ -421,62 +479,6 @@ export class ThemeService {
         type: 'callout',
         variant: 'warning',
         text: 'Pitfall: `ReplaySubject()` with no buffer size replays **everything** forever — a memory leak for long-lived streams. Always pass a buffer size (and optionally a window time).',
-      },
-    ],
-  },
-
-  'What is the difference between Subject, BehaviorSubject, ReplaySubject, and AsyncSubject?': {
-    summary:
-      'All four are multicast Subjects; they differ in what they deliver and when. `Subject`: only future values. `BehaviorSubject`: needs an initial value and replays the current value to each new subscriber. `ReplaySubject(n, windowTime?)`: replays the last n values. `AsyncSubject`: emits **only the last value, and only when it completes** — to all current and future subscribers, much like a Promise.',
-    details: [
-      {
-        type: 'paragraph',
-        text: 'This version of the question adds `AsyncSubject`, which is the odd one out: it stays silent while values are pushed and delivers just the final value on `complete()`.',
-      },
-      { type: 'heading3', text: 'All four with the same timeline' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `const subjects = {
-  subject: new Subject<number>(),
-  behavior: new BehaviorSubject<number>(0),
-  replay: new ReplaySubject<number>(2),
-  async: new AsyncSubject<number>(),
-};
-
-Object.values(subjects).forEach((s) => { s.next(1); s.next(2); });
-
-Object.entries(subjects).forEach(([name, s]) =>
-  s.subscribe({ next: (v) => console.log(name, v), complete: () => console.log(name, 'done') }),
-);
-// behavior 2
-// replay 1, replay 2
-// (subject and async print nothing yet)
-
-Object.values(subjects).forEach((s) => { s.next(3); s.complete(); });
-// subject 3, subject done
-// behavior 3, behavior done
-// replay 3, replay done
-// async 3, async done        ← AsyncSubject's first and only emission`,
-      },
-      { type: 'heading3', text: 'Quick reference' },
-      {
-        type: 'bullets',
-        items: [
-          '**Subject** — no initial value, no replay. Use for events.',
-          '**BehaviorSubject(initial)** — always has a value, replays 1 (current), `.value` getter. Use for state.',
-          '**ReplaySubject(bufferSize, windowTime)** — replays last n (within time window). Use for history/caching.',
-          '**AsyncSubject** — emits last value only on complete; late subscribers after completion still get it. Use for one-shot results computed once and shared (rare in practice; `shareReplay(1)` on a completing source or a Promise often replaces it).',
-        ],
-      },
-      {
-        type: 'flow',
-        title: 'Choosing a Subject',
-        code: `flowchart TD
-  Q{"Do late subscribers<br/>need past values?"} -->|No| S["Subject"]:::external
-  Q -->|"Yes, the current state"| B["BehaviorSubject"]:::server
-  Q -->|"Yes, last N values"| R["ReplaySubject(n)"]:::cache
-  Q -->|"Only the final result<br/>after completion"| A["AsyncSubject"]:::highlight`,
       },
       {
         type: 'callout',
@@ -882,139 +884,6 @@ this.auth.user$.pipe(filter((u): u is User => u !== null));`,
     ],
   },
 
-  'Difference between switchMap and mergeMap': {
-    summary:
-      'Both map each source value to an inner Observable and flatten the results. `switchMap` **cancels** the previous inner Observable when a new value arrives — only the latest one matters (search, route params). `mergeMap` keeps **all** inner Observables running **concurrently** and emits results as they arrive, in any order (parallel uploads, independent saves).',
-    details: [
-      { type: 'heading3', text: 'Same input, different behaviour' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// Fake API that takes 1s to respond
-const fakeApi = (id: string) => timer(1000).pipe(map(() => \`result \${id}\`));
-
-// User triggers a, b, c quickly (within 1s)
-const clicks$ = of('a', 'b', 'c');
-
-clicks$.pipe(switchMap(fakeApi)).subscribe(console.log);
-// result c                       ← a and b were cancelled (unsubscribed)
-
-clicks$.pipe(mergeMap(fakeApi)).subscribe(console.log);
-// result a, result b, result c   ← all three ran in parallel`,
-      },
-      { type: 'heading3', text: 'Real-world use' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// switchMap: product detail page — new route param makes the old request irrelevant
-product$ = this.route.paramMap.pipe(
-  switchMap((p) => this.api.getProduct(p.get('id')!)),
-);
-
-// mergeMap: upload several files at once, max 3 at a time
-upload$ = from(files).pipe(
-  mergeMap((file) => this.api.upload(file), 3),   // concurrency limit
-);`,
-      },
-      {
-        type: 'flow',
-        title: 'switchMap vs mergeMap timeline',
-        code: `sequenceDiagram
-  participant S as Source
-  participant SW as switchMap
-  participant MM as mergeMap
-  S->>SW: a (start request a)
-  S->>SW: b (cancel a, start b)
-  SW-->>S: result b only
-  S->>MM: a (start a)
-  S->>MM: b (start b in parallel)
-  MM-->>S: result b (whichever finishes first)
-  MM-->>S: result a`,
-      },
-      {
-        type: 'bullets',
-        items: [
-          '**switchMap**: cancel previous → latest wins. Risky for writes (a cancelled POST may still have reached the server).',
-          '**mergeMap** (alias `flatMap`): no cancellation, concurrent, unordered results; optional `concurrent` argument.',
-          'Use `concatMap` if you need sequential, ordered processing; `exhaustMap` to ignore new values while busy.',
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'warning',
-        text: 'Pitfall: using `switchMap` for save/delete requests. Cancelling the HTTP observable only aborts the client side — the server may already have processed it, and you lose the response. Use `concatMap` or `mergeMap` for writes.',
-      },
-    ],
-  },
-
-  'Explain the use cases of switchMap, concatMap, and mergeMap.': {
-    summary:
-      'All three flatten inner Observables; they differ in how they handle overlap. `switchMap` — cancel the previous, keep the latest: type-ahead search, route-param driven loads, refresh triggers. `concatMap` — queue and run one at a time in order: sequential saves, ordered API calls, processing a queue. `mergeMap` — run all in parallel: bulk uploads, independent fire-and-forget requests, handling WebSocket messages concurrently.',
-    details: [
-      { type: 'heading3', text: 'switchMap — "only the latest matters"' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// Type-ahead: when the user types again, the old request is aborted
-results$ = this.query.valueChanges.pipe(
-  debounceTime(300),
-  switchMap((q) => this.api.search(q)),
-);
-
-// Dashboard refresh: a new tick or click restarts loading
-data$ = merge(interval(30_000), this.refreshClick$).pipe(switchMap(() => this.api.load()));`,
-      },
-      { type: 'heading3', text: 'concatMap — "one at a time, in order"' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// Auto-save each edit; saves must hit the server in the same order the user made them
-this.form.valueChanges.pipe(
-  debounceTime(500),
-  concatMap((value) => this.api.saveDraft(value)),   // next save waits for the previous to finish
-).subscribe();
-
-// Dependent sequential steps
-from(['step1', 'step2', 'step3']).pipe(concatMap((s) => this.api.runStep(s)));`,
-      },
-      { type: 'heading3', text: 'mergeMap — "all at once"' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// Delete selected rows in parallel (limit to 4 concurrent requests)
-from(selectedIds).pipe(
-  mergeMap((id) => this.api.delete(id), 4),
-  toArray(),                                   // wait for all to finish
-).subscribe(() => this.reload());
-
-// Each incoming socket message triggers an independent lookup
-this.socket.messages$.pipe(mergeMap((m) => this.api.enrich(m)));`,
-      },
-      {
-        type: 'flow',
-        title: 'Pick the right flattening operator',
-        code: `flowchart TD
-  Q{"New value arrives while<br/>previous inner is still running"} -->|"Old one is obsolete"| SW["switchMap<br/>cancel previous"]:::highlight
-  Q -->|"Order matters, keep all"| CM["concatMap<br/>queue"]:::server
-  Q -->|"Independent, speed matters"| MM["mergeMap<br/>parallel"]:::network
-  Q -->|"Ignore until finished"| EM["exhaustMap<br/>drop new"]:::security`,
-      },
-      {
-        type: 'bullets',
-        items: [
-          '`switchMap` is ideal for **reads**; avoid it for writes.',
-          '`concatMap` can build up a backlog if the source is faster than the inner work.',
-          '`mergeMap` gives no ordering guarantees; pass a concurrency limit to avoid flooding the server.',
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: tie each operator to one memorable scenario — search → switchMap, ordered saves → concatMap, bulk upload → mergeMap — and mention exhaustMap (submit button) to complete the family.',
-      },
-    ],
-  },
-
   'When would you use switchMap vs mergeMap vs concatMap vs exhaustMap? Give a real-world scenario for each':
     {
       summary:
@@ -1070,6 +939,135 @@ this.payClick$.pipe(exhaustMap(() => this.api.charge(this.order()))).subscribe()
             'Independent writes, throughput matters → **mergeMap** (with a concurrency limit).',
             'Writes where order/consistency matters → **concatMap**.',
             'Non-idempotent actions that must not be duplicated → **exhaustMap** (plus disable the button and use idempotency keys on the server).',
+          ],
+        },
+        { type: 'divider' },
+        { type: 'heading3', text: 'Follow-up: Difference between switchMap and mergeMap' },
+        {
+          type: 'paragraph',
+          text: 'Both map each source value to an inner Observable and flatten the results. `switchMap` **cancels** the previous inner Observable when a new value arrives — only the latest one matters (search, route params). `mergeMap` keeps **all** inner Observables running **concurrently** and emits results as they arrive, in any order (parallel uploads, independent saves).',
+        },
+        { type: 'heading3', text: 'Same input, different behaviour' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `// Fake API that takes 1s to respond
+const fakeApi = (id: string) => timer(1000).pipe(map(() => \`result \${id}\`));
+
+// User triggers a, b, c quickly (within 1s)
+const clicks$ = of('a', 'b', 'c');
+
+clicks$.pipe(switchMap(fakeApi)).subscribe(console.log);
+// result c                       ← a and b were cancelled (unsubscribed)
+
+clicks$.pipe(mergeMap(fakeApi)).subscribe(console.log);
+// result a, result b, result c   ← all three ran in parallel`,
+        },
+        { type: 'heading3', text: 'Real-world use' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `// switchMap: product detail page — new route param makes the old request irrelevant
+product$ = this.route.paramMap.pipe(
+  switchMap((p) => this.api.getProduct(p.get('id')!)),
+);
+
+// mergeMap: upload several files at once, max 3 at a time
+upload$ = from(files).pipe(
+  mergeMap((file) => this.api.upload(file), 3),   // concurrency limit
+);`,
+        },
+        {
+          type: 'flow',
+          title: 'switchMap vs mergeMap timeline',
+          code: `sequenceDiagram
+  participant S as Source
+  participant SW as switchMap
+  participant MM as mergeMap
+  S->>SW: a (start request a)
+  S->>SW: b (cancel a, start b)
+  SW-->>S: result b only
+  S->>MM: a (start a)
+  S->>MM: b (start b in parallel)
+  MM-->>S: result b (whichever finishes first)
+  MM-->>S: result a`,
+        },
+        {
+          type: 'bullets',
+          items: [
+            '**switchMap**: cancel previous → latest wins. Risky for writes (a cancelled POST may still have reached the server).',
+            '**mergeMap** (alias `flatMap`): no cancellation, concurrent, unordered results; optional `concurrent` argument.',
+            'Use `concatMap` if you need sequential, ordered processing; `exhaustMap` to ignore new values while busy.',
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'warning',
+          text: 'Pitfall: using `switchMap` for save/delete requests. Cancelling the HTTP observable only aborts the client side — the server may already have processed it, and you lose the response. Use `concatMap` or `mergeMap` for writes.',
+        },
+        { type: 'divider' },
+        {
+          type: 'heading3',
+          text: 'Follow-up: Explain the use cases of switchMap, concatMap, and mergeMap.',
+        },
+        {
+          type: 'paragraph',
+          text: 'All three flatten inner Observables; they differ in how they handle overlap. `switchMap` — cancel the previous, keep the latest: type-ahead search, route-param driven loads, refresh triggers. `concatMap` — queue and run one at a time in order: sequential saves, ordered API calls, processing a queue. `mergeMap` — run all in parallel: bulk uploads, independent fire-and-forget requests, handling WebSocket messages concurrently.',
+        },
+        { type: 'heading3', text: 'switchMap — "only the latest matters"' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `// Type-ahead: when the user types again, the old request is aborted
+results$ = this.query.valueChanges.pipe(
+  debounceTime(300),
+  switchMap((q) => this.api.search(q)),
+);
+
+// Dashboard refresh: a new tick or click restarts loading
+data$ = merge(interval(30_000), this.refreshClick$).pipe(switchMap(() => this.api.load()));`,
+        },
+        { type: 'heading3', text: 'concatMap — "one at a time, in order"' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `// Auto-save each edit; saves must hit the server in the same order the user made them
+this.form.valueChanges.pipe(
+  debounceTime(500),
+  concatMap((value) => this.api.saveDraft(value)),   // next save waits for the previous to finish
+).subscribe();
+
+// Dependent sequential steps
+from(['step1', 'step2', 'step3']).pipe(concatMap((s) => this.api.runStep(s)));`,
+        },
+        { type: 'heading3', text: 'mergeMap — "all at once"' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `// Delete selected rows in parallel (limit to 4 concurrent requests)
+from(selectedIds).pipe(
+  mergeMap((id) => this.api.delete(id), 4),
+  toArray(),                                   // wait for all to finish
+).subscribe(() => this.reload());
+
+// Each incoming socket message triggers an independent lookup
+this.socket.messages$.pipe(mergeMap((m) => this.api.enrich(m)));`,
+        },
+        {
+          type: 'flow',
+          title: 'Pick the right flattening operator',
+          code: `flowchart TD
+  Q{"New value arrives while<br/>previous inner is still running"} -->|"Old one is obsolete"| SW["switchMap<br/>cancel previous"]:::highlight
+  Q -->|"Order matters, keep all"| CM["concatMap<br/>queue"]:::server
+  Q -->|"Independent, speed matters"| MM["mergeMap<br/>parallel"]:::network
+  Q -->|"Ignore until finished"| EM["exhaustMap<br/>drop new"]:::security`,
+        },
+        {
+          type: 'bullets',
+          items: [
+            '`switchMap` is ideal for **reads**; avoid it for writes.',
+            '`concatMap` can build up a backlog if the source is faster than the inner work.',
+            '`mergeMap` gives no ordering guarantees; pass a concurrency limit to avoid flooding the server.',
           ],
         },
         {

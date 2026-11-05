@@ -148,21 +148,11 @@ export class HighlightDirective {
           'Animations: toggle a class and use CSS transitions (Angular also has `animate.enter`/`animate.leave` in newer versions, and the older `@angular/animations`).',
         ],
       },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: name at least three options (class binding, style binding, CSS variables/host binding) and say when you pick each — that shows judgment rather than API recall.',
-      },
-    ],
-  },
-
-  'Is ngClass the only way to change CSS dynamically?': {
-    summary:
-      'No. `[class.name]`, `[class]` (accepting string/array/object), `[style.prop]`, `[style]`, `ngStyle`, `host` bindings, CSS custom properties, attribute bindings for attribute selectors, and `Renderer2` all change styling dynamically. The Angular team now recommends native `[class]`/`[style]` bindings over `ngClass`/`ngStyle`.',
-    details: [
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: Is ngClass the only way to change CSS dynamically?' },
       {
         type: 'paragraph',
-        text: '`ngClass` was the original way to toggle multiple classes, but plain property bindings do the same thing with less overhead and no extra import. Knowing the alternatives — and that CSS itself can do much of the work through variables and attribute selectors — is what the question checks.',
+        text: 'No. `[class.name]`, `[class]` (accepting string/array/object), `[style.prop]`, `[style]`, `ngStyle`, `host` bindings, CSS custom properties, attribute bindings for attribute selectors, and `Renderer2` all change styling dynamically. The Angular team now recommends native `[class]`/`[style]` bindings over `ngClass`/`ngStyle`.',
       },
       { type: 'heading3', text: 'Same result, five ways' },
       {
@@ -212,7 +202,7 @@ document.documentElement.setAttribute('data-theme', 'dark'); // CSS: [data-theme
       {
         type: 'callout',
         variant: 'tip',
-        text: "Interview tip: say ngClass still works but is no longer necessary, and that you'd reach for `[class.x]` first — this signals you follow current Angular style guidance.",
+        text: 'Interview tip: name at least three options (class binding, style binding, CSS variables/host binding) and say when you pick each — that shows judgment rather than API recall.',
       },
     ],
   },
@@ -260,6 +250,46 @@ export class AlertComponent {}`,
   S --> R2["Only this component,<br/>outer CSS blocked"]
   N --> R3["Every .title on the page"]`,
       },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: Why does Angular use View Encapsulation (`ViewEncapsulation.Emulated`) for components by default?',
+      },
+      {
+        type: 'paragraph',
+        text: "Because it gives component-scoped styles that work in every browser while still letting global styles (resets, typography, theme) apply. Real Shadow DOM isolates too strongly — global styles and many third-party libraries can't reach inside — so Emulated is the pragmatic default: no leaks out, but the global stylesheet still cascades in.",
+      },
+      { type: 'heading3', text: 'Why not ShadowDom by default?' },
+      {
+        type: 'bullets',
+        items: [
+          'Global styles (Bootstrap, Tailwind, a company design system, `styles.css`) would not reach into components — every component would need to re-import them.',
+          'Many UI libraries and tools (overlays, analytics, tests using `document.querySelector`) expect a normal DOM.',
+          'Forms, focus handling and accessibility tooling have Shadow DOM quirks.',
+          'Emulated output is ordinary CSS, so it is predictable and fast.',
+        ],
+      },
+      { type: 'heading3', text: 'Why not None by default?' },
+      {
+        type: 'code',
+        lang: 'css',
+        code: `/* product-card.component.css with ViewEncapsulation.None */
+.title { font-size: 2rem; }
+/* 💥 Once ProductCard loads, EVERY .title in the app (headers, dialogs…) becomes 2rem.
+   And the result depends on load order — styles from lazy chunks appear later. */`,
+      },
+      { type: 'heading3', text: 'What Emulated gives you' },
+      {
+        type: 'code',
+        lang: 'css',
+        code: `/* You write */
+.title { font-size: 2rem; }
+
+/* Angular emits (attribute names are generated) */
+.title[_ngcontent-ng-c123] { font-size: 2rem; }
+/* Matches only elements in THIS component's template.
+   Global rules like body { font-family: ... } still cascade in. */`,
+      },
       {
         type: 'callout',
         variant: 'tip',
@@ -267,54 +297,6 @@ export class AlertComponent {}`,
       },
     ],
   },
-
-  'Why does Angular use View Encapsulation (`ViewEncapsulation.Emulated`) for components by default?':
-    {
-      summary:
-        "Because it gives component-scoped styles that work in every browser while still letting global styles (resets, typography, theme) apply. Real Shadow DOM isolates too strongly — global styles and many third-party libraries can't reach inside — so Emulated is the pragmatic default: no leaks out, but the global stylesheet still cascades in.",
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Angular wants each component to be a self-contained unit, including its CSS. Two teams can both write `.header { ... }` in their components without breaking each other. Emulation achieves this with plain CSS selectors, so nothing special is needed from the browser and server-side rendering works the same way.',
-        },
-        { type: 'heading3', text: 'Why not ShadowDom by default?' },
-        {
-          type: 'bullets',
-          items: [
-            'Global styles (Bootstrap, Tailwind, a company design system, `styles.css`) would not reach into components — every component would need to re-import them.',
-            'Many UI libraries and tools (overlays, analytics, tests using `document.querySelector`) expect a normal DOM.',
-            'Forms, focus handling and accessibility tooling have Shadow DOM quirks.',
-            'Emulated output is ordinary CSS, so it is predictable and fast.',
-          ],
-        },
-        { type: 'heading3', text: 'Why not None by default?' },
-        {
-          type: 'code',
-          lang: 'css',
-          code: `/* product-card.component.css with ViewEncapsulation.None */
-.title { font-size: 2rem; }
-/* 💥 Once ProductCard loads, EVERY .title in the app (headers, dialogs…) becomes 2rem.
-   And the result depends on load order — styles from lazy chunks appear later. */`,
-        },
-        { type: 'heading3', text: 'What Emulated gives you' },
-        {
-          type: 'code',
-          lang: 'css',
-          code: `/* You write */
-.title { font-size: 2rem; }
-
-/* Angular emits (attribute names are generated) */
-.title[_ngcontent-ng-c123] { font-size: 2rem; }
-/* Matches only elements in THIS component's template.
-   Global rules like body { font-family: ... } still cascade in. */`,
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: frame it as a trade-off — "isolation outward, inheritance inward". Emulated prevents leaking styles while keeping global theming working, which is what most apps want.',
-        },
-      ],
-    },
 
   'What is the default `ViewEncapsulation` mode (`Emulated`) in Angular and how does it scope component styles via unique attributes (`_ngcontent-xxx`)?':
     {

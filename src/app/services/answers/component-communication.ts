@@ -94,13 +94,66 @@ export class ProductCard {
     ],
   },
 
-  'What are the ways to share data between components other than `@Input()` and `@Output()`?': {
+  'Different ways to share data between components': {
     summary:
-      'Shared services (with signals or a `BehaviorSubject`), the router (route params, query params, resolvers, `history.state`), `viewChild`/`contentChild` and template reference variables, dependency injection through the component tree (a parent providing a service or token to its descendants), content projection, browser storage for persistence, and a state library such as NgRx or Signal Store for app-wide state.',
+      'By relationship: parent/child via inputs, outputs, `model()` and `viewChild`; siblings or unrelated components via a shared service (signals or `BehaviorSubject`); across routes via route/query params, resolvers or navigation state; feature- or app-wide via NgRx/Signal Store; and across reloads via browser storage.',
     details: [
       {
         type: 'paragraph',
-        text: 'The right choice depends on the relationship between the components (parent/child, siblings, unrelated) and the lifetime of the data (one view, one feature, the whole session, across reloads).',
+        text: 'A good answer organises the techniques rather than listing them. The two questions to ask are: how are the components related, and how long must the data live?',
+      },
+      {
+        type: 'flow',
+        title: 'Choosing a technique',
+        code: `flowchart TD
+  Q{How are the components related?} -->|Parent - child| PC["input / output / model<br/>viewChild"]:::client
+  Q -->|Siblings or unrelated| S{Scope of the data?}
+  S -->|One feature subtree| CP[Component-level provided service]:::server
+  S -->|Whole app| R{Complex, many writers,<br/>needs devtools?}
+  R -->|No| RS["Root service with signals"]:::server
+  R -->|Yes| NG[NgRx Store / Signal Store]:::highlight
+  Q -->|Different routes| RT["Route params, query params,<br/>resolver, navigation state"]:::network
+  S -->|Survive reload| LS[(localStorage via service)]:::db`,
+      },
+      { type: 'heading3', text: 'Summary table' },
+      {
+        type: 'bullets',
+        items: [
+          '**@Input / input()** — parent → child, explicit, best for presentational components.',
+          '**@Output / output()** — child → parent events.',
+          '**model()** — two-way binding `[(value)]` between parent and child.',
+          '**viewChild / template ref** — parent calls child methods (use sparingly; tighter coupling).',
+          '**Shared service + signals/BehaviorSubject** — siblings and unrelated components; the default for most apps.',
+          '**Component-scoped providers** — state per instance of a feature (each tab group, each wizard).',
+          '**Router** — params/query params for shareable state; resolvers for preloaded data; `state` for transient payloads.',
+          '**NgRx / Signal Store** — centralised, predictable state for large teams and complex flows.',
+          '**Storage / BroadcastChannel** — persistence and cross-tab sync.',
+        ],
+      },
+      { type: 'heading3', text: 'Example: BehaviorSubject service (RxJS style)' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Injectable({ providedIn: 'root' })
+export class SelectedCustomerService {
+  private readonly selected$ = new BehaviorSubject<Customer | null>(null);
+  readonly selected = this.selected$.asObservable(); // read-only for consumers
+
+  select(c: Customer) { this.selected$.next(c); }
+}
+
+// List component:   this.svc.select(customer)
+// Detail component: customer$ = inject(SelectedCustomerService).selected;
+// Template:         @if (customer$ | async; as c) { {{ c.name }} }`,
+      },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: What are the ways to share data between components other than `@Input()` and `@Output()`?',
+      },
+      {
+        type: 'paragraph',
+        text: 'Shared services (with signals or a `BehaviorSubject`), the router (route params, query params, resolvers, `history.state`), `viewChild`/`contentChild` and template reference variables, dependency injection through the component tree (a parent providing a service or token to its descendants), content projection, browser storage for persistence, and a state library such as NgRx or Signal Store for app-wide state.',
       },
       { type: 'heading3', text: '1. Shared service with signals' },
       {
@@ -160,66 +213,6 @@ export class Tab {
           '**State management library** — NgRx Store / Signal Store, for large apps with complex shared state and devtools.',
           '**BroadcastChannel / storage event** — sync between browser tabs.',
         ],
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: pick by relationship and lifetime — "siblings → service, deep tree → component-level provider, needs to be in the URL → router, app-wide complex → NgRx" — instead of listing APIs.',
-      },
-    ],
-  },
-
-  'Different ways to share data between components': {
-    summary:
-      'By relationship: parent/child via inputs, outputs, `model()` and `viewChild`; siblings or unrelated components via a shared service (signals or `BehaviorSubject`); across routes via route/query params, resolvers or navigation state; feature- or app-wide via NgRx/Signal Store; and across reloads via browser storage.',
-    details: [
-      {
-        type: 'paragraph',
-        text: 'A good answer organises the techniques rather than listing them. The two questions to ask are: how are the components related, and how long must the data live?',
-      },
-      {
-        type: 'flow',
-        title: 'Choosing a technique',
-        code: `flowchart TD
-  Q{How are the components related?} -->|Parent - child| PC["input / output / model<br/>viewChild"]:::client
-  Q -->|Siblings or unrelated| S{Scope of the data?}
-  S -->|One feature subtree| CP[Component-level provided service]:::server
-  S -->|Whole app| R{Complex, many writers,<br/>needs devtools?}
-  R -->|No| RS["Root service with signals"]:::server
-  R -->|Yes| NG[NgRx Store / Signal Store]:::highlight
-  Q -->|Different routes| RT["Route params, query params,<br/>resolver, navigation state"]:::network
-  S -->|Survive reload| LS[(localStorage via service)]:::db`,
-      },
-      { type: 'heading3', text: 'Summary table' },
-      {
-        type: 'bullets',
-        items: [
-          '**@Input / input()** — parent → child, explicit, best for presentational components.',
-          '**@Output / output()** — child → parent events.',
-          '**model()** — two-way binding `[(value)]` between parent and child.',
-          '**viewChild / template ref** — parent calls child methods (use sparingly; tighter coupling).',
-          '**Shared service + signals/BehaviorSubject** — siblings and unrelated components; the default for most apps.',
-          '**Component-scoped providers** — state per instance of a feature (each tab group, each wizard).',
-          '**Router** — params/query params for shareable state; resolvers for preloaded data; `state` for transient payloads.',
-          '**NgRx / Signal Store** — centralised, predictable state for large teams and complex flows.',
-          '**Storage / BroadcastChannel** — persistence and cross-tab sync.',
-        ],
-      },
-      { type: 'heading3', text: 'Example: BehaviorSubject service (RxJS style)' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `@Injectable({ providedIn: 'root' })
-export class SelectedCustomerService {
-  private readonly selected$ = new BehaviorSubject<Customer | null>(null);
-  readonly selected = this.selected$.asObservable(); // read-only for consumers
-
-  select(c: Customer) { this.selected$.next(c); }
-}
-
-// List component:   this.svc.select(customer)
-// Detail component: customer$ = inject(SelectedCustomerService).selected;
-// Template:         @if (customer$ | async; as c) { {{ c.name }} }`,
       },
       {
         type: 'callout',

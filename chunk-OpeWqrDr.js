@@ -1,0 +1,1 @@
+import{g as v,h as C}from"./chunk-CKAE_GZY.js";export{v as createArchitectureServices};

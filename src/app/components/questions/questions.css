@@ -20,75 +20,45 @@
   z-index: 1;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 32px 24px;
+  padding: 24px 24px 32px;
 }
 
-.header-strip {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 32px;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.logo-gap {
-  gap: 14px;
-}
-
-.logo-box {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-lg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 22px;
-  flex-shrink: 0;
-  box-shadow: var(--shadow-logo);
-  transition: background 0.3s;
-}
-
-.logo-box--angular {
-  background: linear-gradient(135deg, var(--color-angular), var(--color-angular-dark));
-}
-
-.logo-box--node {
-  background: linear-gradient(135deg, var(--color-node), var(--color-node-dark));
-}
-
-.title-main {
-  font: 800 1.125rem/1.2 var(--font-display);
-  letter-spacing: -0.03em;
-  background: linear-gradient(90deg, #fff, #a1a1aa);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-transform: uppercase;
-}
-
+/* Angular / Node.js switch, at the top of the topics sidebar */
 .mode-pill {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
-  background: rgba(24, 24, 27, 0.8);
+  background: rgba(9, 9, 11, 0.6);
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-xl);
-  padding: 4px;
+  border-radius: var(--radius-lg);
+  padding: 3px;
   gap: 3px;
-  backdrop-filter: blur(8px);
 }
 
 .btn-mode-tab {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 18px;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: transparent;
+  color: var(--color-text-subtle);
   border-radius: var(--radius-md);
   border: none;
   cursor: pointer;
-  font: 700 0.8rem var(--font-display);
+  font: 700 0.75rem var(--font-display);
+  white-space: nowrap;
   transition: all 0.2s ease;
+}
+
+.btn-mode-tab .ti {
+  font-size: 15px;
+}
+
+.btn-mode-tab:hover {
+  color: var(--color-text-secondary);
 }
 
 .btn-mode-tab--active-angular {
@@ -101,17 +71,6 @@
   background: linear-gradient(135deg, var(--color-node-glow), rgba(21, 128, 61, 0.1));
   color: var(--color-node-text);
   box-shadow: 0 0 0 1px var(--color-node-ring);
-}
-
-.btn-mode-tab--inactive {
-  background: transparent;
-  color: var(--color-text-subtle);
-}
-
-.divider-vt {
-  width: 1px;
-  height: 20px;
-  background: var(--color-border-strong);
 }
 
 .grid-sidebar-main {
@@ -150,9 +109,23 @@
   margin-bottom: 6px;
 }
 
-.sidebar-label {
-  padding: 0 8px;
-  margin: 0;
+.overall-progress {
+  height: 3px;
+  margin: 2px 10px 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-2);
+  overflow: hidden;
+}
+
+.overall-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-success);
+  transition: width 0.3s ease;
+}
+
+.cat-badge--done {
+  color: var(--color-success-light);
 }
 
 .sidebar-toggle {
@@ -188,12 +161,25 @@
   }
 
   .sidebar--collapsed .sidebar-head {
+    flex-direction: column-reverse;
     justify-content: center;
   }
 
-  .sidebar--collapsed .sidebar-label,
+  .sidebar--collapsed .mode-pill {
+    flex: none;
+    flex-direction: column;
+  }
+
+  .sidebar--collapsed .btn-mode-tab {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+  }
+
+  .sidebar--collapsed .mode-label,
   .sidebar--collapsed .tab-text,
-  .sidebar--collapsed .cat-badge {
+  .sidebar--collapsed .cat-badge,
+  .sidebar--collapsed .overall-progress {
     display: none;
   }
 
@@ -289,7 +275,7 @@
 ---------------------------------------- */
 .split {
   display: grid;
-  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
   gap: 16px;
   align-items: start;
 }
@@ -330,9 +316,22 @@
     scrollbar-width: thin;
   }
 
-  .sidebar-head,
+  .sidebar-head {
+    flex-shrink: 0;
+    margin: 0 4px 0 0;
+  }
+
+  .sidebar-toggle,
+  .mode-label,
+  .overall-progress,
   .divider-hz {
     display: none;
+  }
+
+  .btn-mode-tab {
+    width: 34px;
+    height: 30px;
+    padding: 0;
   }
 
   .sidebar-list {

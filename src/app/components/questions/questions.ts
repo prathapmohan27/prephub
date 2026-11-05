@@ -14,7 +14,6 @@ import { Location } from '@angular/common';
 import { ActivatedRoute, Router, Scroll } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Header } from '@components/header';
-import { Stats } from '@components/stats';
 import { MockInterview, MockItem } from '../mock-interview/mock-interview';
 import { QGroup, QItem, QuestionList, questionKey } from '../question-list/question-list';
 import { QuestionReader } from '../question-reader/question-reader';
@@ -53,7 +52,7 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
 
 @Component({
   selector: 'app-questions',
-  imports: [Header, Stats, QuestionList, QuestionReader, MockInterview],
+  imports: [Header, QuestionList, QuestionReader, MockInterview],
   host: {
     '(document:keydown)': 'onKeydown($event)',
     '(window:popstate)': 'onPopState()',
@@ -63,60 +62,34 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
       <div class="radial-glow radial-glow-overlay"></div>
 
       <div class="page-wrapper">
-        <!-- Top header strip -->
-        <div class="header-strip">
-          <!-- Logo + title -->
-          <div class="flex-row-center logo-gap">
-            <div
-              class="logo-box"
-              [class.logo-box--angular]="mode() === 'angular'"
-              [class.logo-box--node]="mode() === 'nodejs'"
-            >
-              <i [class]="mode() === 'angular' ? 'ti ti-brand-angular' : 'ti ti-brand-nodejs'"></i>
-            </div>
-            <div>
-              <h1 class="title-main">Interview Q&amp;A</h1>
-              <span class="subtitle-main">
-                {{
-                  mode() === 'angular'
-                    ? 'Angular Interview Companion'
-                    : 'Node.js Interview Companion'
-                }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Mode Switcher Pill -->
-          <div class="mode-pill">
-            <button
-              (click)="switchMode('angular')"
-              class="btn-mode-tab"
-              [class.btn-mode-tab--active-angular]="mode() === 'angular'"
-              [class.btn-mode-tab--inactive]="mode() !== 'angular'"
-            >
-              <i class="ti ti-brand-angular text-[16px]"></i> Angular
-            </button>
-            <div class="divider-vt"></div>
-            <button
-              (click)="switchMode('nodejs')"
-              class="btn-mode-tab"
-              [class.btn-mode-tab--active-node]="mode() === 'nodejs'"
-              [class.btn-mode-tab--inactive]="mode() !== 'nodejs'"
-            >
-              <i class="ti ti-brand-nodejs text-[16px]"></i> Node.js
-            </button>
-          </div>
-        </div>
-
         <!-- Two-column layout -->
         <div class="grid-sidebar-main">
           <!-- LEFT SIDEBAR -->
           <aside class="sidebar" [class.sidebar--collapsed]="sidebarCollapsed()">
             <div class="glass-panel sidebar-panel">
               <div class="sidebar-head">
-                <p class="section-label sidebar-label">
-                  {{ mode() === 'angular' ? 'Angular Topics' : 'Node.js Topics' }}
-                </p>
+                <div class="mode-pill" role="group" aria-label="Interview track">
+                  <button
+                    type="button"
+                    (click)="switchMode('angular')"
+                    class="btn-mode-tab"
+                    [class.btn-mode-tab--active-angular]="mode() === 'angular'"
+                    [attr.aria-pressed]="mode() === 'angular'"
+                    title="Angular"
+                  >
+                    <i class="ti ti-brand-angular"></i><span class="mode-label">Angular</span>
+                  </button>
+                  <button
+                    type="button"
+                    (click)="switchMode('nodejs')"
+                    class="btn-mode-tab"
+                    [class.btn-mode-tab--active-node]="mode() === 'nodejs'"
+                    [attr.aria-pressed]="mode() === 'nodejs'"
+                    title="Node.js"
+                  >
+                    <i class="ti ti-brand-nodejs"></i><span class="mode-label">Node.js</span>
+                  </button>
+                </div>
                 <button
                   type="button"
                   class="sidebar-toggle"
@@ -148,8 +121,22 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
                   </span>
                   <span class="tab-text">All Topics</span>
                 </span>
-                <span class="cat-badge">{{ totalDatabaseQuestions() }}</span>
+                <span
+                  class="cat-badge"
+                  [title]="masteredInMode() + ' of ' + totalDatabaseQuestions() + ' mastered'"
+                  >{{ masteredInMode() }}/{{ totalDatabaseQuestions() }}</span
+                >
               </button>
+              <div
+                class="overall-progress"
+                role="progressbar"
+                aria-label="Mastered"
+                [attr.aria-valuenow]="masteredInMode()"
+                aria-valuemin="0"
+                [attr.aria-valuemax]="totalDatabaseQuestions()"
+              >
+                <div class="overall-progress-fill" [style.width.%]="masteredPercent()"></div>
+              </div>
 
               <div class="divider-hz"></div>
 
@@ -172,7 +159,12 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
                       </span>
                       <span class="text-ellipsis tab-text">{{ cat.title }}</span>
                     </span>
-                    <span class="cat-badge shrink-0">{{ cat.questions.length }}</span>
+                    <span
+                      class="cat-badge shrink-0"
+                      [class.cat-badge--done]="categoryDone(cat) === cat.questions.length"
+                      [title]="categoryDone(cat) + ' of ' + cat.questions.length + ' mastered'"
+                      >{{ categoryDone(cat) }}/{{ cat.questions.length }}</span
+                    >
                   </button>
                 }
               </div>
@@ -183,17 +175,10 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
           <main class="main-content">
             <app-header
               [activeFilter]="activeFilter()"
+              [counts]="filterCounts()"
               (searchChange)="onSearch($event)"
               (filterChange)="onFilterChange($event)"
               (randomChallenge)="mockOpen.set(true)"
-            />
-
-            <app-stats
-              [totalQuestions]="totalDatabaseQuestions()"
-              [preparedQuestions]="preparedSet().size"
-              [starredQuestions]="starredSet().size"
-              [totalCategories]="modeCategories().length"
-              [(collapsed)]="statsCollapsed"
             />
 
             <!-- Mock Me -->
@@ -340,7 +325,6 @@ export class Questions implements OnInit {
   shortcutsOpen = signal(false);
   /** Layout density, remembered across visits: topics as an icon rail, stats as one line. */
   sidebarCollapsed = signal(readFlag('prep_sidebar_collapsed', false));
-  statsCollapsed = signal(readFlag('prep_stats_collapsed', true));
 
   /** True while a history entry we pushed for the mobile reader is on top of the stack. */
   private readerHistoryEntry = false;
@@ -355,7 +339,7 @@ export class Questions implements OnInit {
     { keys: ['M'], label: 'Mark as mastered / unprepared' },
     { keys: ['S'], label: 'Star / unstar' },
     { keys: ['/'], label: 'Search questions' },
-    { keys: ['F'], label: 'Focus mode (hide topics & stats)' },
+    { keys: ['F'], label: 'Focus mode (collapse topics)' },
     { keys: ['Esc'], label: 'Close / back to list' },
     { keys: ['?'], label: 'Show this help' },
     { keys: ['Enter'], label: 'Mock Me: start session' },
@@ -396,7 +380,6 @@ export class Questions implements OnInit {
     });
 
     effect(() => writeFlag('prep_sidebar_collapsed', this.sidebarCollapsed()));
-    effect(() => writeFlag('prep_stats_collapsed', this.statsCollapsed()));
 
     // Remember the last opened question per mode, to resume on the next visit
     effect(() => {
@@ -479,6 +462,40 @@ export class Questions implements OnInit {
   });
 
   active = computed<QItem | null>(() => this.items()[this.activeIndex()] ?? null);
+
+  /** Mastered / starred counts for the current track (the sets hold both tracks). */
+  masteredInMode = computed(() => {
+    const prepared = this.preparedSet();
+    return this.modeCategories().reduce(
+      (n, c) => n + c.questions.filter((q) => prepared.has(q)).length,
+      0,
+    );
+  });
+
+  masteredPercent = computed(() => {
+    const total = this.totalDatabaseQuestions();
+    return total ? Math.round((this.masteredInMode() / total) * 100) : 0;
+  });
+
+  filterCounts = computed(() => {
+    const starred = this.starredSet();
+    const all = this.totalDatabaseQuestions();
+    const prepared = this.masteredInMode();
+    return {
+      all,
+      prepared,
+      starred: this.modeCategories().reduce(
+        (n, c) => n + c.questions.filter((q) => starred.has(q)).length,
+        0,
+      ),
+      unprepared: all - prepared,
+    };
+  });
+
+  categoryDone(cat: CategoryModel): number {
+    const prepared = this.preparedSet();
+    return cat.questions.filter((q) => prepared.has(q)).length;
+  }
 
   /** Visible questions for Mock Me, paired with their original (unfiltered) category. */
   mockPool = computed<MockItem[]>(() => {
@@ -634,9 +651,7 @@ export class Questions implements OnInit {
 
   /** Focus mode: collapse topics and stats together, or bring both back. */
   toggleFocus() {
-    const focus = !(this.sidebarCollapsed() && this.statsCollapsed());
-    this.sidebarCollapsed.set(focus);
-    this.statsCollapsed.set(focus);
+    this.sidebarCollapsed.update((v) => !v);
   }
 
   openShortcuts() {

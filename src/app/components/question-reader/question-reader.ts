@@ -27,7 +27,6 @@ import { QItem } from '../question-list/question-list';
 
       <div class="reader-head">
         <h2 class="reader-q">
-          <span class="reader-num">Q{{ item().num }}.</span>
           <span [innerHTML]="item().q | highlight: ''"></span>
         </h2>
         <button

@@ -16,7 +16,6 @@
     "paths": {
       "@components/header": ["./src/app/components/header/header"],
       "@components/questions": ["./src/app/components/questions/questions"],
-      "@components/stats": ["./src/app/components/stats/stats"],
       "@components/*": ["./src/app/components/*"],
       "@services/*": ["./src/app/services/*"],
       "@pipes/*": ["./src/app/pipes/*"]

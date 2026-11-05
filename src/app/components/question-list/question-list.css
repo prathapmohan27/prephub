@@ -48,8 +48,16 @@
 }
 
 .ql-group-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   font: 500 0.65rem var(--font-mono);
   color: var(--color-text-subtle);
+}
+
+.ql-group-count .ti {
+  font-size: 11px;
+  color: var(--color-success);
 }
 
 .ql-items {
@@ -133,7 +141,8 @@
   color: var(--color-text-primary);
 }
 
-.ql-row--done .ql-text {
+/* Dim mastered rows, but never the one being read */
+.ql-row--done:not(.ql-row--active) .ql-text {
   color: var(--color-text-subtle);
 }
 
@@ -147,6 +156,12 @@
 .ql-text {
   min-width: 0;
   overflow-wrap: anywhere;
+  /* Two lines max; the full question is in the reader */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
 }
 
 .ql-star {

@@ -56,12 +56,6 @@
   overflow-wrap: anywhere;
 }
 
-.reader-num {
-  margin-right: 6px;
-  font: 600 0.85rem var(--font-mono);
-  color: var(--color-text-subtle);
-}
-
 .reader-star {
   flex-shrink: 0;
   background: none;

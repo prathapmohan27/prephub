@@ -85,3 +85,64 @@
 .text-warning {
   color: var(--color-warning-light);
 }
+
+.btn-filter-tab {
+  background: transparent;
+  color: var(--color-text-subtle);
+}
+
+.btn-filter-tab:hover {
+  color: var(--color-text-secondary);
+}
+
+.btn-filter-tab--active {
+  background: rgba(63, 63, 70, 0.8);
+  color: var(--color-text-primary);
+}
+
+.filter-count {
+  font: 500 0.65rem var(--font-mono);
+  color: var(--color-text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.btn-filter-tab--active .filter-count {
+  color: var(--color-text-muted);
+}
+
+.search-kbd {
+  flex-shrink: 0;
+  padding: 1px 7px;
+  border-radius: 5px;
+  border: 1px solid var(--color-border-strong);
+  font: 0.7rem var(--font-mono);
+  color: var(--color-text-subtle);
+}
+
+/* Never wider than the screen: the filter row shrinks and scrolls sideways if needed */
+.hdr > .flex-wrap-gap {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.filter-strip {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.btn-filter-tab {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .btn-filter-tab {
+    padding: 7px 10px;
+  }
+
+  .btn-filter-tab > .ti {
+    display: none;
+  }
+}

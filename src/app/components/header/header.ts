@@ -1,5 +1,12 @@
 import { Component, output, input } from '@angular/core';
 
+export interface FilterCounts {
+  all: number;
+  prepared: number;
+  starred: number;
+  unprepared: number;
+}
+
 @Component({
   selector: 'app-header',
   template: `
@@ -10,68 +17,31 @@ import { Component, output, input } from '@angular/core';
         <input
           type="text"
           class="search-input"
-          placeholder="Search topics or keywords (e.g. RxJS, OnPush, signals)..."
+          placeholder="Search questions…"
           (input)="onSearch($event)"
         />
+        <kbd class="search-kbd" aria-hidden="true">/</kbd>
       </div>
 
       <!-- Row 2: Filters + Actions -->
       <div class="flex-wrap-gap">
         <!-- Filter Tabs -->
         <div class="filter-strip">
-          <button
-            (click)="onFilterChange('all')"
-            class="btn-filter-tab"
-            [style.background]="activeFilter() === 'all' ? 'rgba(63,63,70,0.8)' : 'transparent'"
-            [style.color]="
-              activeFilter() === 'all' ? 'var(--color-text-primary)' : 'var(--color-text-subtle)'
-            "
-          >
-            All
-          </button>
-
-          <button
-            (click)="onFilterChange('prepared')"
-            class="btn-filter-tab"
-            [style.background]="
-              activeFilter() === 'prepared' ? 'rgba(63,63,70,0.8)' : 'transparent'
-            "
-            [style.color]="
-              activeFilter() === 'prepared'
-                ? 'var(--color-text-primary)'
-                : 'var(--color-text-subtle)'
-            "
-          >
-            <i class="ti ti-circle-check text-success"></i> Mastered
-          </button>
-
-          <button
-            (click)="onFilterChange('starred')"
-            class="btn-filter-tab"
-            [style.background]="activeFilter() === 'starred' ? 'rgba(63,63,70,0.8)' : 'transparent'"
-            [style.color]="
-              activeFilter() === 'starred'
-                ? 'var(--color-text-primary)'
-                : 'var(--color-text-subtle)'
-            "
-          >
-            <i class="ti ti-star text-warning"></i> Starred
-          </button>
-
-          <button
-            (click)="onFilterChange('unprepared')"
-            class="btn-filter-tab"
-            [style.background]="
-              activeFilter() === 'unprepared' ? 'rgba(63,63,70,0.8)' : 'transparent'
-            "
-            [style.color]="
-              activeFilter() === 'unprepared'
-                ? 'var(--color-text-primary)'
-                : 'var(--color-text-subtle)'
-            "
-          >
-            Unprepared
-          </button>
+          @for (f of filters; track f.id) {
+            <button
+              type="button"
+              (click)="onFilterChange(f.id)"
+              class="btn-filter-tab"
+              [class.btn-filter-tab--active]="activeFilter() === f.id"
+              [attr.aria-pressed]="activeFilter() === f.id"
+            >
+              @if (f.icon) {
+                <i [class]="'ti ' + f.icon"></i>
+              }
+              {{ f.label }}
+              <span class="filter-count">{{ counts()[f.id] }}</span>
+            </button>
+          }
         </div>
 
         <!-- Mock Me -->
@@ -86,6 +56,14 @@ import { Component, output, input } from '@angular/core';
 })
 export class Header {
   activeFilter = input<string>('all');
+  counts = input<FilterCounts>({ all: 0, prepared: 0, starred: 0, unprepared: 0 });
+
+  readonly filters: { id: keyof FilterCounts; label: string; icon: string }[] = [
+    { id: 'all', label: 'All', icon: '' },
+    { id: 'prepared', label: 'Mastered', icon: 'ti-circle-check text-success' },
+    { id: 'starred', label: 'Starred', icon: 'ti-star text-warning' },
+    { id: 'unprepared', label: 'Unprepared', icon: 'ti-circle text-muted' },
+  ];
 
   searchChange = output<string>();
   filterChange = output<string>();

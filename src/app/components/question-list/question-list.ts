@@ -36,7 +36,12 @@ export const questionKey = (categoryId: string, question: string) => `${category
               <i [class]="'ti ' + g.cat.icon"></i>
             </span>
             <span class="ql-group-title">{{ g.cat.title }}</span>
-            <span class="ql-group-count">{{ doneCount(g) }}/{{ g.items.length }}</span>
+            <span
+              class="ql-group-count"
+              [title]="doneCount(g) + ' of ' + g.items.length + ' mastered'"
+              [attr.aria-label]="doneCount(g) + ' of ' + g.items.length + ' mastered'"
+              ><i class="ti ti-circle-check"></i> {{ doneCount(g) }}/{{ g.items.length }}</span
+            >
           </header>
 
           <ul class="ql-items">

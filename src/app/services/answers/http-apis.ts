@@ -241,37 +241,29 @@ fetch('/api/users', { method: 'GET', body: JSON.stringify({ role: 'admin' }) });
           'Elasticsearch-style APIs usually also accept `POST` for the same endpoint, which is what browser clients use.',
         ],
       },
+      { type: 'divider' },
       {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: answer in two layers — "HttpClient and browsers will not send it" and "even if a server-side client can, intermediaries may drop it, so it is not reliable". Then give the alternatives.',
+        type: 'heading3',
+        text: 'Follow-up: Is it recommended according to HTTP specifications (`RFC 7231`) to send a request body/payload inside an HTTP GET request? What are the standard alternatives (`POST/PUT or query parameters`)?',
       },
-    ],
-  },
-
-  'Is it recommended according to HTTP specifications (`RFC 7231`) to send a request body/payload inside an HTTP GET request? What are the standard alternatives (`POST/PUT or query parameters`)?':
-    {
-      summary:
-        'No. RFC 7231 says a payload within a GET request "has no defined semantics" and sending one may cause some implementations to reject the request; its successor RFC 9110 says clients SHOULD NOT send content in a GET unless talking directly to a server that has said it supports it. The standard alternatives are query parameters for normal filters and a `POST` (e.g. `POST /search`) for large or complex criteria.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'GET is defined by its URL: the target URL alone must identify what is being retrieved. That is what makes GET cacheable, bookmarkable and safe to retry. A body would carry information that caches and proxies do not look at, breaking those guarantees.',
-        },
-        { type: 'heading3', text: 'What the specs say' },
-        {
-          type: 'bullets',
-          items: [
-            '**RFC 7231 §4.3.1 (2014)**: a payload within a GET request message has no defined semantics; sending one might cause some existing implementations to reject the request.',
-            '**RFC 9110 (2022)**, which obsoletes 7231, is stricter in wording: the content of a GET has no generally defined semantics, cannot alter the meaning of the request, and clients SHOULD NOT generate it without prior knowledge that the server supports it.',
-            'Result: "not forbidden, but not interoperable" — treat it as unsupported.',
-          ],
-        },
-        { type: 'heading3', text: 'Alternative 1: query parameters' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// GET /api/orders?status=shipped&from=2026-01-01&page=2&size=20
+      {
+        type: 'paragraph',
+        text: 'No. RFC 7231 says a payload within a GET request "has no defined semantics" and sending one may cause some implementations to reject the request; its successor RFC 9110 says clients SHOULD NOT send content in a GET unless talking directly to a server that has said it supports it. The standard alternatives are query parameters for normal filters and a `POST` (e.g. `POST /search`) for large or complex criteria.',
+      },
+      { type: 'heading3', text: 'What the specs say' },
+      {
+        type: 'bullets',
+        items: [
+          '**RFC 7231 §4.3.1 (2014)**: a payload within a GET request message has no defined semantics; sending one might cause some existing implementations to reject the request.',
+          '**RFC 9110 (2022)**, which obsoletes 7231, is stricter in wording: the content of a GET has no generally defined semantics, cannot alter the meaning of the request, and clients SHOULD NOT generate it without prior knowledge that the server supports it.',
+          'Result: "not forbidden, but not interoperable" — treat it as unsupported.',
+        ],
+      },
+      { type: 'heading3', text: 'Alternative 1: query parameters' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// GET /api/orders?status=shipped&from=2026-01-01&page=2&size=20
 const params = new HttpParams({
   fromObject: { status: 'shipped', from: '2026-01-01', page: 2, size: 20 },
 });
@@ -279,12 +271,12 @@ this.http.get<Page<Order>>('/api/orders', { params });
 
 // Arrays: repeated keys → ?tag=a&tag=b
 new HttpParams().appendAll({ tag: ['a', 'b'] });`,
-        },
-        { type: 'heading3', text: 'Alternative 2: POST to a search/query resource' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Complex criteria that would make a huge or unreadable URL
+      },
+      { type: 'heading3', text: 'Alternative 2: POST to a search/query resource' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Complex criteria that would make a huge or unreadable URL
 const criteria = {
   filters: [{ field: 'price', op: 'between', value: [10, 50] }],
   sort: [{ field: 'rating', dir: 'desc' }],
@@ -292,23 +284,23 @@ const criteria = {
 };
 this.http.post<Page<Product>>('/api/products/search', criteria);
 // Downsides: not cacheable by default, not bookmarkable, not idempotent by definition`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Use **query params** when the criteria are simple and the result should be cacheable/shareable.',
-            'Use **POST /search** when criteria are large (URL limits are roughly 2–8 KB depending on server/proxy), nested, or contain sensitive values you do not want in logs.',
-            '`PUT` is not really an alternative for reads — it means "store this representation". Mention it only to rule it out.',
-            'Watch the IETF **QUERY** method draft: a safe, idempotent method that does carry a body. It is still a draft, so do not rely on it in production.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: quoting "no defined semantics" and mentioning that RFC 9110 replaced RFC 7231 shows you actually know the spec. Then explain the trade-off of POST /search: you lose HTTP caching, so add server-side or client-side caching if needed.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Use **query params** when the criteria are simple and the result should be cacheable/shareable.',
+          'Use **POST /search** when criteria are large (URL limits are roughly 2–8 KB depending on server/proxy), nested, or contain sensitive values you do not want in logs.',
+          '`PUT` is not really an alternative for reads — it means "store this representation". Mention it only to rule it out.',
+          'Watch the IETF **QUERY** method draft: a safe, idempotent method that does carry a body. It is still a draft, so do not rely on it in production.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: answer in two layers — "HttpClient and browsers will not send it" and "even if a server-side client can, intermediaries may drop it, so it is not reliable". Then give the alternatives.',
+      },
+    ],
+  },
 
   'How do you make an HTTP API call in Angular using `HttpClient`?': {
     summary:
@@ -786,71 +778,6 @@ export class UserListComponent {
       ],
     },
 
-  'What are Interceptors?': {
-    summary:
-      'Interceptors are middleware for `HttpClient`: functions that sit in a chain between your code and the network, so every request and response passes through them. They are used for cross-cutting concerns — adding auth tokens, global error handling, retries, loading spinners, logging and caching — written once instead of in every service.',
-    details: [
-      {
-        type: 'paragraph',
-        text: 'Without interceptors, every service would have to add the token, catch 401s and toggle a spinner itself. An interceptor is registered once and applies to all requests made through `HttpClient`. Each interceptor receives the request, may change it (requests are immutable, so you `clone()`), passes it to `next`, and can transform the response stream on the way back.',
-      },
-      { type: 'heading3', text: 'A minimal interceptor' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// logging.interceptor.ts
-export const loggingInterceptor: HttpInterceptorFn = (req, next) => {
-  const started = performance.now();
-  return next(req).pipe(
-    finalize(() =>
-      console.log(\`\${req.method} \${req.urlWithParams} took \${Math.round(performance.now() - started)}ms\`),
-    ),
-  );
-};
-// Console: "GET /api/users?page=1 took 142ms"
-
-// app.config.ts
-provideHttpClient(withInterceptors([loggingInterceptor]));`,
-      },
-      { type: 'heading3', text: 'Typical uses' },
-      {
-        type: 'bullets',
-        items: [
-          '**Auth**: attach `Authorization: Bearer <token>`; refresh the token on 401 and replay the request.',
-          '**Errors**: map HTTP errors to user-friendly toasts, redirect to login on 401.',
-          '**Loading indicator**: increment a counter on request, decrement in `finalize`.',
-          '**Base URL / API versioning**: prefix relative URLs with `environment.apiUrl`.',
-          '**Retry & timeout** for idempotent requests.',
-          '**Caching** GET responses, **mocking** in development, **correlation ids** for tracing.',
-        ],
-      },
-      {
-        type: 'flow',
-        title: 'Interceptors form a chain',
-        code: `flowchart LR
-  S["Service<br/>http.get()"]:::client --> A["authInterceptor"]:::security
-  A --> L["loadingInterceptor"]:::highlight
-  L --> E["errorInterceptor"]:::server
-  E --> B["HttpBackend"]:::network
-  B --> API[("API")]:::external`,
-        text: 'Requests flow left to right in the order you register them; responses flow back right to left.',
-      },
-      {
-        type: 'bullets',
-        items: [
-          'Modern Angular: functional `HttpInterceptorFn` registered with `withInterceptors([...])`; can use `inject()` inside.',
-          'Legacy: class implementing `HttpInterceptor` registered with the `HTTP_INTERCEPTORS` multi-provider (and `withInterceptorsFromDi()` if you mix them with `provideHttpClient`).',
-          'They only see requests made via `HttpClient` — not `fetch()` calls you write yourself, or `<img>`/script loads.',
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: give a concrete example ("we add the JWT and handle 401 refresh in one interceptor") and mention that order matters — e.g. the auth interceptor should run before a logging interceptor if you want to log the final headers.',
-      },
-    ],
-  },
-
   'What is an HTTP Interceptor (`HttpInterceptorFn`) in Angular and how does it intercept outgoing requests and incoming responses?':
     {
       summary:
@@ -944,6 +871,61 @@ this.http.get('/api/notifications', { context: new HttpContext().set(SKIP_LOADER
           type: 'callout',
           variant: 'warning',
           text: 'Common pitfall: injecting `HttpClient` inside an interceptor and making a call through it (e.g. for token refresh) re-enters the same interceptor chain. Guard against loops — skip the refresh URL or use an `HttpContextToken` flag.',
+        },
+        { type: 'divider' },
+        { type: 'heading3', text: 'Follow-up: What are Interceptors?' },
+        {
+          type: 'paragraph',
+          text: 'Interceptors are middleware for `HttpClient`: functions that sit in a chain between your code and the network, so every request and response passes through them. They are used for cross-cutting concerns — adding auth tokens, global error handling, retries, loading spinners, logging and caching — written once instead of in every service.',
+        },
+        { type: 'heading3', text: 'A minimal interceptor' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `// logging.interceptor.ts
+export const loggingInterceptor: HttpInterceptorFn = (req, next) => {
+  const started = performance.now();
+  return next(req).pipe(
+    finalize(() =>
+      console.log(\`\${req.method} \${req.urlWithParams} took \${Math.round(performance.now() - started)}ms\`),
+    ),
+  );
+};
+// Console: "GET /api/users?page=1 took 142ms"
+
+// app.config.ts
+provideHttpClient(withInterceptors([loggingInterceptor]));`,
+        },
+        { type: 'heading3', text: 'Typical uses' },
+        {
+          type: 'bullets',
+          items: [
+            '**Auth**: attach `Authorization: Bearer <token>`; refresh the token on 401 and replay the request.',
+            '**Errors**: map HTTP errors to user-friendly toasts, redirect to login on 401.',
+            '**Loading indicator**: increment a counter on request, decrement in `finalize`.',
+            '**Base URL / API versioning**: prefix relative URLs with `environment.apiUrl`.',
+            '**Retry & timeout** for idempotent requests.',
+            '**Caching** GET responses, **mocking** in development, **correlation ids** for tracing.',
+          ],
+        },
+        {
+          type: 'flow',
+          title: 'Interceptors form a chain',
+          code: `flowchart LR
+  S["Service<br/>http.get()"]:::client --> A["authInterceptor"]:::security
+  A --> L["loadingInterceptor"]:::highlight
+  L --> E["errorInterceptor"]:::server
+  E --> B["HttpBackend"]:::network
+  B --> API[("API")]:::external`,
+          text: 'Requests flow left to right in the order you register them; responses flow back right to left.',
+        },
+        {
+          type: 'bullets',
+          items: [
+            'Modern Angular: functional `HttpInterceptorFn` registered with `withInterceptors([...])`; can use `inject()` inside.',
+            'Legacy: class implementing `HttpInterceptor` registered with the `HTTP_INTERCEPTORS` multi-provider (and `withInterceptorsFromDi()` if you mix them with `provideHttpClient`).',
+            'They only see requests made via `HttpClient` — not `fetch()` calls you write yourself, or `<img>`/script loads.',
+          ],
         },
       ],
     },

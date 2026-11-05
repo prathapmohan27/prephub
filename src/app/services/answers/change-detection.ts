@@ -55,21 +55,11 @@ export class CounterComponent {
           "`OnPush` lets Angular skip whole subtrees whose inputs didn't change; signals let Angular refresh only the views that read a changed signal.",
         ],
       },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: structure the answer as "who triggers it" (Zone.js vs zoneless) and "what it does" (top-down tree walk, binding comparison, minimal DOM updates). Then mention OnPush and signals as the optimizations.',
-      },
-    ],
-  },
-
-  'Explain Angular change detection.': {
-    summary:
-      "Change detection is Angular's process for reflecting component state in the DOM. Angular runs it after anything that might change state, checks every template binding top-down through the component tree, and updates the DOM where a value differs. It is unidirectional and synchronous, can be optimized with `OnPush`, and in modern Angular is increasingly driven by signals instead of Zone.js.",
-    details: [
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: Explain Angular change detection.' },
       {
         type: 'paragraph',
-        text: 'In plain words: your component class holds data, the template describes how to display it, and change detection is the loop that says "has anything the template shows changed? If so, update just that bit of the page". Angular chose a "check everything cheaply" model rather than tracking every assignment, which makes plain JavaScript objects work without wrappers.',
+        text: "Change detection is Angular's process for reflecting component state in the DOM. Angular runs it after anything that might change state, checks every template binding top-down through the component tree, and updates the DOM where a value differs. It is unidirectional and synchronous, can be optimized with `OnPush`, and in modern Angular is increasingly driven by signals instead of Zone.js.",
       },
       { type: 'heading3', text: 'Key ideas to explain' },
       {
@@ -120,7 +110,7 @@ export class CartBadgeComponent {
       {
         type: 'callout',
         variant: 'tip',
-        text: 'Interview tip: give the one-line definition, then the mechanism (trigger + top-down check), then optimizations (OnPush, signals, zoneless). Bringing up `ExpressionChangedAfterItHasBeenCheckedError` with its cause shows real-world experience.',
+        text: 'Interview tip: structure the answer as "who triggers it" (Zone.js vs zoneless) and "what it does" (top-down tree walk, binding comparison, minimal DOM updates). Then mention OnPush and signals as the optimizations.',
       },
     ],
   },
@@ -177,28 +167,20 @@ export class CartItemComponent {
         type: 'paragraph',
         text: 'A template is a reactive consumer of the signals it reads. When such a signal changes, Angular marks that view for refresh and its ancestors as having a descendant to visit — so the walk can reach the component without re-checking unaffected OnPush ancestors. This is the basis of finer-grained, zoneless change detection.',
       },
+      { type: 'divider' },
       {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: the phrase "dirty marking goes up, checking goes down" captures the tree mechanics in one line — then explain why OnPush prunes subtrees.',
+        type: 'heading3',
+        text: 'Follow-up: How does Angular Change Detection work by default (`ChangeDetectionStrategy.Default`) across component trees?',
       },
-    ],
-  },
-
-  'How does Angular Change Detection work by default (`ChangeDetectionStrategy.Default`) across component trees?':
-    {
-      summary:
-        'With `Default`, every component is checked on every change-detection cycle, regardless of whether its inputs changed. Any async event anywhere (Zone.js) triggers a top-down pass over the whole tree, evaluating every binding in every Default component. It is simple and always correct for mutable data, but costs grow with the number of bindings.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Default is "check always". Angular doesn\'t need to know how your data changed — mutation, reassignment, a service updated it — because it re-reads every binding each time. That is why mutating an array in place still updates the UI in a Default component.',
-        },
-        { type: 'heading3', text: 'Example: one click, whole tree checked' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+      {
+        type: 'paragraph',
+        text: 'With `Default`, every component is checked on every change-detection cycle, regardless of whether its inputs changed. Any async event anywhere (Zone.js) triggers a top-down pass over the whole tree, evaluating every binding in every Default component. It is simple and always correct for mutable data, but costs grow with the number of bindings.',
+      },
+      { type: 'heading3', text: 'Example: one click, whole tree checked' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-root',
   template: \`
     <app-header />
@@ -215,33 +197,38 @@ export class AppComponent {
 //  - all HeaderComponent bindings
 //  - all TableComponent + 1000 RowComponent bindings
 // Even a mousemove listener or setInterval anywhere triggers the same full pass.`,
-        },
-        { type: 'heading3', text: "Mutation works (and that's the trap)" },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `this.rows[0].name = 'Updated'; // ✅ Default child shows it — bindings are re-read
+      },
+      { type: 'heading3', text: "Mutation works (and that's the trap)" },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `this.rows[0].name = 'Updated'; // ✅ Default child shows it — bindings are re-read
 this.rows.push(newRow);         // ✅ Default child's @for shows the new row
 // Switch the child to OnPush and both updates stop appearing,
 // because the [rows] reference never changed.`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Order: root first, then depth-first through children in template order.',
-            'Each check is cheap (identity comparison), but many components × many bindings × frequent events add up.',
-            'Function calls in templates (`{{ total() }}` on a plain method) run on every pass — a common performance issue with Default.',
-            "A Default component inside an OnPush parent is only checked when that parent is checked — the parent's strategy gates the subtree.",
-            "Default applies to every component that doesn't specify a strategy. The Angular team is steering new code toward OnPush + signals (and zoneless), so check your version's docs for any change to defaults.",
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: "Pitfall: a high-frequency event (scroll, mousemove, websocket ticks) in a large Default-strategy app can make the whole UI sluggish. Fixes: OnPush, signals, `runOutsideAngular` for listeners that don't affect the UI, or going zoneless.",
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Order: root first, then depth-first through children in template order.',
+          'Each check is cheap (identity comparison), but many components × many bindings × frequent events add up.',
+          'Function calls in templates (`{{ total() }}` on a plain method) run on every pass — a common performance issue with Default.',
+          "A Default component inside an OnPush parent is only checked when that parent is checked — the parent's strategy gates the subtree.",
+          "Default applies to every component that doesn't specify a strategy. The Angular team is steering new code toward OnPush + signals (and zoneless), so check your version's docs for any change to defaults.",
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: "Pitfall: a high-frequency event (scroll, mousemove, websocket ticks) in a large Default-strategy app can make the whole UI sluggish. Fixes: OnPush, signals, `runOutsideAngular` for listeners that don't affect the UI, or going zoneless.",
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: the phrase "dirty marking goes up, checking goes down" captures the tree mechanics in one line — then explain why OnPush prunes subtrees.',
+      },
+    ],
+  },
 
   'Difference between Default and OnPush Change Detection Strategy': {
     summary:

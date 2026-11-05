@@ -350,21 +350,11 @@ export class TypeaheadComponent {
   R -->|toSignal| S2["results signal"]:::highlight
   S2 --> V["Template + computed"]:::db`,
       },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: avoid "signals replace RxJS". Say "signals for state, RxJS for events and async orchestration, interop at the boundaries" — that is the Angular team\'s own guidance.',
-      },
-    ],
-  },
-
-  'When would you choose Signals over Observables?': {
-    summary:
-      'Choose signals for synchronous state that the UI reads: component state, derived view values, simple shared services, inputs/queries, and anything that should drive OnPush/zoneless change detection. Choose observables when the problem is about events over time: debouncing, cancellation (`switchMap`), retries, websockets, combining multiple async sources. At the boundary, convert with `toSignal()`.',
-    details: [
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: When would you choose Signals over Observables?' },
       {
         type: 'paragraph',
-        text: 'The deciding question: "Do I care about the current value, or about the sequence and timing of events?" Current value → signal. Sequence/timing → observable.',
+        text: 'Choose signals for synchronous state that the UI reads: component state, derived view values, simple shared services, inputs/queries, and anything that should drive OnPush/zoneless change detection. Choose observables when the problem is about events over time: debouncing, cancellation (`switchMap`), retries, websockets, combining multiple async sources. At the boundary, convert with `toSignal()`.',
       },
       { type: 'heading3', text: 'Pick signals for' },
       {
@@ -417,6 +407,11 @@ visible = computed(() =>
         type: 'callout',
         variant: 'warning',
         text: "Pitfall: `toSignal()` subscribes immediately and stays subscribed for the lifetime of its injection context — don't create it inside methods called repeatedly, and give an `initialValue` (or handle `undefined`) for async sources.",
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: avoid "signals replace RxJS". Say "signals for state, RxJS for events and async orchestration, interop at the boundaries" — that is the Angular team\'s own guidance.',
       },
     ],
   },

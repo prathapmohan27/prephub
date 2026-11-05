@@ -431,3 +431,14 @@ a.action-link {
   color: var(--color-text-subtle);
   margin-top: 4px;
 }
+
+/* Inline code inside question titles (rendered by the highlight pipe via innerHTML) */
+.q-code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(63, 63, 70, 0.55);
+  border: 1px solid rgba(82, 82, 91, 0.5);
+  font: 500 0.88em var(--font-mono);
+  color: #e9d5ff;
+  white-space: break-spaces;
+}

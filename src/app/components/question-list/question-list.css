@@ -1,0 +1,157 @@
+:host {
+  display: block;
+}
+
+.ql {
+  border-radius: var(--radius-2xl);
+  padding: 6px;
+}
+
+.ql-group + .ql-group {
+  margin-top: 6px;
+}
+
+/* Topic header stays visible while scrolling through its questions */
+.ql-group-head {
+  position: sticky;
+  top: -6px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 10px 8px;
+  background: rgba(24, 24, 27, 0.96);
+  border-radius: var(--radius-md);
+}
+
+.ql-group-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.ql-group-title {
+  flex: 1;
+  min-width: 0;
+  font: 700 0.72rem var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ql-group-count {
+  font: 500 0.65rem var(--font-mono);
+  color: var(--color-text-subtle);
+}
+
+.ql-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ql-row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+  border-radius: var(--radius-md);
+  transition: background 0.12s;
+}
+
+.ql-row:hover {
+  background: rgba(63, 63, 70, 0.3);
+}
+
+.ql-row--active {
+  background: rgba(63, 63, 70, 0.55);
+}
+
+.ql-row--active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--ql-accent, var(--color-angular));
+}
+
+.ql-check {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 9px 4px 9px 10px;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--color-text-faint);
+}
+
+.ql-check:hover {
+  color: var(--color-text-muted);
+}
+
+.ql-row--done .ql-check {
+  color: var(--color-success);
+}
+
+.ql-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 10px 8px 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font: 500 0.8rem/1.45 var(--font-sans);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+}
+
+.ql-main:focus-visible {
+  outline: 2px solid rgba(161, 161, 170, 0.6);
+  outline-offset: -2px;
+}
+
+.ql-row--active .ql-main {
+  color: var(--color-text-primary);
+}
+
+.ql-row--done .ql-text {
+  color: var(--color-text-subtle);
+}
+
+.ql-num {
+  flex-shrink: 0;
+  min-width: 1.4em;
+  font: 500 0.68rem var(--font-mono);
+  color: var(--color-text-subtle);
+}
+
+.ql-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ql-star {
+  flex-shrink: 0;
+  padding: 10px 10px 0 0;
+  font-size: 12px;
+  color: var(--color-warning);
+}

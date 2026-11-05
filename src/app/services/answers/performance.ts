@@ -1,91 +1,6 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What are ways to optimize an Angular application?': {
-    summary:
-      'Work on three fronts. **Load less**: lazy-loaded routes, `@defer` blocks, tree-shakable standalone code, optimized images (`NgOptimizedImage`), budgets. **Render less**: OnPush + signals (or zoneless), `track` in `@for`, pure pipes/computed instead of template method calls, virtual scrolling. **Fetch smarter**: caching, pagination, SSR/hydration for first paint. Always measure first (Lighthouse, Angular DevTools profiler).',
-    details: [
-      {
-        type: 'paragraph',
-        text: 'Performance problems usually fall into two buckets: slow initial load (too much JavaScript, slow first paint) and slow runtime (too much change detection or DOM work). Diagnose which one you have before optimizing — the fixes are different.',
-      },
-      { type: 'heading3', text: 'Initial load' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// Lazy routes — code for /admin is downloaded only when visited
-export const routes: Routes = [
-  { path: 'admin', loadChildren: () => import('./admin/admin.routes').then(m => m.ADMIN_ROUTES) },
-];
-
-// Preload lazy chunks in the background after the app is idle
-provideRouter(routes, withPreloading(PreloadAllModules));`,
-      },
-      {
-        type: 'code',
-        lang: 'html',
-        code: `<!-- @defer: split a heavy component into its own chunk, load when visible -->
-@defer (on viewport) {
-  <app-comments [postId]="id()" />
-} @placeholder {
-  <div class="skeleton"></div>
-}
-
-<!-- NgOptimizedImage: lazy loading, srcset, priority hints, warnings for oversized images -->
-<img ngSrc="/hero.jpg" width="1200" height="600" priority />`,
-      },
-      { type: 'heading3', text: 'Runtime rendering' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `@Component({
-  selector: 'app-orders',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  template: \`
-    @for (o of visibleOrders(); track o.id) {     <!-- track: reuse DOM rows by id -->
-      <app-order-row [order]="o" />
-    }
-    <p>Total: {{ total() }}</p>                      <!-- computed, not a method call -->
-  \`,
-})
-export class OrdersComponent {
-  orders = input.required<Order[]>();
-  filter = signal('');
-  visibleOrders = computed(() => this.orders().filter(o => o.ref.includes(this.filter())));
-  total = computed(() => this.visibleOrders().reduce((s, o) => s + o.amount, 0));
-}`,
-      },
-      { type: 'heading3', text: 'Checklist' },
-      {
-        type: 'bullets',
-        items: [
-          '**Bundle**: production build, budgets in `angular.json`, analyze with `source-map-explorer`/esbuild metafile, remove heavy libraries (moment → date-fns/Intl), import only what you use.',
-          '**Change detection**: OnPush everywhere, signals, `runOutsideAngular` for noisy listeners, consider zoneless.',
-          '**Lists**: `track` by id, virtual scroll (`cdk-virtual-scroll-viewport`), pagination.',
-          '**Templates**: no expensive method calls; pure pipes or `computed`.',
-          '**Data**: HTTP caching (interceptor/`shareReplay`/service cache), avoid duplicate requests, debounce search, `switchMap` to cancel stale calls.',
-          '**Memory**: unsubscribe (`takeUntilDestroyed`, `async` pipe), remove listeners and timers.',
-          '**First paint**: SSR/SSG with hydration (incremental hydration with `@defer` triggers), critical CSS inlining, font/image optimization.',
-          '**Tooling**: Lighthouse/Core Web Vitals, Chrome Performance panel, Angular DevTools profiler.',
-        ],
-      },
-      {
-        type: 'flow',
-        title: 'Where to look first',
-        code: `flowchart TD
-  M["Measure: Lighthouse,<br/>DevTools profiler"]:::highlight --> Q{Slow load or slow interaction?}
-  Q -->|"Load / LCP"| L["Lazy routes, @defer,<br/>bundle analysis, images, SSR"]:::network
-  Q -->|"Interaction / INP"| R["OnPush + signals, track,<br/>virtual scroll, fewer CD runs"]:::server
-  Q -->|"Waiting on data"| D["Caching, pagination,<br/>parallel requests"]:::db`,
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: start with "I measure first", then group techniques into load-time vs runtime vs data. A short real story — "[your project]: lazy-loading the reports module cut the initial bundle from X to Y" — is far more convincing than a list.',
-      },
-    ],
-  },
-
   'How do you optimize an Angular application? Consider lazy loading, OnPush change detection, trackBy, and caching.':
     {
       summary:
@@ -176,6 +91,81 @@ export const cacheInterceptor: HttpInterceptorFn = (req, next) => {
           type: 'callout',
           variant: 'warning',
           text: 'Pitfalls: `track $index` on lists that get reordered/filtered gives little benefit; OnPush with mutated arrays shows stale UI; caching user-specific responses in a shared interceptor cache can leak data between users after logout — clear it on logout.',
+        },
+        { type: 'divider' },
+        { type: 'heading3', text: 'Follow-up: What are ways to optimize an Angular application?' },
+        {
+          type: 'paragraph',
+          text: 'Work on three fronts. **Load less**: lazy-loaded routes, `@defer` blocks, tree-shakable standalone code, optimized images (`NgOptimizedImage`), budgets. **Render less**: OnPush + signals (or zoneless), `track` in `@for`, pure pipes/computed instead of template method calls, virtual scrolling. **Fetch smarter**: caching, pagination, SSR/hydration for first paint. Always measure first (Lighthouse, Angular DevTools profiler).',
+        },
+        { type: 'heading3', text: 'Initial load' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `// Lazy routes — code for /admin is downloaded only when visited
+export const routes: Routes = [
+  { path: 'admin', loadChildren: () => import('./admin/admin.routes').then(m => m.ADMIN_ROUTES) },
+];
+
+// Preload lazy chunks in the background after the app is idle
+provideRouter(routes, withPreloading(PreloadAllModules));`,
+        },
+        {
+          type: 'code',
+          lang: 'html',
+          code: `<!-- @defer: split a heavy component into its own chunk, load when visible -->
+@defer (on viewport) {
+  <app-comments [postId]="id()" />
+} @placeholder {
+  <div class="skeleton"></div>
+}
+
+<!-- NgOptimizedImage: lazy loading, srcset, priority hints, warnings for oversized images -->
+<img ngSrc="/hero.jpg" width="1200" height="600" priority />`,
+        },
+        { type: 'heading3', text: 'Runtime rendering' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `@Component({
+  selector: 'app-orders',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: \`
+    @for (o of visibleOrders(); track o.id) {     <!-- track: reuse DOM rows by id -->
+      <app-order-row [order]="o" />
+    }
+    <p>Total: {{ total() }}</p>                      <!-- computed, not a method call -->
+  \`,
+})
+export class OrdersComponent {
+  orders = input.required<Order[]>();
+  filter = signal('');
+  visibleOrders = computed(() => this.orders().filter(o => o.ref.includes(this.filter())));
+  total = computed(() => this.visibleOrders().reduce((s, o) => s + o.amount, 0));
+}`,
+        },
+        { type: 'heading3', text: 'Checklist' },
+        {
+          type: 'bullets',
+          items: [
+            '**Bundle**: production build, budgets in `angular.json`, analyze with `source-map-explorer`/esbuild metafile, remove heavy libraries (moment → date-fns/Intl), import only what you use.',
+            '**Change detection**: OnPush everywhere, signals, `runOutsideAngular` for noisy listeners, consider zoneless.',
+            '**Lists**: `track` by id, virtual scroll (`cdk-virtual-scroll-viewport`), pagination.',
+            '**Templates**: no expensive method calls; pure pipes or `computed`.',
+            '**Data**: HTTP caching (interceptor/`shareReplay`/service cache), avoid duplicate requests, debounce search, `switchMap` to cancel stale calls.',
+            '**Memory**: unsubscribe (`takeUntilDestroyed`, `async` pipe), remove listeners and timers.',
+            '**First paint**: SSR/SSG with hydration (incremental hydration with `@defer` triggers), critical CSS inlining, font/image optimization.',
+            '**Tooling**: Lighthouse/Core Web Vitals, Chrome Performance panel, Angular DevTools profiler.',
+          ],
+        },
+        {
+          type: 'flow',
+          title: 'Where to look first',
+          code: `flowchart TD
+  M["Measure: Lighthouse,<br/>DevTools profiler"]:::highlight --> Q{Slow load or slow interaction?}
+  Q -->|"Load / LCP"| L["Lazy routes, @defer,<br/>bundle analysis, images, SSR"]:::network
+  Q -->|"Interaction / INP"| R["OnPush + signals, track,<br/>virtual scroll, fewer CD runs"]:::server
+  Q -->|"Waiting on data"| D["Caching, pagination,<br/>parallel requests"]:::db`,
         },
       ],
     },

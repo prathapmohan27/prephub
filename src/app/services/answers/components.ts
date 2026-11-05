@@ -138,96 +138,6 @@ export class FeatureModule {}`,
     ],
   },
 
-  'Explain Angular lifecycle hooks': {
-    summary:
-      "Lifecycle hooks are methods Angular calls at key moments of a component or directive's life: `ngOnChanges` (inputs changed), `ngOnInit` (once, after first inputs), `ngDoCheck`, the content/view init and checked hooks, and `ngOnDestroy` (cleanup). Modern Angular adds `afterNextRender`/`afterEveryRender` and `DestroyRef`, and signals reduce the need for many hooks.",
-    details: [
-      {
-        type: 'paragraph',
-        text: 'Angular creates the component, sets its inputs, renders its template and keeps it in sync during change detection, then destroys it. Hooks let you run code at each of those moments. You implement them by adding a method with the right name (and, by convention, the matching interface like `OnInit`).',
-      },
-      { type: 'heading3', text: 'The hooks at a glance' },
-      {
-        type: 'bullets',
-        items: [
-          '`constructor` — not a hook; DI only. Inputs are not set yet.',
-          '`ngOnChanges(changes)` — when a bound input changes (before `ngOnInit` the first time).',
-          '`ngOnInit` — once, after the first `ngOnChanges`. Initialization that needs inputs.',
-          '`ngDoCheck` — every change-detection run; for custom change detection. Use sparingly.',
-          '`ngAfterContentInit` / `ngAfterContentChecked` — projected content (`<ng-content>`) is ready / checked.',
-          "`ngAfterViewInit` / `ngAfterViewChecked` — the component's own view and child views are ready / checked; `@ViewChild` queries are set.",
-          '`ngOnDestroy` — just before removal: unsubscribe, clear timers, detach listeners.',
-        ],
-      },
-      { type: 'heading3', text: 'Example' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `@Component({ selector: 'app-chart', template: \`<canvas #canvas></canvas>\` })
-export class ChartComponent implements OnChanges, OnInit, AfterViewInit, OnDestroy {
-  @Input() data: number[] = [];
-  @ViewChild('canvas') canvas!: ElementRef<HTMLCanvasElement>;
-  private chart?: Chart;
-  private timer?: ReturnType<typeof setInterval>;
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['data'] && !changes['data'].firstChange) this.chart?.update(this.data);
-  }
-  ngOnInit() {
-    this.timer = setInterval(() => this.refresh(), 30_000); // inputs available here
-  }
-  ngAfterViewInit() {
-    this.chart = new Chart(this.canvas.nativeElement, this.data); // DOM ready here
-  }
-  ngOnDestroy() {
-    clearInterval(this.timer);
-    this.chart?.destroy();
-  }
-}`,
-      },
-      { type: 'heading3', text: 'Modern equivalents' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `export class ChartComponent {
-  data = input<number[]>([]);
-  canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
-
-  constructor() {
-    // Runs once after the first render — browser only (skipped on the server in SSR)
-    afterNextRender(() => { /* create the chart with this.canvas().nativeElement */ });
-
-    // Reacts to input changes — replaces most ngOnChanges logic
-    effect(() => console.log('data changed', this.data()));
-
-    // Cleanup without ngOnDestroy
-    inject(DestroyRef).onDestroy(() => console.log('destroyed'));
-  }
-}`,
-      },
-      {
-        type: 'flow',
-        title: 'Component lifecycle',
-        code: `flowchart TD
-  C[constructor]:::external --> OC[ngOnChanges]:::highlight
-  OC --> OI[ngOnInit]:::server
-  OI --> DC[ngDoCheck]
-  DC --> ACI["ngAfterContentInit (once)"]:::server
-  ACI --> ACC[ngAfterContentChecked]
-  ACC --> AVI["ngAfterViewInit (once)"]:::server
-  AVI --> AVC[ngAfterViewChecked]
-  AVC -->|"next change detection"| OC2["ngOnChanges (if inputs changed)"]:::highlight
-  OC2 --> DC
-  AVC -->|"removed from DOM"| OD[ngOnDestroy]:::security`,
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: "Interview tip: explain the constructor vs `ngOnInit` distinction (inputs are not set in the constructor), and when you'd use `ngAfterViewInit` (DOM/ViewChild access). Mentioning `DestroyRef`, `takeUntilDestroyed()` and `afterNextRender` shows you know current Angular.",
-      },
-    ],
-  },
-
   'Explain the execution order and purpose of all Angular component lifecycle hooks (`ngOnChanges`, `ngOnInit`, `ngDoCheck`, `ngOnDestroy`, etc.).':
     {
       summary:
@@ -305,6 +215,86 @@ Parent ngDoCheck → Parent ngAfterContentChecked → Child ngOnChanges → Chil
           type: 'callout',
           variant: 'warning',
           text: 'Pitfalls: `ngOnChanges` does not fire when you mutate an input object in place (same reference) or when you set an input programmatically on an instance — only on template binding changes (or `setInput()`). Heavy logic in `ngDoCheck`/`*Checked` hooks runs on every cycle and hurts performance.',
+        },
+        { type: 'divider' },
+        { type: 'heading3', text: 'Follow-up: Explain Angular lifecycle hooks' },
+        {
+          type: 'paragraph',
+          text: "Lifecycle hooks are methods Angular calls at key moments of a component or directive's life: `ngOnChanges` (inputs changed), `ngOnInit` (once, after first inputs), `ngDoCheck`, the content/view init and checked hooks, and `ngOnDestroy` (cleanup). Modern Angular adds `afterNextRender`/`afterEveryRender` and `DestroyRef`, and signals reduce the need for many hooks.",
+        },
+        { type: 'heading3', text: 'The hooks at a glance' },
+        {
+          type: 'bullets',
+          items: [
+            '`constructor` — not a hook; DI only. Inputs are not set yet.',
+            '`ngOnChanges(changes)` — when a bound input changes (before `ngOnInit` the first time).',
+            '`ngOnInit` — once, after the first `ngOnChanges`. Initialization that needs inputs.',
+            '`ngDoCheck` — every change-detection run; for custom change detection. Use sparingly.',
+            '`ngAfterContentInit` / `ngAfterContentChecked` — projected content (`<ng-content>`) is ready / checked.',
+            "`ngAfterViewInit` / `ngAfterViewChecked` — the component's own view and child views are ready / checked; `@ViewChild` queries are set.",
+            '`ngOnDestroy` — just before removal: unsubscribe, clear timers, detach listeners.',
+          ],
+        },
+        { type: 'heading3', text: 'Example' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `@Component({ selector: 'app-chart', template: \`<canvas #canvas></canvas>\` })
+export class ChartComponent implements OnChanges, OnInit, AfterViewInit, OnDestroy {
+  @Input() data: number[] = [];
+  @ViewChild('canvas') canvas!: ElementRef<HTMLCanvasElement>;
+  private chart?: Chart;
+  private timer?: ReturnType<typeof setInterval>;
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['data'] && !changes['data'].firstChange) this.chart?.update(this.data);
+  }
+  ngOnInit() {
+    this.timer = setInterval(() => this.refresh(), 30_000); // inputs available here
+  }
+  ngAfterViewInit() {
+    this.chart = new Chart(this.canvas.nativeElement, this.data); // DOM ready here
+  }
+  ngOnDestroy() {
+    clearInterval(this.timer);
+    this.chart?.destroy();
+  }
+}`,
+        },
+        { type: 'heading3', text: 'Modern equivalents' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `export class ChartComponent {
+  data = input<number[]>([]);
+  canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
+
+  constructor() {
+    // Runs once after the first render — browser only (skipped on the server in SSR)
+    afterNextRender(() => { /* create the chart with this.canvas().nativeElement */ });
+
+    // Reacts to input changes — replaces most ngOnChanges logic
+    effect(() => console.log('data changed', this.data()));
+
+    // Cleanup without ngOnDestroy
+    inject(DestroyRef).onDestroy(() => console.log('destroyed'));
+  }
+}`,
+        },
+        {
+          type: 'flow',
+          title: 'Component lifecycle',
+          code: `flowchart TD
+  C[constructor]:::external --> OC[ngOnChanges]:::highlight
+  OC --> OI[ngOnInit]:::server
+  OI --> DC[ngDoCheck]
+  DC --> ACI["ngAfterContentInit (once)"]:::server
+  ACI --> ACC[ngAfterContentChecked]
+  ACC --> AVI["ngAfterViewInit (once)"]:::server
+  AVI --> AVC[ngAfterViewChecked]
+  AVC -->|"next change detection"| OC2["ngOnChanges (if inputs changed)"]:::highlight
+  OC2 --> DC
+  AVC -->|"removed from DOM"| OD[ngOnDestroy]:::security`,
         },
       ],
     },

@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject, input, resource } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  resource,
+} from '@angular/core';
 import { AnswerService } from '@services/answer.service';
 import { ContentBlocks } from '../content-blocks/content-blocks';
 import { RichText } from '../content-blocks/rich-text';
@@ -9,17 +16,18 @@ import { RichText } from '../content-blocks/rich-text';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ContentBlocks, RichText],
   template: `
-    @if (answer.isLoading()) {
+    @let ready = cached();
+    @if (ready === undefined && answer.isLoading()) {
       <div class="ans-loading" aria-live="polite">
         <i class="ti ti-loader-2 ans-spin"></i> Loading answer…
       </div>
-    } @else if (answer.error()) {
+    } @else if (ready === undefined && answer.error()) {
       <div class="ans-empty">
         <i class="ti ti-wifi-off"></i>
         <span>Couldn't load the answer.</span>
         <button type="button" class="ans-retry" (click)="answer.reload()">Try again</button>
       </div>
-    } @else if (answer.value(); as a) {
+    } @else if (ready !== undefined ? ready : answer.value(); as a) {
       <section class="ans-quick" aria-label="Quick answer">
         <span class="ans-label"><i class="ti ti-bolt"></i> Quick answer</span>
         <p class="ans-summary"><app-rich-text [text]="a.summary" /></p>
@@ -47,6 +55,9 @@ export class Answer {
   readonly question = input.required<string>();
 
   private readonly answers = inject(AnswerService);
+
+  /** Already-loaded answer, shown immediately so prev/next doesn't flash "Loading…". */
+  protected readonly cached = computed(() => this.answers.peek(this.categoryId(), this.question()));
 
   protected readonly answer = resource({
     params: () => ({ categoryId: this.categoryId(), question: this.question() }),

@@ -348,21 +348,11 @@ try {
           '**Alternatives:** embedding, idempotent operations + outbox pattern, or saga with compensating actions in microservices.',
         ],
       },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: lead with "single-document operations are already atomic", then show a real multi-document case. That signals you design schemas to minimize transactions instead of reaching for them reflexively.',
-      },
-    ],
-  },
-
-  'How do you handle transactions in MongoDB?': {
-    summary:
-      'Start a client session, run every operation with `{ session }` inside `session.withTransaction()` (which commits, aborts on error and automatically retries on transient errors), then end the session. Requirements: a replica set or sharded cluster, keeping transactions short, passing the session to every operation, and handling write conflicts. In Mongoose use `connection.transaction()` or `session.withTransaction()` and pass `{ session }` to saves and queries.',
-    details: [
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: How do you handle transactions in MongoDB?' },
       {
         type: 'paragraph',
-        text: 'There are two APIs: the **callback API** (`withTransaction`) — recommended, because it retries on `TransientTransactionError` and `UnknownTransactionCommitResult` — and the **core API** (`startTransaction`, `commitTransaction`, `abortTransaction`) where you write retry logic yourself.',
+        text: 'Start a client session, run every operation with `{ session }` inside `session.withTransaction()` (which commits, aborts on error and automatically retries on transient errors), then end the session. Requirements: a replica set or sharded cluster, keeping transactions short, passing the session to every operation, and handling write conflicts. In Mongoose use `connection.transaction()` or `session.withTransaction()` and pass `{ session }` to saves and queries.',
       },
       { type: 'heading3', text: 'Callback API (native driver)' },
       {
@@ -432,6 +422,11 @@ try {
         type: 'callout',
         variant: 'warning',
         text: 'Local development: transactions fail on a standalone `mongod` ("Transaction numbers are only allowed on a replica set member or mongos"). Run a single-node replica set (`--replSet rs0` + `rs.initiate()`) or use `mongodb-memory-server`\'s `MongoMemoryReplSet` in tests.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: lead with "single-document operations are already atomic", then show a real multi-document case. That signals you design schemas to minimize transactions instead of reaching for them reflexively.',
       },
     ],
   },

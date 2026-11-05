@@ -3,7 +3,7 @@ import { Component, output, input } from '@angular/core';
 @Component({
   selector: 'app-header',
   template: `
-    <div class="flex-col" style="gap: 12px;">
+    <div class="hdr">
       <!-- Row 1: Search -->
       <div class="search-box">
         <i class="ti ti-search text-muted text-[15px] shrink-0"></i>
@@ -74,15 +74,6 @@ import { Component, output, input } from '@angular/core';
           </button>
         </div>
 
-        <!-- Expand/Collapse -->
-        <button
-          (click)="toggleExpandAll()"
-          [title]="isExpanded() ? 'Collapse all' : 'Expand all'"
-          class="btn-icon"
-        >
-          <i [class]="'ti ' + (isExpanded() ? 'ti-arrows-minimize' : 'ti-arrows-maximize')"></i>
-        </button>
-
         <!-- Mock Me -->
         <button (click)="randomChallenge.emit()" class="btn-primary-gradient">
           <i class="ti ti-dice-5 text-[14px]"></i>
@@ -94,11 +85,9 @@ import { Component, output, input } from '@angular/core';
   styleUrl: './header.css',
 })
 export class Header {
-  isExpanded = input<boolean>(false);
   activeFilter = input<string>('all');
 
   searchChange = output<string>();
-  expandAll = output<void>();
   filterChange = output<string>();
   randomChallenge = output<void>();
 
@@ -107,8 +96,5 @@ export class Header {
   }
   onFilterChange(filter: string) {
     this.filterChange.emit(filter);
-  }
-  toggleExpandAll() {
-    this.expandAll.emit();
   }
 }

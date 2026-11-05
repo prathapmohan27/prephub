@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { IsActiveMatchOptions, RouterLink, RouterLinkActive } from '@angular/router';
 
 interface NavItem {
   path: string;
@@ -27,7 +27,7 @@ interface NavItem {
             <a
               [routerLink]="item.path"
               routerLinkActive="nav-link--active"
-              [routerLinkActiveOptions]="{ exact: item.exact }"
+              [routerLinkActiveOptions]="item.exact ? exactPath : subtree"
               ariaCurrentWhenActive="page"
               class="nav-link"
             >
@@ -43,6 +43,15 @@ interface NavItem {
   styleUrl: './app-nav.css',
 })
 export class AppNav {
+  /** Match the path only, so links stay active with ?topic=&q= or ?section= in the URL. */
+  protected readonly exactPath: IsActiveMatchOptions = {
+    paths: 'exact',
+    queryParams: 'ignored',
+    matrixParams: 'ignored',
+    fragment: 'ignored',
+  };
+  protected readonly subtree: IsActiveMatchOptions = { ...this.exactPath, paths: 'subset' };
+
   protected readonly items: NavItem[] = [
     { path: '/', label: 'Interview Q&A', shortLabel: 'Q&A', icon: 'ti-list-check', exact: true },
     {

@@ -1,4 +1,5 @@
 import { Component, output, input } from '@angular/core';
+import type { Level } from '@services/question';
 
 export interface FilterCounts {
   all: number;
@@ -23,9 +24,25 @@ export interface FilterCounts {
         <kbd class="search-kbd" aria-hidden="true">/</kbd>
       </div>
 
-      <!-- Row 2: Filters + Actions -->
+      <!-- Row 2: all filters in one place, then Mock Me -->
       <div class="flex-wrap-gap">
-        <!-- Filter Tabs -->
+        <!-- Level -->
+        <div class="filter-strip" role="group" aria-label="Question level">
+          @for (l of levels; track l.id) {
+            <button
+              type="button"
+              class="btn-filter-tab"
+              [class.btn-filter-tab--active]="level() === l.id"
+              [attr.aria-pressed]="level() === l.id"
+              [title]="l.hint"
+              (click)="levelChange.emit(l.id)"
+            >
+              {{ l.label }}
+            </button>
+          }
+        </div>
+
+        <!-- Status -->
         <div class="filter-strip">
           @for (f of filters; track f.id) {
             <button
@@ -45,7 +62,7 @@ export interface FilterCounts {
         </div>
 
         <!-- Mock Me -->
-        <button (click)="randomChallenge.emit()" class="btn-primary-gradient">
+        <button (click)="randomChallenge.emit()" class="btn-mock">
           <i class="ti ti-dice-5 text-[14px]"></i>
           Mock Me
         </button>
@@ -57,6 +74,18 @@ export interface FilterCounts {
 export class Header {
   activeFilter = input<string>('all');
   counts = input<FilterCounts>({ all: 0, prepared: 0, starred: 0, unprepared: 0 });
+  level = input<'all' | Level>('all');
+
+  /** Core = fundamentals; Senior = internals, trade-offs, design and production scenarios. */
+  readonly levels: { id: 'all' | Level; label: string; hint: string }[] = [
+    { id: 'all', label: 'All levels', hint: 'Show every question' },
+    { id: 'core', label: 'Core', hint: 'Fundamentals every candidate is expected to know' },
+    {
+      id: 'senior',
+      label: 'Senior',
+      hint: 'Internals, trade-offs, design and production scenarios',
+    },
+  ];
 
   readonly filters: { id: keyof FilterCounts; label: string; icon: string }[] = [
     { id: 'all', label: 'All', icon: '' },
@@ -68,6 +97,7 @@ export class Header {
   searchChange = output<string>();
   filterChange = output<string>();
   randomChallenge = output<void>();
+  levelChange = output<'all' | Level>();
 
   onSearch(event: Event) {
     this.searchChange.emit((event.target as HTMLInputElement).value);

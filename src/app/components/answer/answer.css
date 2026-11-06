@@ -33,6 +33,53 @@
   margin-top: 20px;
 }
 
+/* Table of contents: sticks under the app bar while you read a long answer */
+.ans-toc {
+  position: sticky;
+  top: var(--nav-h);
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+  margin: 0 -4px 14px;
+  padding: 8px 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: color-mix(in srgb, var(--color-surface-1) 92%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.ans-toc::-webkit-scrollbar {
+  display: none;
+}
+
+.ans-toc-chip {
+  flex-shrink: 0;
+  max-width: 24ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: 500 0.72rem var(--font-sans);
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.ans-toc-chip:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+
+.ans-toc-chip--key {
+  color: var(--t-violet-300);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
 .ans-loading,
 .ans-empty {
   display: flex;

@@ -522,7 +522,7 @@ a.action-link {
 }
 .spotlight-label {
   font: 700 0.7rem var(--font-sans);
-  color: var(--color-danger-text);
+  color: var(--t-violet-300);
   gap: 6px;
   text-transform: uppercase;
   letter-spacing: 0.07em;

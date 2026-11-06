@@ -10,9 +10,10 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { CategoryModel, Track, trackInfo } from '@services/question';
+import { CategoryModel, Level, Track, trackInfo } from '@services/question';
 import { Answer } from '../answer/answer';
 import { RichText } from '../content-blocks/rich-text';
+import { RATINGS, REVIEWS_KEY } from '@services/reviews';
 
 export interface MockItem {
   q: string;
@@ -46,16 +47,16 @@ const LONG_FORM_TOPICS = new Set([
 const SECONDS_SHORT = 120;
 const SECONDS_LONG = 300;
 const SESSION_SIZES = [5, 10, 20];
-const REVIEWS_KEY = 'prep_mock_reviews';
+/** Stored session size meaning "every question in the pool". */
+const ALL = 1000;
+/** Offer "All" only when the pool is small enough for one sitting. */
+const ALL_LIMIT = 30;
+
+/** Which questions a session draws from; matches the page's status filter. */
+export type MockFocus = 'all' | 'unprepared' | 'starred';
 const SIZE_KEY = 'prep_mock_size';
 const TIMER_KEY = 'prep_mock_timer';
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-const RATINGS: { value: Exclude<Rating, 'skipped'>; label: string; icon: string; key: string }[] = [
-  { value: 'nailed', label: 'Nailed it', icon: 'ti-mood-happy', key: '1' },
-  { value: 'shaky', label: 'Shaky', icon: 'ti-mood-confuzed', key: '2' },
-  { value: 'blanked', label: 'Blanked', icon: 'ti-mood-sad', key: '3' },
-];
 
 const RATING_LABEL: Record<Rating, string> = {
   nailed: 'Nailed it',
@@ -169,24 +170,88 @@ function formatClock(totalSeconds: number): string {
           @case ('setup') {
             @if (pool().length) {
               <div class="mock-setup">
+                @if (scopeEditable()) {
+                  <!-- Scope: these change the page's own filters, so the list behind follows -->
+                  <div class="mock-field">
+                    <label class="mock-field-label" for="mock-topic">Topic</label>
+                    <select
+                      id="mock-topic"
+                      class="mock-select"
+                      (change)="topicChange.emit($any($event.target).value || null)"
+                    >
+                      <option value="" [selected]="!topicId()">
+                        All {{ trackLabel() }} topics
+                      </option>
+                      @for (t of topics(); track t.id) {
+                        <option [value]="t.id" [selected]="t.id === topicId()">
+                          {{ t.title }}
+                        </option>
+                      }
+                    </select>
+                  </div>
+
+                  <div class="mock-field">
+                    <span class="mock-field-label">Level</span>
+                    <div class="mock-chips" role="radiogroup" aria-label="Question level">
+                      @for (l of levelOptions; track l.id) {
+                        <button
+                          type="button"
+                          role="radio"
+                          class="mock-chip"
+                          [class.mock-chip--on]="level() === l.id"
+                          [attr.aria-checked]="level() === l.id"
+                          (click)="levelChange.emit(l.id)"
+                        >
+                          {{ l.label }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="mock-field">
+                    <span class="mock-field-label">Focus</span>
+                    <div class="mock-chips" role="radiogroup" aria-label="Which questions">
+                      @for (f of focusOptions; track f.id) {
+                        <button
+                          type="button"
+                          role="radio"
+                          class="mock-chip"
+                          [class.mock-chip--on]="focus() === f.id"
+                          [attr.aria-checked]="focus() === f.id"
+                          [title]="f.hint"
+                          (click)="focusChange.emit(f.id)"
+                        >
+                          {{ f.label }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+
                 <p class="mock-scope">
-                  Questions from <strong>{{ scopeLabel() }}</strong> · {{ pool().length }} available
+                  <strong>{{ pool().length }}</strong>
+                  question{{ pool().length === 1 ? '' : 's' }} available
+                  @if (search()) {
+                    · matching "{{ search() }}"
+                  }
+                  @if (!scopeEditable()) {
+                    · {{ scopeLabel() }}
+                  }
                 </p>
 
                 <div class="mock-field">
                   <span class="mock-field-label">Questions</span>
                   <div class="mock-chips" role="radiogroup" aria-label="Number of questions">
-                    @for (n of sizes; track n) {
+                    @for (c of sizeChips(); track c.value) {
                       <button
                         type="button"
                         role="radio"
                         class="mock-chip"
-                        [class.mock-chip--on]="sessionSize() === n"
-                        [attr.aria-checked]="sessionSize() === n"
-                        [disabled]="n > pool().length && n !== sizes[0]"
-                        (click)="setSize(n)"
+                        [class.mock-chip--on]="effectiveSize() === c.count"
+                        [attr.aria-checked]="effectiveSize() === c.count"
+                        (click)="setSize(c.value)"
                       >
-                        {{ n }}
+                        {{ c.label }}
                       </button>
                     }
                   </div>
@@ -196,18 +261,19 @@ function formatClock(totalSeconds: number): string {
                   <span class="mock-field-label">Timer</span>
                   <button
                     type="button"
-                    class="mock-chip"
-                    [class.mock-chip--on]="timerEnabled()"
-                    [attr.aria-pressed]="timerEnabled()"
+                    role="switch"
+                    class="mock-switch"
+                    [class.mock-switch--on]="timerEnabled()"
+                    [attr.aria-checked]="timerEnabled()"
+                    aria-label="Thinking timer"
                     (click)="toggleTimer()"
                   >
-                    <i
-                      class="ti"
-                      [class.ti-clock]="timerEnabled()"
-                      [class.ti-clock-off]="!timerEnabled()"
-                    ></i>
-                    {{ timerEnabled() ? 'On · 2 min, 5 for design & coding' : 'Off' }}
+                    <span class="mock-switch-thumb"></span>
                   </button>
+                  <span class="mock-switch-text">
+                    {{ timerEnabled() ? 'Thinking timer on' : 'Thinking timer off' }}
+                    <span class="mock-switch-help">2 min per question · 5 for design & coding</span>
+                  </span>
                 </div>
 
                 <p class="mock-hint">
@@ -219,6 +285,7 @@ function formatClock(totalSeconds: number): string {
                   <button type="button" class="mock-btn-primary" (click)="startSession()">
                     <i class="ti ti-player-play"></i>
                     Start {{ effectiveSize() }}-question session
+                    <kbd class="mock-kbd-inline">Enter</kbd>
                   </button>
                   <button type="button" class="btn-ghost" (click)="startFree()">
                     <i class="ti ti-infinity"></i> Free practice
@@ -227,8 +294,14 @@ function formatClock(totalSeconds: number): string {
               </div>
             } @else {
               <p class="mock-scope">
-                No questions match the current filters. Clear the search or pick another filter,
-                then try again.
+                No questions match the current filters.
+                @if (scopeEditable() && (topicId() || level() !== 'all' || focus() !== 'all')) {
+                  <button type="button" class="mock-link" (click)="resetScope()">
+                    Show all {{ trackLabel() }} questions
+                  </button>
+                } @else {
+                  Clear the search or pick another filter, then try again.
+                }
               </p>
             }
           }
@@ -416,6 +489,51 @@ export class MockInterview {
   protected readonly docsLabel = computed(() => trackInfo(this.mode()).docsLabel);
   /** Human-readable description of the pool, e.g. "Signals · Unprepared". */
   scopeLabel = input('all topics');
+
+  /** Scope controls. When `topics` is given, the dialog can change the page's filters. */
+  topics = input<{ id: string; title: string }[]>([]);
+  topicId = input<string | null>(null);
+  level = input<'all' | Level>('all');
+  focus = input<MockFocus>('all');
+  search = input('');
+  protected readonly scopeEditable = computed(() => this.topics().length > 0);
+  protected readonly trackLabel = computed(() => trackInfo(this.mode()).label);
+
+  topicChange = output<string | null>();
+  levelChange = output<'all' | Level>();
+  focusChange = output<MockFocus>();
+
+  protected readonly levelOptions: { id: 'all' | Level; label: string }[] = [
+    { id: 'all', label: 'All levels' },
+    { id: 'core', label: 'Core' },
+    { id: 'senior', label: 'Senior' },
+  ];
+  protected readonly focusOptions: { id: MockFocus; label: string; hint: string }[] = [
+    { id: 'all', label: 'Everything', hint: 'All questions; weak and unmastered ones come first' },
+    { id: 'unprepared', label: 'Unmastered', hint: 'Only questions you have not mastered' },
+    { id: 'starred', label: 'Starred', hint: 'Only questions you starred' },
+  ];
+
+  /**
+   * Session sizes that make sense for this pool: the fixed sizes smaller than the pool,
+   * plus "All" when the pool is small enough to go through in one sitting.
+   */
+  protected readonly sizeChips = computed(() => {
+    const n = this.pool().length;
+    const chips = SESSION_SIZES.filter((s) => s < n).map((s) => ({
+      value: s,
+      count: s,
+      label: String(s),
+    }));
+    if (n <= ALL_LIMIT) chips.push({ value: ALL, count: n, label: `All (${n})` });
+    return chips;
+  });
+
+  resetScope() {
+    this.topicChange.emit(null);
+    this.levelChange.emit('all');
+    this.focusChange.emit('all');
+  }
 
   preparedChange = output<{ q: string; prepared: boolean }>();
   starQuestions = output<string[]>();

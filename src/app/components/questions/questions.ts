@@ -14,7 +14,7 @@ import { Location } from '@angular/common';
 import { ActivatedRoute, Router, Scroll } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Header } from '@components/header';
-import { MockInterview, MockItem } from '../mock-interview/mock-interview';
+import { MockFocus, MockInterview, MockItem } from '../mock-interview/mock-interview';
 import { QGroup, QItem, QuestionList, questionKey } from '../question-list/question-list';
 import { QuestionReader } from '../question-reader/question-reader';
 import {
@@ -30,6 +30,7 @@ import {
   trackOf,
 } from '@services/question';
 import { AnswerService } from '@services/answer.service';
+import { RATINGS, Review, ReviewRating, readReviews, recordReview } from '@services/reviews';
 
 type AppMode = Track;
 
@@ -103,7 +104,7 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
                           : t.label
                       "
                     >
-                      <i [class]="'ti ' + t.icon"></i><span class="mode-label">{{ t.short }}</span>
+                      <i [class]="'ti ' + t.icon"></i><span class="mode-label">{{ t.label }}</span>
                     </button>
                   }
                 </div>
@@ -140,7 +141,13 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
                 </span>
                 <span
                   class="cat-badge"
-                  [title]="masteredInMode() + ' of ' + totalDatabaseQuestions() + ' mastered'"
+                  [title]="
+                    masteredInMode() +
+                    ' of ' +
+                    totalDatabaseQuestions() +
+                    levelSuffix() +
+                    ' mastered'
+                  "
                   >{{ masteredInMode() }}/{{ totalDatabaseQuestions() }}</span
                 >
               </button>
@@ -153,21 +160,6 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
                 [attr.aria-valuemax]="totalDatabaseQuestions()"
               >
                 <div class="overall-progress-fill" [style.width.%]="masteredPercent()"></div>
-              </div>
-
-              <div class="level-filter" role="group" aria-label="Question level">
-                @for (l of levels; track l.id) {
-                  <button
-                    type="button"
-                    class="level-btn"
-                    [class.level-btn--active]="levelFilter() === l.id"
-                    [attr.aria-pressed]="levelFilter() === l.id"
-                    [title]="l.hint"
-                    (click)="setLevel(l.id)"
-                  >
-                    {{ l.label }}
-                  </button>
-                }
               </div>
 
               <div class="divider-hz"></div>
@@ -193,18 +185,33 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
                         >
                           <i [class]="'ti ' + cat.icon"></i>
                         </span>
-                        <span class="text-ellipsis tab-text">{{ cat.title }}</span>
+                        <span class="tab-text tab-text--wrap">{{ cat.title }}</span>
                       </span>
+                      @let total = categoryTotal(cat);
                       <span
                         class="cat-badge shrink-0"
-                        [class.cat-badge--done]="categoryDone(cat) === cat.questions.length"
-                        [title]="categoryDone(cat) + ' of ' + cat.questions.length + ' mastered'"
-                        >{{ categoryDone(cat) }}/{{ cat.questions.length }}</span
+                        [class.cat-badge--done]="total > 0 && categoryDone(cat) === total"
+                        [class.cat-badge--empty]="total === 0"
+                        [title]="categoryDone(cat) + ' of ' + total + levelSuffix() + ' mastered'"
+                        >{{ categoryDone(cat) }}/{{ total }}</span
                       >
                     </button>
                   }
                 }
               </div>
+
+              <!-- Expanded desktop sidebar: collapse lives here so the track switch gets the full width -->
+              <button
+                type="button"
+                class="sidebar-collapse"
+                (click)="toggleSidebar()"
+                [attr.aria-expanded]="true"
+                title="Collapse topics (F)"
+              >
+                <i class="ti ti-layout-sidebar-left-collapse"></i>
+                Collapse topics
+                <kbd>F</kbd>
+              </button>
             </div>
           </aside>
 
@@ -213,6 +220,8 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
             <app-header
               [activeFilter]="activeFilter()"
               [counts]="filterCounts()"
+              [level]="levelFilter()"
+              (levelChange)="setLevel($event)"
               (searchChange)="onSearch($event)"
               (filterChange)="onFilterChange($event)"
               (randomChallenge)="mockOpen.set(true)"
@@ -226,9 +235,17 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
                 [starred]="starredSet()"
                 [mode]="mode()"
                 [scopeLabel]="mockScopeLabel()"
+                [topics]="modeCategories()"
+                [topicId]="selectedCategory()?.id ?? null"
+                [level]="levelFilter()"
+                [focus]="mockFocus()"
+                [search]="searchFilter().trim()"
+                (topicChange)="selectTopicById($event)"
+                (levelChange)="setLevel($event)"
+                (focusChange)="onFilterChange($event)"
                 (preparedChange)="setPrepared($event.q, $event.prepared)"
                 (starQuestions)="starAll($event)"
-                (closed)="mockOpen.set(false)"
+                (closed)="closeMock()"
               />
             }
 
@@ -258,6 +275,7 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
                   [searchFilter]="searchFilter()"
                   [preparedSet]="preparedSet()"
                   [starredSet]="starredSet()"
+                  [showLevel]="levelFilter() === 'all'"
                   (selected)="select($event)"
                   (togglePrepared)="togglePrepared($event)"
                 />
@@ -266,13 +284,17 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
                   [item]="item"
                   [position]="activeIndex() + 1"
                   [total]="items().length"
-                  [prepared]="preparedSet().has(item.q)"
                   [starred]="starredSet().has(item.q)"
                   [mode]="mode()"
+                  [practice]="practice()"
+                  [revealed]="revealedKey() === item.key"
+                  [rating]="ratingOf(item.q)"
+                  (rate)="rate(item.q, $event)"
+                  (reveal)="revealedKey.set(item.key)"
+                  (togglePractice)="togglePractice()"
                   (prev)="go(-1)"
                   (next)="go(1)"
                   (back)="closeReader()"
-                  (togglePrepared)="toggleActivePrepared()"
                   (toggleStarred)="toggleActiveStarred()"
                   (showShortcuts)="openShortcuts()"
                 />
@@ -348,15 +370,14 @@ export class Questions implements OnInit {
   readonly tracks = TRACKS;
   /** Core = fundamentals; Senior = internals, trade-offs, design and production scenarios. */
   levelFilter = signal<'all' | Level>(readLevel());
-  readonly levels: { id: 'all' | Level; label: string; hint: string }[] = [
-    { id: 'all', label: 'All levels', hint: 'Show every question' },
-    { id: 'core', label: 'Core', hint: 'Fundamentals every candidate is expected to know' },
-    {
-      id: 'senior',
-      label: 'Senior',
-      hint: 'Internals, trade-offs, design and production scenarios',
-    },
-  ];
+
+  /** Practice mode: answers stay hidden until revealed, for active recall. */
+  practice = signal(readFlag('prep_practice', false));
+  /** The question whose answer has been revealed in practice mode. */
+  revealedKey = signal<string | null>(null);
+
+  /** Last self-rating per question (shared with Mock Me). */
+  reviews = signal<Record<string, Review>>(readReviews());
 
   mockOpen = signal(false);
   private mockCard = viewChild(MockInterview);
@@ -385,10 +406,13 @@ export class Questions implements OnInit {
   readonly shortcuts = [
     { keys: ['J', '→'], label: 'Next question' },
     { keys: ['K', '←'], label: 'Previous question' },
+    { keys: ['1', '2', '3'], label: 'Rate: Nailed it / Shaky / Blanked' },
     { keys: ['M'], label: 'Mark as mastered / unprepared' },
     { keys: ['S'], label: 'Star / unstar' },
     { keys: ['/'], label: 'Search questions' },
     { keys: ['F'], label: 'Focus mode (collapse topics)' },
+    { keys: ['P'], label: 'Practice mode: hide answers until revealed' },
+    { keys: ['Space'], label: 'Practice mode: reveal the answer' },
     { keys: ['Esc'], label: 'Close / back to list' },
     { keys: ['?'], label: 'Show this help' },
     { keys: ['Enter'], label: 'Mock Me: start session' },
@@ -429,6 +453,7 @@ export class Questions implements OnInit {
     });
 
     effect(() => writeFlag('prep_sidebar_collapsed', this.sidebarCollapsed()));
+    effect(() => writeFlag('prep_practice', this.practice()));
 
     // Remember the last opened question per mode, to resume on the next visit
     effect(() => {
@@ -457,8 +482,17 @@ export class Questions implements OnInit {
     return this.categories().filter((cat) => trackOf(cat.id) === m);
   });
 
+  /** Questions of a topic at the selected level; sidebar counts follow the level filter. */
+  private atLevel(cat: CategoryModel): string[] {
+    const level = this.levelFilter();
+    return level === 'all' ? cat.questions : cat.questions.filter((q) => levelOf(q) === level);
+  }
+
+  /** " core" / " senior" for count tooltips, so "4 of 12" says what it is counting. */
+  levelSuffix = computed(() => (this.levelFilter() === 'all' ? '' : ` ${this.levelFilter()}`));
+
   totalDatabaseQuestions = computed(() =>
-    this.modeCategories().reduce((acc, cat) => acc + cat.questions.length, 0),
+    this.modeCategories().reduce((acc, cat) => acc + this.atLevel(cat).length, 0),
   );
 
   /** Topics of the current track, in their sidebar sections. */
@@ -503,11 +537,11 @@ export class Questions implements OnInit {
       const cat = byId.get(vc.id) ?? vc;
       return {
         cat,
-        items: vc.questions.map((q) => ({
+        items: vc.questions.map((q, i) => ({
           key: questionKey(cat.id, q),
           q,
           cat,
-          num: cat.questions.indexOf(q) + 1,
+          num: i + 1,
         })),
       };
     });
@@ -529,7 +563,7 @@ export class Questions implements OnInit {
   masteredInMode = computed(() => {
     const prepared = this.preparedSet();
     return this.modeCategories().reduce(
-      (n, c) => n + c.questions.filter((q) => prepared.has(q)).length,
+      (n, c) => n + this.atLevel(c).filter((q) => prepared.has(q)).length,
       0,
     );
   });
@@ -539,24 +573,72 @@ export class Questions implements OnInit {
     return total ? Math.round((this.masteredInMode() / total) * 100) : 0;
   });
 
+  /**
+   * Counts for the status tabs. They cover everything the list is filtered by except the
+   * status itself (topic, level and search), so each tab shows how many it would list.
+   */
   filterCounts = computed(() => {
+    const prepared = this.preparedSet();
     const starred = this.starredSet();
-    const all = this.totalDatabaseQuestions();
-    const prepared = this.masteredInMode();
+    const search = this.searchFilter().toLowerCase();
+    const selected = this.selectedCategory();
+    const scope = (selected ? [selected] : this.modeCategories())
+      .flatMap((c) => this.atLevel(c))
+      .filter((q) => !search || q.toLowerCase().includes(search));
+    const done = scope.filter((q) => prepared.has(q)).length;
     return {
-      all,
-      prepared,
-      starred: this.modeCategories().reduce(
-        (n, c) => n + c.questions.filter((q) => starred.has(q)).length,
-        0,
-      ),
-      unprepared: all - prepared,
+      all: scope.length,
+      prepared: done,
+      starred: scope.filter((q) => starred.has(q)).length,
+      unprepared: scope.length - done,
     };
   });
 
+  categoryTotal(cat: CategoryModel): number {
+    return this.atLevel(cat).length;
+  }
+
   categoryDone(cat: CategoryModel): number {
     const prepared = this.preparedSet();
-    return cat.questions.filter((q) => prepared.has(q)).length;
+    return this.atLevel(cat).filter((q) => prepared.has(q)).length;
+  }
+
+  /**
+   * The rating shown in the reader, kept consistent with the mastered flag: mastered shows
+   * "Nailed it" (or "Shaky" if rated so since), and an un-mastered question never shows "Nailed it".
+   */
+  ratingOf(q: string): ReviewRating | null {
+    const r = this.reviews()[q]?.r ?? null;
+    if (this.preparedSet().has(q)) return r === 'shaky' ? 'shaky' : 'nailed';
+    return r === 'nailed' ? null : r;
+  }
+
+  /** Same rules as Mock Me: Nailed it masters, Blanked un-masters, Shaky leaves it as it is. */
+  rate(q: string, rating: ReviewRating) {
+    this.reviews.set(recordReview(q, rating));
+    this.anchorIndex.set(this.activeIndex());
+    if (rating === 'nailed') this.setPrepared(q, true);
+    if (rating === 'blanked') this.setPrepared(q, false);
+  }
+
+  /** The status filter as Mock Me's "Focus"; "Mastered" has no Mock Me equivalent. */
+  mockFocus = computed<MockFocus>(() => {
+    const f = this.activeFilter();
+    return f === 'unprepared' || f === 'starred' ? f : 'all';
+  });
+
+  selectTopicById(id: string | null) {
+    this.selectCategory(this.modeCategories().find((c) => c.id === id) ?? null);
+  }
+
+  closeMock() {
+    this.mockOpen.set(false);
+    this.reviews.set(readReviews()); // Mock Me may have added ratings
+  }
+
+  togglePractice() {
+    this.practice.update((v) => !v);
+    this.revealedKey.set(null);
   }
 
   /** Visible questions for Mock Me, paired with their original (unfiltered) category. */
@@ -785,9 +867,28 @@ export class Questions implements OnInit {
       e.preventDefault();
       return;
     }
+    if (e.key === 'p') {
+      this.togglePractice();
+      e.preventDefault();
+      return;
+    }
     if (!this.active()) return;
 
+    const rating = RATINGS.find((r) => r.key === e.key);
+    if (rating) {
+      this.rate(this.active()!.q, rating.value);
+      e.preventDefault();
+      return;
+    }
+
     switch (e.key) {
+      case ' ': {
+        // Practice mode: Space reveals the hidden answer; otherwise let the page scroll
+        const item = this.active();
+        if (!this.practice() || !item || this.revealedKey() === item.key) return;
+        this.revealedKey.set(item.key);
+        break;
+      }
       case 'j':
       case 'ArrowRight':
         this.go(1);

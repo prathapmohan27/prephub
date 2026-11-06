@@ -113,3 +113,8 @@
 .cbk app-flow-diagram {
   margin: 0;
 }
+
+/* Leave room for the sticky app bar and table of contents when jumping to a heading */
+[data-anchor] {
+  scroll-margin-top: calc(var(--nav-h) + 56px);
+}

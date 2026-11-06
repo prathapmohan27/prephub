@@ -3,6 +3,7 @@ import { Highlight } from '@pipes/highlight';
 import { Answer } from '../answer/answer';
 import { QItem } from '../question-list/question-list';
 import { Track, isTrack, levelOf, trackInfo } from '@services/question';
+import { RATINGS, ReviewRating } from '@services/reviews';
 
 /** Reading pane for the selected question: answer, mastered/star toggles and prev/next navigation. */
 @Component({
@@ -28,6 +29,21 @@ import { Track, isTrack, levelOf, trackInfo } from '@services/question';
             >Senior</span
           >
         }
+        <button
+          type="button"
+          class="reader-practice"
+          [class.reader-practice--on]="practice()"
+          [attr.aria-pressed]="practice()"
+          (click)="togglePractice.emit()"
+          [title]="
+            practice()
+              ? 'Practice mode on: answers stay hidden until you reveal them (P)'
+              : 'Practice mode: hide answers until you reveal them (P)'
+          "
+        >
+          <i class="ti" [class.ti-eye-off]="practice()" [class.ti-eye]="!practice()"></i>
+          <span class="reader-practice-label">Practice</span>
+        </button>
         <span class="reader-pos">{{ position() }} / {{ total() }}</span>
       </div>
 
@@ -48,7 +64,21 @@ import { Track, isTrack, levelOf, trackInfo } from '@services/question';
       </div>
 
       <div class="reader-body">
-        <app-answer [categoryId]="item().cat.id" [question]="item().q" />
+        @if (practice() && !revealed()) {
+          <div class="reader-recall">
+            <i class="ti ti-message-question reader-recall-icon"></i>
+            <p class="reader-recall-title">Answer it out loud first</p>
+            <p class="reader-recall-text">
+              Say your quick answer, then the details you would add. Reveal the model answer to
+              compare.
+            </p>
+            <button type="button" class="reader-recall-btn" (click)="reveal.emit()">
+              <i class="ti ti-eye"></i> Reveal answer <kbd>Space</kbd>
+            </button>
+          </div>
+        } @else {
+          <app-answer [categoryId]="item().cat.id" [question]="item().q" [toc]="true" />
+        }
       </div>
 
       <div class="reader-links">
@@ -87,18 +117,23 @@ import { Track, isTrack, levelOf, trackInfo } from '@services/question';
           <kbd>K</kbd>
         </button>
 
-        <button
-          type="button"
-          class="reader-done"
-          [class.reader-done--on]="prepared()"
-          (click)="togglePrepared.emit()"
-          title="Toggle mastered (M)"
-          [attr.aria-pressed]="prepared()"
-        >
-          <i class="ti" [class.ti-circle-check]="prepared()" [class.ti-circle]="!prepared()"></i>
-          {{ prepared() ? 'Mastered' : 'Mark mastered' }}
-          <kbd>M</kbd>
-        </button>
+        <div class="reader-rate" role="group" aria-label="How well did you know it?">
+          @for (r of ratings; track r.value) {
+            <button
+              type="button"
+              class="reader-rate-btn"
+              [class]="'reader-rate-btn reader-rate-btn--' + r.value"
+              [class.reader-rate-btn--on]="rating() === r.value"
+              [attr.aria-pressed]="rating() === r.value"
+              [title]="r.label + ' (' + r.key + ')' + rateHint[r.value]"
+              (click)="rate.emit(r.value)"
+            >
+              <i [class]="'ti ' + r.icon"></i>
+              <span class="reader-rate-label">{{ r.label }}</span>
+              <kbd>{{ r.key }}</kbd>
+            </button>
+          }
+        </div>
 
         <button
           type="button"
@@ -120,16 +155,29 @@ export class QuestionReader {
   readonly item = input.required<QItem>();
   readonly position = input.required<number>();
   readonly total = input.required<number>();
-  readonly prepared = input(false);
   readonly starred = input(false);
   readonly mode = input<string>('angular');
+  /** Practice mode hides the answer until `revealed`. */
+  readonly practice = input(false);
+  readonly revealed = input(false);
+  /** Last self-rating for this question, kept in step with the mastered flag. */
+  readonly rating = input<ReviewRating | null>(null);
 
   readonly prev = output<void>();
   readonly next = output<void>();
   readonly back = output<void>();
-  readonly togglePrepared = output<void>();
   readonly toggleStarred = output<void>();
   readonly showShortcuts = output<void>();
+  readonly reveal = output<void>();
+  readonly rate = output<ReviewRating>();
+
+  protected readonly ratings = RATINGS;
+  protected readonly rateHint: Record<ReviewRating, string> = {
+    nailed: ': marks it mastered',
+    shaky: ': comes back sooner in Mock Me',
+    blanked: ': un-marks it and brings it back first',
+  };
+  readonly togglePractice = output<void>();
 
   /** Key of the question last copied, so "Copied!" doesn't carry over to the next question. */
   private readonly copiedKey = signal<string | null>(null);

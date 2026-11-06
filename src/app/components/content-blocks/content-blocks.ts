@@ -21,10 +21,12 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
       <div class="cbk">
         @switch (block.type) {
           @case ('heading2') {
-            <h4 class="cbk-h2">{{ block.text }}</h4>
+            <h4 class="cbk-h2" [attr.data-anchor]="anchors() ? $index : null">{{ block.text }}</h4>
           }
           @case ('heading3') {
-            <h5 class="cbk-h3"><app-rich-text [text]="block.text ?? ''" /></h5>
+            <h5 class="cbk-h3" [attr.data-anchor]="anchors() ? $index : null">
+              <app-rich-text [text]="block.text ?? ''" />
+            </h5>
           }
           @case ('paragraph') {
             <p class="cbk-p"><app-rich-text [text]="block.text ?? ''" /></p>
@@ -70,6 +72,8 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
 })
 export class ContentBlocks {
   readonly blocks = input.required<ContentBlock[]>();
+  /** Mark headings with `data-anchor="<block index>"` so a table of contents can jump to them. */
+  readonly anchors = input(false);
 
   protected calloutIcon(variant: CalloutVariant | undefined): string {
     return CALLOUT_ICONS[variant ?? 'info'];

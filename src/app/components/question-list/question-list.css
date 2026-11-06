@@ -150,7 +150,7 @@
   flex-shrink: 0;
   min-width: 1.4em;
   font: 500 0.68rem var(--font-mono);
-  color: var(--color-text-subtle);
+  color: var(--color-text-muted);
 }
 
 .ql-text {

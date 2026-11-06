@@ -87,6 +87,96 @@
   padding: 20px 22px;
 }
 
+/* Practice mode toggle in the top bar */
+.reader-practice {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  padding: 4px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: 500 0.72rem var(--font-sans);
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.reader-practice:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+
+.reader-practice--on {
+  color: var(--t-violet-300);
+  border-color: rgba(139, 92, 246, 0.45);
+  background: rgba(139, 92, 246, 0.12);
+}
+
+.reader-practice + .reader-pos {
+  margin-left: 0;
+}
+
+/* Hidden answer: prompt to answer out loud before revealing */
+.reader-recall {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 24px;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-xl);
+  text-align: center;
+}
+
+.reader-recall-icon {
+  font-size: 28px;
+  color: var(--t-violet-300);
+}
+
+.reader-recall-title {
+  margin: 0;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.reader-recall-text {
+  margin: 0 0 8px;
+  max-width: 42ch;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.reader-recall-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  font: 700 0.8rem var(--font-sans);
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(139, 92, 246, 0.3);
+  transition: transform 0.15s;
+}
+
+.reader-recall-btn:hover {
+  transform: translateY(-1px);
+}
+
+.reader-recall-btn kbd {
+  margin-left: 4px;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
 .reader-shortcuts {
   margin-left: auto;
 }
@@ -111,8 +201,19 @@
   background: rgb(var(--n-950));
 }
 
-.reader-nav-btn,
-.reader-done {
+/* Fade the text that scrolls under the sticky footer instead of cutting it off */
+.reader-nav::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 28px;
+  background: linear-gradient(to top, rgb(var(--n-950) / 0.9), transparent);
+  pointer-events: none;
+}
+
+.reader-nav-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -128,24 +229,65 @@
     border-color 0.15s;
 }
 
-.reader-nav-btn:hover:not(:disabled),
-.reader-done:hover {
+/* Self-rating: Nailed it / Shaky / Blanked (same scale as Mock Me) */
+.reader-rate {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.reader-rate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: 600 0.75rem var(--font-sans);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.reader-rate-btn:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+
+.reader-rate-btn--nailed.reader-rate-btn--on {
+  color: var(--color-success-light);
+  background: var(--color-success-bg);
+  border-color: var(--color-success-border);
+}
+
+.reader-rate-btn--shaky.reader-rate-btn--on {
+  color: var(--color-warning-light);
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+}
+
+.reader-rate-btn--blanked.reader-rate-btn--on {
+  color: var(--color-danger-text);
+  background: var(--color-angular-glow);
+  border-color: var(--color-angular-ring);
+}
+
+@media (max-width: 1280px) {
+  .reader-rate-label {
+    display: none;
+  }
+}
+
+.reader-nav-btn:hover:not(:disabled) {
   background: rgb(var(--n-700) / 0.6);
 }
 
 .reader-nav-btn:disabled {
   opacity: 0.35;
   cursor: default;
-}
-
-.reader-done--on {
-  background: var(--color-success-bg);
-  border-color: var(--color-success-border);
-  color: var(--color-success-light);
-}
-
-.reader-done--on:hover {
-  background: rgba(16, 185, 129, 0.16);
 }
 
 kbd {

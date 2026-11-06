@@ -35,5 +35,14 @@ for (const cat of categories.filter((c) => c.id.includes(filter))) {
   console.log(`${status} ${cat.id} — ${cat.questions.length - problems.filter((p) => !p.includes('orphan')).length}/${cat.questions.length}`);
   problems.forEach((p) => console.log(p));
 }
+// Short list titles must point at real questions (a reworded question would orphan its title)
+const { SHORT_TITLES } = await load('src/app/services/short-titles.ts');
+const allQuestions = new Set(categories.flatMap((c) => c.questions));
+const staleTitles = filter ? [] : Object.keys(SHORT_TITLES).filter((q) => !allQuestions.has(q));
+const untitled = filter ? 0 : [...allQuestions].filter((q) => !(q in SHORT_TITLES)).length;
+staleTitles.forEach((q) => console.log(`  stale short title (no matching question): ${q}`));
+if (untitled) console.log(`  ${untitled} question(s) have no short title (the full text is shown)`);
+orphans += staleTitles.length;
+
 console.log(`\n${done}/${total} answered · ${missing} missing · ${invalid} invalid · ${orphans} orphan keys`);
 process.exit(missing || orphans || invalid ? 1 : 0);

@@ -19,22 +19,26 @@
 ## Interview Q&A
 
 - **Three tracks.** Foundations (shared JavaScript, TypeScript and browser topics), Angular and Node.js. Switch at the top of the topics sidebar; each track remembers the last question you opened.
-- **Core and Senior levels.** About half of the questions are marked **Senior**: internals, trade-offs, design and production scenarios. Filter by level in the sidebar; topics are grouped into sections such as _Reactivity_ or _Data & state_.
-- **Track your progress.** Mark questions as **mastered** and **star** the ones to revisit. Every topic shows mastered/total, and the filter tabs (All · Mastered · Starred · Unprepared) show counts.
-- **List + reader.** Pick a question from the list and read the answer beside it. On phones, the reader opens full screen.
+- **Core and Senior levels.** About half of the questions are marked **Senior**: internals, trade-offs, design and production scenarios. Filter by level next to the status tabs; topics are grouped into sections such as _Reactivity_ or _Data & state_.
+- **Track your progress.** Rate each answer **Nailed it / Shaky / Blanked** (the same scale as Mock Me, which uses it to bring weak questions back sooner), mark questions **mastered** and **star** the ones to revisit. Every count follows the active level, topic and search filters.
+- **Practice mode.** Hide answers until you reveal them, so you answer out loud first instead of just reading.
+- **List + reader.** The list shows short titles that lead with what sets each question apart; the reader shows the full question and answer, with a table of contents for long answers. On phones, the reader opens full screen.
 - **Search** across all questions in the current track.
 - **Shareable links.** The URL holds the topic and question (`?topic=forms&q=…`), so a refresh or a shared link opens the same question.
 - **Keyboard first:**
 
-  | Key                  | Action                        |
-  | -------------------- | ----------------------------- |
-  | `J` / `→`, `K` / `←` | Next / previous question      |
-  | `M`                  | Mark as mastered / unprepared |
-  | `S`                  | Star / unstar                 |
-  | `/`                  | Search                        |
-  | `F`                  | Focus mode (collapse topics)  |
-  | `Esc`                | Close / back to list          |
-  | `?`                  | Show all shortcuts            |
+  | Key                  | Action                           |
+  | -------------------- | -------------------------------- |
+  | `J` / `→`, `K` / `←` | Next / previous question         |
+  | `1` `2` `3`          | Rate Nailed it / Shaky / Blanked |
+  | `M`                  | Mark as mastered / unprepared    |
+  | `P`                  | Practice mode (hide answers)     |
+  | `Space`              | Reveal the answer in practice    |
+  | `S`                  | Star / unstar                    |
+  | `/`                  | Search                           |
+  | `F`                  | Focus mode (collapse topics)     |
+  | `Esc`                | Close / back to list             |
+  | `?`                  | Show all shortcuts               |
 
 ## Mock Me
 

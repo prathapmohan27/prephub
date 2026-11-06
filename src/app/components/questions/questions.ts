@@ -221,6 +221,7 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
               [activeFilter]="activeFilter()"
               [counts]="filterCounts()"
               [level]="levelFilter()"
+              [query]="searchFilter()"
               (levelChange)="setLevel($event)"
               (searchChange)="onSearch($event)"
               (filterChange)="onFilterChange($event)"
@@ -247,6 +248,31 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
                 (starQuestions)="starAll($event)"
                 (closed)="closeMock()"
               />
+            }
+
+            <!-- Which filters are on, with a way to remove each one -->
+            @if (appliedFilters().length) {
+              <div class="filter-bar" role="status">
+                <span class="filter-bar-count">
+                  Showing <strong>{{ items().length }}</strong> of {{ scopeTotal() }}
+                </span>
+                @for (f of appliedFilters(); track f.kind) {
+                  <button
+                    type="button"
+                    class="filter-bar-chip"
+                    (click)="clearFilter(f.kind)"
+                    [attr.aria-label]="'Remove filter: ' + f.label"
+                    [title]="'Remove filter: ' + f.label"
+                  >
+                    {{ f.label }} <i class="ti ti-x"></i>
+                  </button>
+                }
+                @if (appliedFilters().length > 1) {
+                  <button type="button" class="filter-bar-clear" (click)="clearAllFilters()">
+                    Clear all
+                  </button>
+                }
+              </div>
             }
 
             <!-- Question list + answer reader -->
@@ -305,7 +331,7 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
                   <i class="ti ti-search-off"></i>
                 </div>
                 <p class="empty-headline">No questions match your current filters</p>
-                <p class="empty-sub">Try resetting the search or switching category tabs.</p>
+                <p class="empty-sub">Remove a filter above, or pick another topic.</p>
               </div>
             }
           </main>
@@ -619,6 +645,46 @@ export class Questions implements OnInit {
     this.anchorIndex.set(this.activeIndex());
     if (rating === 'nailed') this.setPrepared(q, true);
     if (rating === 'blanked') this.setPrepared(q, false);
+  }
+
+  /** Questions in the current topic (or track) before level, status and search filters. */
+  scopeTotal = computed(() => {
+    const selected = this.selectedCategory();
+    return selected
+      ? selected.questions.length
+      : this.modeCategories().reduce((n, c) => n + c.questions.length, 0);
+  });
+
+  /** Non-default filters, shown as removable chips above the list. */
+  appliedFilters = computed(() => {
+    const list: { kind: 'level' | 'status' | 'search'; label: string }[] = [];
+    const level = this.levelFilter();
+    if (level !== 'all')
+      list.push({ kind: 'level', label: level === 'senior' ? 'Senior' : 'Core' });
+    const status = this.activeFilter();
+    if (status !== 'all') {
+      const names: Record<string, string> = {
+        prepared: 'Mastered',
+        starred: 'Starred',
+        unprepared: 'Unprepared',
+      };
+      list.push({ kind: 'status', label: names[status] ?? status });
+    }
+    const search = this.searchFilter().trim();
+    if (search) list.push({ kind: 'search', label: `"${search}"` });
+    return list;
+  });
+
+  clearFilter(kind: 'level' | 'status' | 'search') {
+    if (kind === 'level') this.setLevel('all');
+    if (kind === 'status') this.onFilterChange('all');
+    if (kind === 'search') this.onSearch('');
+  }
+
+  clearAllFilters() {
+    this.setLevel('all');
+    this.onFilterChange('all');
+    this.onSearch('');
   }
 
   /** The status filter as Mock Me's "Focus"; "Mastered" has no Mock Me equivalent. */

@@ -19,6 +19,7 @@ export interface FilterCounts {
           type="text"
           class="search-input"
           placeholder="Search questions…"
+          [value]="query()"
           (input)="onSearch($event)"
         />
         <kbd class="search-kbd" aria-hidden="true">/</kbd>
@@ -33,6 +34,7 @@ export interface FilterCounts {
               type="button"
               class="btn-filter-tab"
               [class.btn-filter-tab--active]="level() === l.id"
+              [class.btn-filter-tab--applied]="level() === l.id && l.id !== 'all'"
               [attr.aria-pressed]="level() === l.id"
               [title]="l.hint"
               (click)="levelChange.emit(l.id)"
@@ -50,6 +52,7 @@ export interface FilterCounts {
               (click)="onFilterChange(f.id)"
               class="btn-filter-tab"
               [class.btn-filter-tab--active]="activeFilter() === f.id"
+              [class.btn-filter-tab--applied]="activeFilter() === f.id && f.id !== 'all'"
               [attr.aria-pressed]="activeFilter() === f.id"
             >
               @if (f.icon) {
@@ -75,6 +78,8 @@ export class Header {
   activeFilter = input<string>('all');
   counts = input<FilterCounts>({ all: 0, prepared: 0, starred: 0, unprepared: 0 });
   level = input<'all' | Level>('all');
+  /** Current search text, so clearing it elsewhere (the filter bar) empties the box too. */
+  query = input('');
 
   /** Core = fundamentals; Senior = internals, trade-offs, design and production scenarios. */
   readonly levels: { id: 'all' | Level; label: string; hint: string }[] = [

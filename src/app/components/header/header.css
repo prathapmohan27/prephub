@@ -116,6 +116,17 @@
   color: var(--color-text-muted);
 }
 
+/* A non-default filter is on: make it obvious, not just "selected" */
+.btn-filter-tab--applied {
+  color: var(--t-violet-300);
+  background: rgba(139, 92, 246, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(139, 92, 246, 0.45);
+}
+
+.btn-filter-tab--applied .filter-count {
+  color: inherit;
+}
+
 .search-kbd {
   flex-shrink: 0;
   padding: 1px 7px;

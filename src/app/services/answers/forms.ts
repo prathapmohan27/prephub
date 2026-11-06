@@ -255,13 +255,12 @@ export class InvoiceForm {
         variant: 'tip',
         text: 'Interview tip: mention that `patchValue` does not grow a FormArray — when loading data you must `clear()` and push one group per item. Interviewers often probe this.',
       },
-    ],
-  },
-
-  'What is setControl in FormArray?': {
-    summary:
-      '`formArray.setControl(index, control)` replaces the control at a given index with a new control instance (it is `removeAt` + `insert` in one step, with a single `valueChanges` emission). On a FormGroup, `setControl(name, control)` does the same by key. It is useful to swap a whole item or reset an array with fresh controls.',
-    details: [
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: What is setControl in FormArray?' },
+      {
+        type: 'paragraph',
+        text: '`formArray.setControl(index, control)` replaces the control at a given index with a new control instance (it is `removeAt` + `insert` in one step, with a single `valueChanges` emission). On a FormGroup, `setControl(name, control)` does the same by key. It is useful to swap a whole item or reset an array with fresh controls.',
+      },
       {
         type: 'paragraph',
         text: "Unlike `setValue`/`patchValue`, which change the value of the existing control, `setControl` swaps the control object itself — including its validators, enabled/disabled state, and pristine/touched flags. Any subscriptions to the old control's `valueChanges` do not move over to the new one.",

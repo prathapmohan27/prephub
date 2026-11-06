@@ -54,7 +54,10 @@ export const TRACKS: TrackInfo[] = [
   },
 ];
 
-/** Topics shared by both stacks. Ids are kept stable so links and saved progress keep working. */
+/**
+ * Topics shared by both stacks: language, web platform, problem solving and interview skills.
+ * Ids are kept stable so links and saved progress keep working.
+ */
 const FOUNDATION_TOPICS = new Set([
   'javascript-fundamentals',
   'typescript',
@@ -62,6 +65,9 @@ const FOUNDATION_TOPICS = new Set([
   'web-accessibility',
   'web-performance',
   'dsa-patterns',
+  // Interview rounds that are not specific to one framework
+  'experience-behavioral',
+  'coding-round',
 ]);
 
 export function trackOf(categoryId: string): Track {
@@ -151,6 +157,8 @@ const SENIOR_QUESTIONS = new Set<string>([
   "A component's view does not update even though the data changed. What are the likely causes?",
   'Users report that a button sometimes does nothing when clicked. How do you reproduce and track it down?',
   // nodejs-aws-cloud
+  'How do you host an Angular SPA on S3 and CloudFront, including deep links, caching and invalidation on deploy?',
+  'How do you let users upload large files directly to S3 with presigned URLs?',
   'How do you choose between EC2, ECS on Fargate, and Lambda for a Node.js service?',
   'What are IAM roles and policies, and how do you apply least privilege to a service?',
   'RDS/Aurora vs DynamoDB: how do you choose, and how do you model data for DynamoDB?',
@@ -160,6 +168,8 @@ const SENIOR_QUESTIONS = new Set<string>([
   'What are Lambda cold starts, and how do you reduce them?',
   'How do you keep an AWS bill under control?',
   // nodejs-distributed-systems
+  'What is a dead-letter queue, and how do you handle poison messages?',
+  'How do you trace a single request across several services?',
   'What is the CAP theorem, and what does PACELC add?',
   'Strong vs eventual consistency: how do you design a feature that has to live with eventual consistency?',
   'What is the transactional outbox pattern, and what problem does it solve?',
@@ -169,7 +179,6 @@ const SENIOR_QUESTIONS = new Set<string>([
   'What is the difference between Kafka and a traditional message queue such as RabbitMQ or SQS?',
   'How do you do leader election or distributed locking safely, and what can go wrong?',
   // javascript-fundamentals
-  'Explain how the JavaScript Event Loop works',
   'What are generator functions and async generators in JavaScript?',
   'What is a Proxy object and how is it used?',
   'What are WeakMap and WeakSet, and why do they allow garbage collection?',
@@ -187,7 +196,6 @@ const SENIOR_QUESTIONS = new Set<string>([
   "Why doesn't Angular ship `filter` or `orderBy` pipes, and how should you filter or sort lists instead?",
   // dependency-injection
   'How does Dependency Injection work internally?',
-  'What is Multi Provider Token?',
   // change-detection
   'Difference between markForCheck() and detectChanges()',
   'Can you configure or trigger change detection strategies at the routing or module level in Angular?',
@@ -219,7 +227,6 @@ const SENIOR_QUESTIONS = new Set<string>([
   'An API response is required by multiple components. How would you avoid repeated API calls?',
   // routing
   'How would you track every route change to monitor user navigation?',
-  'Explain Lazy Loading and Preloading Strategies',
   'Difference between canMatch and canLoad',
   // forms
   'How would you build a dynamic form using JSON configuration instead of hardcoding controls?',
@@ -279,9 +286,7 @@ const SENIOR_QUESTIONS = new Set<string>([
   'Tell me about a time you mentored or helped a junior developer.',
   'How do you estimate a feature, and what do you do when your estimate turns out to be wrong?',
   // coding-round
-  'Implement a debounce() function',
   // nodejs-fundamentals
-  'What is libuv and what role does it play in Node.js?',
   'What are the phases of the Node.js Event Loop?',
   'What is the difference between process.nextTick() and setImmediate()?',
   'What are Worker Threads in Node.js and when should you use them?',
@@ -307,17 +312,28 @@ const SENIOR_QUESTIONS = new Set<string>([
   'What is the difference between REST, GraphQL, and gRPC?',
   'What is Server-Sent Events (SSE) and when should you use it over WebSockets?',
   // nodejs-security
-  'What is OAuth 2.0 and how does it work?',
-  'How do you implement rate limiting in Node.js?',
   // nodejs-sql
   'What is the difference between clustered and non-clustered indexes?',
   'What are database transaction isolation levels?',
   'What is the N+1 query problem and how do you fix it?',
   // nodejs-nosql
+  'Why are unbounded arrays an anti-pattern in MongoDB, and what happens when a document approaches the 16 MB limit?',
+  'What are the MongoDB schema design patterns (bucket, computed, subset, extended reference, outlier), and when do you use each?',
+  'Design the MongoDB data model for an e-commerce catalog with product variants, inventory and reviews.',
+  'How do you optimise a slow aggregation pipeline (stage order, `$lookup` cost, `$facet`, `allowDiskUse`)?',
+  'How do you paginate a large MongoDB collection, and why does `skip()` get slow?',
+  'A MongoDB query became slow as the data grew. How do you use `explain("executionStats")` to find and fix the problem?',
+  'Duplicate documents are being created even though the code checks whether one exists before inserting. Why, and how do you fix it?',
+  'What are write concern, read concern and read preference, and what can go wrong when you read from secondaries?',
+  'What are MongoDB change streams, and how do you use them reliably (resume tokens)?',
+  'How do you choose a shard key, and why does a monotonically increasing key create a hot shard?',
+  'Mongoose `populate()` on a list endpoint is slow. What is happening, and when should you use `$lookup` instead?',
+  'Your serverless functions keep exhausting MongoDB connections. Why, and how do you fix it?',
+  'How do you change a MongoDB schema without downtime (schema versioning, lazy migration vs backfill)?',
+  'The working set no longer fits in RAM and MongoDB latency spikes. How do you confirm it and what are your options?',
   'What is the difference between embedding and referencing in MongoDB schema design?',
   'What is a transaction in MongoDB, and when would you use it?',
   'Suppose you need to update three MongoDB collections as part of a single business operation. If the third update fails, how would you ensure that the first two updates are rolled back?',
-  'What is sharding in MongoDB?',
   // nodejs-caching
   'What is cache invalidation and what are the strategies?',
   'How do you implement rate limiting using Redis?',
@@ -331,8 +347,7 @@ const SENIOR_QUESTIONS = new Set<string>([
   'How does the primary process distribute requests among workers in cluster mode?',
   'How do you share state between cluster workers?',
   // nodejs-devops
-  'What is Kubernetes and what problem does it solve?',
-  'What are health checks and how do you implement them in Node.js?',
+  'How do you manage configuration across dev, staging and production without drift?',
   // nodejs-design-patterns
   'What is CQRS (Command Query Responsibility Segregation)?',
   'What is Event Sourcing?',
@@ -378,7 +393,8 @@ export const TOPIC_GROUPS: { track: Track; title: string; topics: string[] }[] =
     title: 'Web platform',
     topics: ['browser-dom-css', 'web-accessibility', 'web-performance'],
   },
-  { track: 'foundations', title: 'Problem solving', topics: ['dsa-patterns'] },
+  { track: 'foundations', title: 'Problem solving', topics: ['dsa-patterns', 'coding-round'] },
+  { track: 'foundations', title: 'Interview skills', topics: ['experience-behavioral'] },
   {
     track: 'angular',
     title: 'Angular core',
@@ -409,11 +425,6 @@ export const TOPIC_GROUPS: { track: Track; title: string; topics: string[] }[] =
       'testing',
       'frontend-debugging',
     ],
-  },
-  {
-    track: 'angular',
-    title: 'Interview rounds',
-    topics: ['experience-behavioral', 'coding-round'],
   },
   {
     track: 'nodejs',
@@ -509,7 +520,7 @@ export const RENAMED_QUESTIONS: Record<string, string> = {
   'Is ngClass the only way to change CSS dynamically?': 'If I want to change CSS dynamically, how?',
   'What is the default port of Angular?': 'What happens when we run `ng serve`?',
   "What happens if we don't have `AppComponent` in an Angular project?":
-    'Is `AppComponent` mandatory? Can we build and bootstrap an Angular project without `AppComponent`?',
+    'How does the browser load an Angular application?',
   'Why do we need Arrow Functions when regular function declarations already exist (`lexical this binding`)?':
     'What are ES6 Arrow Functions (`() => {}`) in JavaScript/TypeScript and how do they differ from regular functions?',
   'What are ways to optimize an Angular application?':
@@ -595,6 +606,41 @@ export const RENAMED_QUESTIONS: Record<string, string> = {
   'What is the domain module and is it still recommended?':
     'How do you handle uncaught exceptions in Node.js?',
   'What are new features of Angular 21?': 'What changed in recent Angular releases (v19–v21)?',
+  // Content review (2026-11): trivia and cross-topic duplicates merged as "Follow-up" sections
+  'Which Angular versions have you worked on?':
+    'What changed in recent Angular releases (v19–v21)?',
+  'Do you have exposure working in Vanilla JavaScript?':
+    'Why did you choose Angular when most developers are learning React?',
+  'Have you worked on CI/CD pipelines?': 'What deployment activities have you handled?',
+  'Have you worked on resolving issues in CI/CD pipelines?':
+    'What deployment activities have you handled?',
+  'Is `AppComponent` mandatory? Can we build and bootstrap an Angular project without `AppComponent`?':
+    'How does the browser load an Angular application?',
+  'If I want to toggle an element dynamically without using *ngIf, how?':
+    'What is the built-in control flow (`@if`, `@for`, `@switch`) and how is it better than `*ngIf` / `*ngFor`?',
+  'What is setControl in FormArray?': 'How to implement Dynamic Forms in Angular using FormArray?',
+  'Will you be able to see the API request in the browser Network tab if the request is triggered inside a Route Resolver or Guard?':
+    'What are Resolvers?',
+  'Have you used BehaviorSubject in any real scenario?':
+    'What is the difference between Subject, BehaviorSubject, ReplaySubject, and AsyncSubject?',
+  'How do you declare a `BehaviorSubject` and emit/share values to all subscribed components?':
+    'What is the difference between Subject, BehaviorSubject, ReplaySubject, and AsyncSubject?',
+  'How to handle errors and retry an API call up to 3 times using RxJS?':
+    'How do you handle errors in RxJS streams? Explain catchError, retry, and retryWhen',
+  'Find duplicate values in an array':
+    'Remove duplicate elements from an array [1,2,2,3,4,4,5] using built-in method and for loop',
+  'How do you use worker threads for CPU-intensive tasks?':
+    'What are Worker Threads in Node.js and when should you use them?',
+  'What is lazy loading and how do you implement it?':
+    'What techniques do you use to optimize Node.js application performance?',
+  'What is gRPC and when should you use it over REST?':
+    'What is the difference between REST, GraphQL, and gRPC?',
+  'How do you implement rate limiting in Node.js?':
+    'How do you implement rate limiting using Redis?',
+  'What is the difference between find() and aggregate() in MongoDB?':
+    'What is the MongoDB aggregation pipeline?',
+  'What is the difference between lean() and regular Mongoose queries?':
+    'What is Mongoose and what are its advantages?',
 };
 
 @Service()
@@ -666,8 +712,6 @@ export class Question {
       questions: [
         'What is your understanding of the DOM? Explain with a real-time example.',
         'What is Event Delegation?',
-        'What is Flexbox?',
-        'How does Angular detect the device a user is logged in from?',
         'Explain event bubbling and event capturing in JavaScript',
       ],
     },
@@ -739,7 +783,6 @@ export class Question {
       questions: [
         'What happens when we run `ng serve`?',
         'How does the browser load an Angular application?',
-        'Is `AppComponent` mandatory? Can we build and bootstrap an Angular project without `AppComponent`?',
         'What changed in recent Angular releases (v19–v21)?',
       ],
     },
@@ -763,7 +806,6 @@ export class Question {
       color: '#BE185D',
       bg: '#FCE7F3',
       questions: [
-        'If I want to toggle an element dynamically without using *ngIf, how?',
         'If I want to change CSS dynamically, how?',
         'What is ViewEncapsulation?',
         'How can you apply global styles or pass specific parent component styles down to child components in Angular (`:host-context()`, CSS variables)?',
@@ -879,8 +921,6 @@ export class Question {
         'Explain the difference between cold and hot observables with examples',
         'What is the core difference between a Subject and an Observable in RxJS?',
         'What is the difference between Subject, BehaviorSubject, ReplaySubject, and AsyncSubject?',
-        'How do you declare a `BehaviorSubject` and emit/share values to all subscribed components?',
-        'Have you used BehaviorSubject in any real scenario?',
         'Which RxJS operators have you used?',
         'When would you use switchMap vs mergeMap vs concatMap vs exhaustMap? Give a real-world scenario for each',
         'Explain the difference between combineLatest, forkJoin, zip, and withLatestFrom',
@@ -890,7 +930,6 @@ export class Question {
         'What is takeUntil and how is it used for subscription management? What are modern alternatives?',
         'What are schedulers in RxJS and when would you use asyncScheduler vs queueScheduler?',
         'How do you handle errors in RxJS streams? Explain catchError, retry, and retryWhen',
-        'How to handle errors and retry an API call up to 3 times using RxJS?',
         'Explain the complete RxJS flow: API response, subscribe, and error handling',
         "You're building a type-ahead search — implement it using RxJS operators, handling debounce, cancellation of in-flight requests, and deduplication",
         'A user clicks a button 10 times and 10 API calls are triggered. How would you handle this using RxJS?',
@@ -934,7 +973,6 @@ export class Question {
         'Difference between canMatch and canLoad',
         'How do you restrict unauthorized users from accessing specific route URLs or components using Angular Route Guards?',
         'What are Resolvers?',
-        'Will you be able to see the API request in the browser Network tab if the request is triggered inside a Route Resolver or Guard?',
       ],
     },
     {
@@ -947,7 +985,6 @@ export class Question {
         'What can Reactive Forms do in a real-time application?',
         'Difference between setValue and patchValue',
         'How to implement Dynamic Forms in Angular using FormArray?',
-        'What is setControl in FormArray?',
         'How to implement a dynamic form where input fields are shown/hidden based on selection?',
         'How would you build a dynamic form using JSON configuration instead of hardcoding controls?',
         'Your form has more than 50 fields. Will you keep the complete reactive form and template inside one component?',
@@ -1114,15 +1151,11 @@ export class Question {
       color: '#A8300B',
       bg: '#FCE9E1',
       questions: [
-        'Which Angular versions have you worked on?',
         'Why did you choose Angular when most developers are learning React?',
-        'Do you have exposure working in Vanilla JavaScript?',
         'Which third-party Angular libraries have you used in your projects, and why?',
         'What is the most challenging technical or performance bug you have solved in an Angular frontend application and how did you resolve it?',
         'Have you created any proof of concept (POC)? Explain one.',
         'What deployment activities have you handled?',
-        'Have you worked on CI/CD pipelines?',
-        'Have you worked on resolving issues in CI/CD pipelines?',
         'Have you worked with teams from different organizations where your module depended on parallel development teams? How did you manage communication and dependencies?',
         'Have you used any AI tools?',
         'Tell me about yourself.',
@@ -1140,13 +1173,12 @@ export class Question {
     {
       id: 'coding-round',
       icon: 'ti-terminal-2',
-      title: 'Coding Round',
+      title: 'JavaScript Coding',
       color: '#6B21A8',
       bg: '#F3E8FF',
       questions: [
         'Check if a string is a palindrome',
         'Find the first non-repeating character in a string',
-        'Find duplicate values in an array',
         'Remove duplicate elements from an array [1,2,2,3,4,4,5] using built-in method and for loop',
         'Flatten a nested array',
         'Group an array of objects by property',
@@ -1291,7 +1323,6 @@ export class Question {
         'How do you prevent NoSQL injection in MongoDB?',
         'What is CORS and how do you configure it in Node.js?',
         'What is helmet.js and what security headers does it set?',
-        'How do you implement rate limiting in Node.js?',
       ],
     },
     {
@@ -1350,15 +1381,28 @@ export class Question {
       questions: [
         'What is MongoDB and when would you choose it over a relational database?',
         'What is the difference between embedding and referencing in MongoDB schema design?',
+        'Why are unbounded arrays an anti-pattern in MongoDB, and what happens when a document approaches the 16 MB limit?',
+        'What are the MongoDB schema design patterns (bucket, computed, subset, extended reference, outlier), and when do you use each?',
+        'Design the MongoDB data model for an e-commerce catalog with product variants, inventory and reviews.',
         'What are indexes in MongoDB and when should you create them?',
-        'What is the difference between find() and aggregate() in MongoDB?',
+        'Which MongoDB index types do you use in practice (compound, partial, TTL, sparse, wildcard, text, unique), and for what?',
         'What is the MongoDB aggregation pipeline?',
+        'How do you optimise a slow aggregation pipeline (stage order, `$lookup` cost, `$facet`, `allowDiskUse`)?',
+        'How do you paginate a large MongoDB collection, and why does `skip()` get slow?',
+        'A MongoDB query became slow as the data grew. How do you use `explain("executionStats")` to find and fix the problem?',
         'What is a transaction in MongoDB, and when would you use it?',
         'Suppose you need to update three MongoDB collections as part of a single business operation. If the third update fails, how would you ensure that the first two updates are rolled back?',
+        'Duplicate documents are being created even though the code checks whether one exists before inserting. Why, and how do you fix it?',
         'What is a replica set in MongoDB?',
+        'What are write concern, read concern and read preference, and what can go wrong when you read from secondaries?',
+        'What are MongoDB change streams, and how do you use them reliably (resume tokens)?',
         'What is sharding in MongoDB?',
+        'How do you choose a shard key, and why does a monotonically increasing key create a hot shard?',
         'What is Mongoose and what are its advantages?',
-        'What is the difference between lean() and regular Mongoose queries?',
+        'Mongoose `populate()` on a list endpoint is slow. What is happening, and when should you use `$lookup` instead?',
+        'Your serverless functions keep exhausting MongoDB connections. Why, and how do you fix it?',
+        'How do you change a MongoDB schema without downtime (schema versioning, lazy migration vs backfill)?',
+        'The working set no longer fits in RAM and MongoDB latency spikes. How do you confirm it and what are your options?',
       ],
     },
     {
@@ -1392,8 +1436,6 @@ export class Question {
         'How does connection pooling work in Node.js database connections?',
         'How do you implement pagination — offset vs cursor-based?',
         'What is HTTP response compression and how do you enable it?',
-        'What is lazy loading and how do you implement it?',
-        'How do you use worker threads for CPU-intensive tasks?',
       ],
     },
     {
@@ -1498,7 +1540,6 @@ export class Question {
         'What are the main advantages and disadvantages of microservices?',
         'How do microservices communicate with each other?',
         'What is the difference between synchronous and asynchronous communication in microservices?',
-        'What is gRPC and when should you use it over REST?',
         'What is an API Gateway and what problems does it solve?',
         'What is the Circuit Breaker pattern?',
         'What is the Saga pattern in microservices?',

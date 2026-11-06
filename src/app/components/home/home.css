@@ -312,6 +312,31 @@
   color: var(--t-violet-300);
 }
 
+.backup-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-top: 18px;
+}
+
+.backup-text {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.backup-actions {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.backup-message {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}
+
 /* ── Responsive ───────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .next-grid {

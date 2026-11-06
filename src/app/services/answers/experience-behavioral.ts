@@ -1,73 +1,6 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'Which Angular versions have you worked on?': {
-    summary:
-      'Give the honest range you have used in production (e.g. "Angular [X] through [Y]"), then prove depth by naming what changed between those versions and what you migrated — standalone components, signals, the new `@if/@for` control flow, the esbuild application builder, and zoneless change detection. The version number alone means little; the upgrades you drove are what impress.',
-    details: [
-      {
-        type: 'paragraph',
-        text: 'This looks like a trivia question, but the interviewer is checking whether your knowledge is current and whether you have **lived through upgrades**. A candidate who says "Angular 8 to 19, and I led the migration to standalone and signals" is far stronger than one who says "Angular 17".',
-      },
-      { type: 'heading3', text: 'How to structure the answer' },
-      {
-        type: 'numbered',
-        items: [
-          '**Range:** the versions you used in real projects (be honest — "[Angular 12] on [legacy app], [Angular 19/20] on [current app]").',
-          '**Milestones you used:** 2–3 features that mark modern Angular, in your own words.',
-          '**Migration story:** one upgrade you performed and how (ng update, schematics, fixing breaking changes).',
-          '**What you are following now:** the current version and what you are evaluating (zoneless, signal forms, etc.).',
-        ],
-      },
-      { type: 'heading3', text: 'Version landmarks worth knowing' },
-      {
-        type: 'bullets',
-        items: [
-          '**v9:** Ivy compiler and runtime became the default (smaller bundles, better debugging).',
-          '**v14:** strictly typed reactive forms; standalone components in developer preview; `inject()` usable in more places.',
-          '**v15:** standalone APIs stable; functional router guards and HTTP interceptors; `NgOptimizedImage`.',
-          '**v16:** signals introduced (developer preview); required inputs; `takeUntilDestroyed`; `DestroyRef`.',
-          '**v17:** built-in control flow (`@if`, `@for`, `@switch`), `@defer` blocks, the esbuild/Vite-based application builder by default; signal `input()` arrived in the 17.x line.',
-          '**v18–v19:** experimental zoneless change detection, `output()`, `model()`, signal queries; standalone became the default; `linkedSignal` and `resource` introduced as experimental APIs.',
-          '**v20+:** core signal APIs (`effect`, `linkedSignal`, `toSignal`) stabilised, zoneless matured toward the default, structural directives like `*ngIf` deprecated in favour of control flow. Check the official changelog for the exact status in the newest release.',
-        ],
-      },
-      {
-        type: 'code',
-        lang: 'bash',
-        code: `# The upgrade path you can describe (one major version at a time)
-ng update @angular/core@18 @angular/cli@18
-ng update @angular/core@19 @angular/cli@19
-
-# Optional migrations Angular ships as schematics
-ng generate @angular/core:standalone-migration    # NgModules → standalone
-ng generate @angular/core:control-flow-migration  # *ngIf/*ngFor → @if/@for
-ng generate @angular/core:signal-input-migration   # @Input() → input()
-ng generate @angular/core:inject-migration        # constructor DI → inject()`,
-      },
-      { type: 'heading3', text: 'Sample answer' },
-      {
-        type: 'paragraph',
-        text: '"I have worked with Angular from version [11] up to [20]. On [company / project A] I maintained an Angular [11] app built with NgModules and RxJS-heavy state. On [project B] I led the upgrade from [15] to [19] — we went one major at a time with `ng update`, fixed breaking changes in [Material / RxJS / a third-party library], then ran the standalone and control-flow schematics module by module. After that we moved new features to signals with `input()`, `computed()` and `toSignal()`, which cut our change-detection work noticeably — [our dashboard went from X to Y ms per interaction]. Right now I am following [Angular 21/22] and experimenting with zoneless change detection on [a side project / POC]."',
-      },
-      {
-        type: 'flow',
-        title: 'A safe major-version upgrade',
-        code: `flowchart LR
-  A["Read update.angular.dev<br/>for from → to"]:::external --> B["ng update core + cli<br/>one major at a time"]:::server
-  B --> C["Update 3rd-party libs<br/>Material, NgRx, etc."]:::server
-  C --> D["Run tests + e2e<br/>fix breaking changes"]:::highlight
-  D --> E["Optional schematics<br/>standalone, control flow"]:::client
-  E --> F([Release behind<br/>monitoring]):::db`,
-      },
-      {
-        type: 'callout',
-        variant: 'warning',
-        text: 'Pitfall: claiming the latest version without being able to name what is new in it. If you have only used older versions in production, say so and add what you have learned about recent features on your own — honesty plus curiosity beats a stretched claim.',
-      },
-    ],
-  },
-
   'Why did you choose Angular when most developers are learning React?': {
     summary:
       "Frame it as a deliberate engineering choice, not a default: Angular is a complete, opinionated platform — routing, forms, HTTP, DI, testing and a CLI in one consistent package with TypeScript first — which suits large, long-lived enterprise apps and big teams. Then show you are not dogmatic: you know React's strengths and could work in it.",
@@ -117,13 +50,12 @@ ng generate @angular/core:inject-migration        # constructor DI → inject()`
         variant: 'tip',
         text: 'Interview tip: never bash React. Interviewers often use React themselves or plan to. "Right tool for the job, and here is why Angular fits the jobs I do" is the answer that lands.',
       },
-    ],
-  },
-
-  'Do you have exposure working in Vanilla JavaScript?': {
-    summary:
-      'Say yes and prove it with specifics: the DOM API, events and delegation, closures, promises/async-await and the event loop, `fetch`, and ES modules — and give an example where you used plain JavaScript (a widget, a script, a performance fix, or debugging what Angular does underneath). Frameworks are abstractions over these fundamentals.',
-    details: [
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: Do you have exposure working in Vanilla JavaScript?' },
+      {
+        type: 'paragraph',
+        text: 'Say yes and prove it with specifics: the DOM API, events and delegation, closures, promises/async-await and the event loop, `fetch`, and ES modules — and give an example where you used plain JavaScript (a widget, a script, a performance fix, or debugging what Angular does underneath). Frameworks are abstractions over these fundamentals.',
+      },
       {
         type: 'paragraph',
         text: 'The real question is "do you understand the platform, or only the framework?". Developers who know vanilla JS debug faster, write less framework-dependent code, and understand why Angular behaves the way it does (zone.js patching `setTimeout`, event binding, change detection).',
@@ -451,13 +383,12 @@ location / {
         variant: 'tip',
         text: 'Interview tip: "build once, deploy many" and "index.html must not be cached" are two details that instantly show real deployment experience.',
       },
-    ],
-  },
-
-  'Have you worked on CI/CD pipelines?': {
-    summary:
-      'Explain a pipeline you have worked on stage by stage — install (`npm ci`), lint, unit tests, build, e2e tests, artifact publishing, and deployment with approvals — name the tool (GitHub Actions, GitLab CI, Azure DevOps, Jenkins), and say what you personally added or improved, such as caching, parallel jobs, affected-only builds or quality gates.',
-    details: [
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: Have you worked on CI/CD pipelines?' },
+      {
+        type: 'paragraph',
+        text: 'Explain a pipeline you have worked on stage by stage — install (`npm ci`), lint, unit tests, build, e2e tests, artifact publishing, and deployment with approvals — name the tool (GitHub Actions, GitLab CI, Azure DevOps, Jenkins), and say what you personally added or improved, such as caching, parallel jobs, affected-only builds or quality gates.',
+      },
       {
         type: 'paragraph',
         text: '**CI** (continuous integration) means every change is automatically built and tested on push or PR. **CD** means the tested artifact is automatically delivered to environments — continuous delivery (production needs a manual approval) or continuous deployment (fully automatic). The interviewer wants to see you understand the purpose of each stage and have edited a pipeline, not just watched it run.',
@@ -545,13 +476,15 @@ jobs:
         variant: 'tip',
         text: 'Interview tip: a single improvement with a before/after number ("18 → 7 minutes") is more convincing than listing every tool you have heard of.',
       },
-    ],
-  },
-
-  'Have you worked on resolving issues in CI/CD pipelines?': {
-    summary:
-      'Yes — describe a specific failure, how you diagnosed it from the logs, the root cause, and the permanent fix. Common real examples: "works locally, fails in CI" from Node/dependency version drift, flaky e2e tests, out-of-memory during the build, expired secrets/tokens, or cache corruption. Show a systematic approach: read the first real error, reproduce locally in the same environment, fix the root cause, and prevent recurrence.',
-    details: [
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: Have you worked on resolving issues in CI/CD pipelines?',
+      },
+      {
+        type: 'paragraph',
+        text: 'Yes — describe a specific failure, how you diagnosed it from the logs, the root cause, and the permanent fix. Common real examples: "works locally, fails in CI" from Node/dependency version drift, flaky e2e tests, out-of-memory during the build, expired secrets/tokens, or cache corruption. Show a systematic approach: read the first real error, reproduce locally in the same environment, fix the root cause, and prevent recurrence.',
+      },
       {
         type: 'paragraph',
         text: 'This question tests **troubleshooting under pressure** — a broken pipeline blocks the whole team. The interviewer looks for a calm, methodical process and fixes that address root causes rather than "I re-ran it until it passed".',

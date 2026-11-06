@@ -10,6 +10,7 @@ import {
   trackOf,
 } from '@services/question';
 import { DailyLearningService } from '@services/daily-learning';
+import { exportProgress, importProgress } from '@services/progress-backup';
 
 interface Progress {
   read: number;
@@ -214,6 +215,29 @@ const TRACK_ACCENT: Record<Track, string> = {
               <a routerLink="/questions">Starred filter</a> in Interview Q&amp;A to review them.
             </p>
           }
+          <div class="backup-row">
+            <span class="backup-text">
+              Progress is saved only in this browser. Keep a backup or move it to another device.
+            </span>
+            <span class="backup-actions">
+              <button type="button" class="btn-ghost" (click)="backup()">
+                <i class="ti ti-download"></i> Back up
+              </button>
+              <button type="button" class="btn-ghost" (click)="restoreInput.click()">
+                <i class="ti ti-upload"></i> Restore
+              </button>
+              <input
+                #restoreInput
+                type="file"
+                accept="application/json,.json"
+                hidden
+                (change)="restore(restoreInput)"
+              />
+            </span>
+          </div>
+          @if (backupMessage()) {
+            <p class="backup-message" role="status">{{ backupMessage() }}</p>
+          }
         </section>
       </div>
     </div>
@@ -290,6 +314,27 @@ export class Home implements OnInit {
       progress: overall(this.systemList(), this.systemProgress),
     },
   ]);
+
+  readonly backupMessage = signal('');
+
+  backup() {
+    exportProgress();
+    this.backupMessage.set('Backup downloaded.');
+  }
+
+  async restore(input: HTMLInputElement) {
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    if (!confirm('Restoring replaces your current progress in this browser. Continue?')) return;
+    try {
+      const count = await importProgress(file);
+      this.backupMessage.set(`Restored ${count} saved items. Reloading…`);
+      setTimeout(() => location.reload(), 600);
+    } catch (e) {
+      this.backupMessage.set(e instanceof Error ? e.message : 'Could not restore that file.');
+    }
+  }
 
   readonly hasProgress = computed(
     () =>

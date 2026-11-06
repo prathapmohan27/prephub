@@ -862,6 +862,99 @@ app.post('/thumbnail', async (req, res) => {
         variant: 'tip',
         text: 'Interview tip: the key phrase is "CPU-bound, not I/O-bound". Add that you would use a fixed-size pool (e.g. Piscina) sized to the CPU count, and measure event-loop delay to decide when offloading is needed.',
       },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: How do you use worker threads for CPU-intensive tasks?',
+      },
+      {
+        type: 'paragraph',
+        text: 'Use the built-in `node:worker_threads` module to run CPU-heavy JavaScript (hashing, image processing, parsing, compression, ML inference) on separate threads with their own V8 isolate and event loop, so the main thread keeps serving requests. Communicate via `postMessage` (structured clone), transfer `ArrayBuffer`s without copying, or share memory with `SharedArrayBuffer`. In practice, use a fixed-size worker pool (e.g. Piscina) sized to CPU cores instead of spawning a worker per request.',
+      },
+      {
+        type: 'paragraph',
+        text: 'Node.js runs your JavaScript on one thread. A 500 ms synchronous calculation blocks every other request for 500 ms. Async I/O does not help here because the work is CPU, not waiting. Worker threads give true parallelism for JavaScript within one process; for I/O-bound work they bring little benefit.',
+      },
+      { type: 'heading3', text: 'Basic worker' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// fib-worker.mjs
+import { parentPort, workerData } from 'node:worker_threads';
+
+function fib(n) { return n < 2 ? n : fib(n - 1) + fib(n - 2); }
+parentPort.postMessage(fib(workerData.n));
+
+// main.mjs
+import { Worker } from 'node:worker_threads';
+
+function runFib(n) {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(new URL('./fib-worker.mjs', import.meta.url), {
+      workerData: { n },
+    });
+    worker.once('message', resolve);
+    worker.once('error', reject);
+    worker.once('exit', (code) => code !== 0 && reject(new Error(\`exit \${code}\`)));
+  });
+}
+
+app.get('/fib/:n', async (req, res) => {
+  res.json({ result: await runFib(Number(req.params.n)) });   // main loop stays free
+});`,
+      },
+      { type: 'heading3', text: 'Production: a worker pool with Piscina' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// resize.worker.ts — default export is the task
+import sharp from 'sharp';
+export default async ({ input, width }: { input: Uint8Array; width: number }) =>
+  sharp(input).resize(width).webp().toBuffer();
+
+// server.ts
+import Piscina from 'piscina';
+import { availableParallelism } from 'node:os';
+
+const pool = new Piscina({
+  filename: new URL('./resize.worker.js', import.meta.url).href,
+  maxThreads: Math.max(1, availableParallelism() - 1),  // leave a core for the main thread
+  maxQueue: 1000,                                          // backpressure
+});
+
+app.post('/resize', async (req, res) => {
+  const out = await pool.run({ input: req.body, width: 800 });
+  res.type('image/webp').send(out);
+});`,
+      },
+      {
+        type: 'flow',
+        title: 'Main thread vs worker pool',
+        code: `flowchart LR
+  REQ["HTTP requests"]:::client --> MAIN["Main thread<br/>event loop: routing, I/O"]:::server
+  MAIN -->|"pool.run(task)"| Q["Task queue"]:::queue
+  Q --> W1["Worker 1"]:::highlight
+  Q --> W2["Worker 2"]:::highlight
+  Q --> W3["Worker 3"]:::highlight
+  W1 -->|postMessage result| MAIN
+  W2 -->|postMessage result| MAIN
+  W3 -->|postMessage result| MAIN`,
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**Worker threads vs cluster vs child_process:** workers = threads in one process, cheaper, can share memory, for CPU tasks; cluster = multiple processes sharing a port, for scaling HTTP throughput; child_process = run other programs or fully isolated scripts.',
+          '**Data transfer:** `postMessage` copies data (structured clone) — pass large binary data via the transfer list (`postMessage(buf, [buf.buffer])`) or `SharedArrayBuffer` + `Atomics`.',
+          '**Cost:** each worker has its own V8 heap and startup time (tens of ms) — reuse via a pool.',
+          "**Isolation:** workers do not share module state or the main thread's variables; an uncaught error in a worker emits `error`, it does not crash the main thread by default.",
+          '**Alternatives:** offload to a job queue (BullMQ) when the result is not needed in the HTTP response; native addons or other languages for extreme workloads.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: start with "why" (single-threaded JS, blocked event loop), then show a pool rather than one worker per request, and contrast with cluster. Mention that libuv\'s thread pool already handles crypto/zlib/fs async APIs — use their async versions before reaching for workers.',
+      },
     ],
   },
 

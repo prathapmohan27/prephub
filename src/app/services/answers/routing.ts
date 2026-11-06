@@ -1122,52 +1122,53 @@ export const settingsResolver: ResolveFn<Settings> = async () =>
         variant: 'warning',
         text: 'Common pitfall: using a store selector that never emits until data is loaded, without triggering the load. The resolver waits forever and the click appears dead. Dispatch the load, then `filter` + `take(1)` on the selector.',
       },
-    ],
-  },
-
-  'Will you be able to see the API request in the browser Network tab if the request is triggered inside a Route Resolver or Guard?':
-    {
-      summary:
-        "Yes. Resolvers and guards are ordinary JavaScript running in the browser, and `HttpClient` uses XHR/fetch, so the request appears in the Network tab (filter by Fetch/XHR) like any other — it just happens before the component's own requests. The exception is server-side rendering: if the resolver runs on the server during SSR, that call happens on the Node server and, with the HTTP transfer cache, the browser reuses the result instead of re-requesting it.",
-      details: [
-        {
-          type: 'paragraph',
-          text: "There is no hidden channel: the router just calls your function, which calls `HttpClient`, which calls the browser's network API. The order is what changes: you will see the resolver/guard request start first, and the lazy chunk and component requests after it completes.",
-        },
-        { type: 'heading3', text: 'What you would see' },
-        {
-          type: 'code',
-          lang: 'text',
-          code: `Network tab (Fetch/XHR + JS), navigating to /orders/42 with a guard + resolver:
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: Will you be able to see the API request in the browser Network tab if the request is triggered inside a Route Resolver or Guard?',
+      },
+      {
+        type: 'paragraph',
+        text: "Yes. Resolvers and guards are ordinary JavaScript running in the browser, and `HttpClient` uses XHR/fetch, so the request appears in the Network tab (filter by Fetch/XHR) like any other — it just happens before the component's own requests. The exception is server-side rendering: if the resolver runs on the server during SSR, that call happens on the Node server and, with the HTTP transfer cache, the browser reuses the result instead of re-requesting it.",
+      },
+      {
+        type: 'paragraph',
+        text: "There is no hidden channel: the router just calls your function, which calls `HttpClient`, which calls the browser's network API. The order is what changes: you will see the resolver/guard request start first, and the lazy chunk and component requests after it completes.",
+      },
+      { type: 'heading3', text: 'What you would see' },
+      {
+        type: 'code',
+        lang: 'text',
+        code: `Network tab (Fetch/XHR + JS), navigating to /orders/42 with a guard + resolver:
 
 GET /api/auth/me          200  (canActivate guard checking session)
 GET /api/orders/42        200  (orderResolver)
 GET chunk-ORDERS.js       200  (lazy component chunk, if not loaded or preloaded yet)
 GET /api/orders/42/items  200  (requested by the component itself after it renders)`,
-        },
-        { type: 'heading3', text: 'When you might NOT see it' },
-        {
-          type: 'bullets',
-          items: [
-            '**SSR / hydration**: the resolver ran on the server; `provideClientHydration()` enables the HTTP transfer cache, so the client reads the cached response embedded in the HTML instead of calling the API again.',
-            '**Your own cache**: a `shareReplay` or store returned cached data, so no request was made.',
-            '**Browser cache**: the request still shows in the Network tab, but marked "(disk cache)" / "(memory cache)" or 304.',
-            '**Guard never reached**: an earlier guard (e.g. `canMatch`) returned false, so later guards and resolvers did not run.',
-            '**Service worker**: shown as served "(ServiceWorker)".',
-          ],
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Debugging resolvers/guards: log router events
+      },
+      { type: 'heading3', text: 'When you might NOT see it' },
+      {
+        type: 'bullets',
+        items: [
+          '**SSR / hydration**: the resolver ran on the server; `provideClientHydration()` enables the HTTP transfer cache, so the client reads the cached response embedded in the HTML instead of calling the API again.',
+          '**Your own cache**: a `shareReplay` or store returned cached data, so no request was made.',
+          '**Browser cache**: the request still shows in the Network tab, but marked "(disk cache)" / "(memory cache)" or 304.',
+          '**Guard never reached**: an earlier guard (e.g. `canMatch`) returned false, so later guards and resolvers did not run.',
+          '**Service worker**: shown as served "(ServiceWorker)".',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Debugging resolvers/guards: log router events
 provideRouter(routes, withDebugTracing());
 // Console: GuardsCheckStart, GuardsCheckEnd, ResolveStart, ResolveEnd, NavigationEnd`,
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: say "yes, it is a normal browser request" and then show depth with the SSR transfer-cache exception — it is exactly the kind of nuance this trick question is fishing for.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: say "yes, it is a normal browser request" and then show depth with the SSR transfer-cache exception — it is exactly the kind of nuance this trick question is fishing for.',
+      },
+    ],
+  },
 };

@@ -149,6 +149,76 @@ app.get('/export', async (_req, res) => {
         variant: 'warning',
         text: 'Pitfall: optimizing without measuring. Micro-optimizations (for vs forEach) rarely matter; one missing index or a sequential `await` in a loop usually dominates. Profile, fix the biggest bottleneck, re-measure.',
       },
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: What is lazy loading and how do you implement it?' },
+      {
+        type: 'paragraph',
+        text: 'Lazy loading means deferring the loading or initialization of something until it is actually needed, instead of doing it up front. In Node.js that includes dynamically importing heavy modules with `await import()` only on the code paths that use them, creating expensive resources (clients, connections, caches) on first use, and loading related data or large result sets on demand. It improves startup time and memory — critical for serverless cold starts and CLIs — at the cost of a delay on first use.',
+      },
+      { type: 'heading3', text: '1. Lazy module loading' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// ❌ Eager: loaded at startup even if no one ever exports a PDF
+import puppeteer from 'puppeteer';
+
+// ✅ Lazy: loaded on first request to this route, then cached by the module system
+app.get('/invoice/:id/pdf', async (req, res) => {
+  const { default: puppeteer } = await import('puppeteer');
+  const browser = await puppeteer.launch();
+  // ...
+});
+// Subsequent import() calls resolve immediately from the module cache`,
+      },
+      { type: 'heading3', text: '2. Lazy singleton initialization' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `let clientPromise: Promise<S3Client> | undefined;
+
+export function getS3(): Promise<S3Client> {
+  // Store the PROMISE so concurrent callers share one initialization
+  clientPromise ??= (async () => {
+    const { S3Client } = await import('@aws-sdk/client-s3');
+    return new S3Client({ region: process.env.AWS_REGION });
+  })();
+  return clientPromise;
+}
+
+// Usage
+const s3 = await getS3();   // first call creates it, later calls reuse it`,
+      },
+      { type: 'heading3', text: '3. Lazy data loading' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Load relations only when requested: GET /users/7?include=orders
+const include = String(req.query.include ?? '').split(',');
+const user = await prisma.user.findUnique({
+  where: { id: 7 },
+  include: { orders: include.includes('orders') },
+});
+
+// Process a huge collection lazily with an async iterator instead of loading all rows
+for await (const doc of db.collection('events').find({ type: 'click' })) {
+  await handle(doc);       // MongoDB cursor fetches batches on demand
+}`,
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**Benefits:** faster startup/cold starts, lower baseline memory, unused features cost nothing.',
+          '**Costs:** first request on that path is slower; errors (missing module, bad config) surface at runtime instead of startup.',
+          '**Mitigation:** warm critical lazy resources after startup or in a readiness check; validate config eagerly even if the client is created lazily.',
+          '**Beware ORM lazy relations:** lazy-loading related entities inside a loop is exactly the N+1 problem.',
+          'On the frontend, lazy loading means code-splitting routes/components (e.g. Angular `loadComponent`, `@defer`) and `loading="lazy"` images.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Pitfall: a lazy initializer that stores the resolved value instead of the promise. Two concurrent requests both see `undefined` and create two clients/connections. Cache the promise (`??=` on the promise) as shown above.',
+      },
     ],
   },
 
@@ -374,168 +444,6 @@ gzip_min_length 1024;
         type: 'callout',
         variant: 'tip',
         text: 'Interview tip: mention both "how" (middleware) and "where" — in production, compressing at Nginx/CDN offloads CPU from the single-threaded Node.js process and lets the CDN cache compressed variants.',
-      },
-    ],
-  },
-
-  'What is lazy loading and how do you implement it?': {
-    summary:
-      'Lazy loading means deferring the loading or initialization of something until it is actually needed, instead of doing it up front. In Node.js that includes dynamically importing heavy modules with `await import()` only on the code paths that use them, creating expensive resources (clients, connections, caches) on first use, and loading related data or large result sets on demand. It improves startup time and memory — critical for serverless cold starts and CLIs — at the cost of a delay on first use.',
-    details: [
-      { type: 'heading3', text: '1. Lazy module loading' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// ❌ Eager: loaded at startup even if no one ever exports a PDF
-import puppeteer from 'puppeteer';
-
-// ✅ Lazy: loaded on first request to this route, then cached by the module system
-app.get('/invoice/:id/pdf', async (req, res) => {
-  const { default: puppeteer } = await import('puppeteer');
-  const browser = await puppeteer.launch();
-  // ...
-});
-// Subsequent import() calls resolve immediately from the module cache`,
-      },
-      { type: 'heading3', text: '2. Lazy singleton initialization' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `let clientPromise: Promise<S3Client> | undefined;
-
-export function getS3(): Promise<S3Client> {
-  // Store the PROMISE so concurrent callers share one initialization
-  clientPromise ??= (async () => {
-    const { S3Client } = await import('@aws-sdk/client-s3');
-    return new S3Client({ region: process.env.AWS_REGION });
-  })();
-  return clientPromise;
-}
-
-// Usage
-const s3 = await getS3();   // first call creates it, later calls reuse it`,
-      },
-      { type: 'heading3', text: '3. Lazy data loading' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// Load relations only when requested: GET /users/7?include=orders
-const include = String(req.query.include ?? '').split(',');
-const user = await prisma.user.findUnique({
-  where: { id: 7 },
-  include: { orders: include.includes('orders') },
-});
-
-// Process a huge collection lazily with an async iterator instead of loading all rows
-for await (const doc of db.collection('events').find({ type: 'click' })) {
-  await handle(doc);       // MongoDB cursor fetches batches on demand
-}`,
-      },
-      {
-        type: 'bullets',
-        items: [
-          '**Benefits:** faster startup/cold starts, lower baseline memory, unused features cost nothing.',
-          '**Costs:** first request on that path is slower; errors (missing module, bad config) surface at runtime instead of startup.',
-          '**Mitigation:** warm critical lazy resources after startup or in a readiness check; validate config eagerly even if the client is created lazily.',
-          '**Beware ORM lazy relations:** lazy-loading related entities inside a loop is exactly the N+1 problem.',
-          'On the frontend, lazy loading means code-splitting routes/components (e.g. Angular `loadComponent`, `@defer`) and `loading="lazy"` images.',
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'warning',
-        text: 'Pitfall: a lazy initializer that stores the resolved value instead of the promise. Two concurrent requests both see `undefined` and create two clients/connections. Cache the promise (`??=` on the promise) as shown above.',
-      },
-    ],
-  },
-
-  'How do you use worker threads for CPU-intensive tasks?': {
-    summary:
-      'Use the built-in `node:worker_threads` module to run CPU-heavy JavaScript (hashing, image processing, parsing, compression, ML inference) on separate threads with their own V8 isolate and event loop, so the main thread keeps serving requests. Communicate via `postMessage` (structured clone), transfer `ArrayBuffer`s without copying, or share memory with `SharedArrayBuffer`. In practice, use a fixed-size worker pool (e.g. Piscina) sized to CPU cores instead of spawning a worker per request.',
-    details: [
-      {
-        type: 'paragraph',
-        text: 'Node.js runs your JavaScript on one thread. A 500 ms synchronous calculation blocks every other request for 500 ms. Async I/O does not help here because the work is CPU, not waiting. Worker threads give true parallelism for JavaScript within one process; for I/O-bound work they bring little benefit.',
-      },
-      { type: 'heading3', text: 'Basic worker' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// fib-worker.mjs
-import { parentPort, workerData } from 'node:worker_threads';
-
-function fib(n) { return n < 2 ? n : fib(n - 1) + fib(n - 2); }
-parentPort.postMessage(fib(workerData.n));
-
-// main.mjs
-import { Worker } from 'node:worker_threads';
-
-function runFib(n) {
-  return new Promise((resolve, reject) => {
-    const worker = new Worker(new URL('./fib-worker.mjs', import.meta.url), {
-      workerData: { n },
-    });
-    worker.once('message', resolve);
-    worker.once('error', reject);
-    worker.once('exit', (code) => code !== 0 && reject(new Error(\`exit \${code}\`)));
-  });
-}
-
-app.get('/fib/:n', async (req, res) => {
-  res.json({ result: await runFib(Number(req.params.n)) });   // main loop stays free
-});`,
-      },
-      { type: 'heading3', text: 'Production: a worker pool with Piscina' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `// resize.worker.ts — default export is the task
-import sharp from 'sharp';
-export default async ({ input, width }: { input: Uint8Array; width: number }) =>
-  sharp(input).resize(width).webp().toBuffer();
-
-// server.ts
-import Piscina from 'piscina';
-import { availableParallelism } from 'node:os';
-
-const pool = new Piscina({
-  filename: new URL('./resize.worker.js', import.meta.url).href,
-  maxThreads: Math.max(1, availableParallelism() - 1),  // leave a core for the main thread
-  maxQueue: 1000,                                          // backpressure
-});
-
-app.post('/resize', async (req, res) => {
-  const out = await pool.run({ input: req.body, width: 800 });
-  res.type('image/webp').send(out);
-});`,
-      },
-      {
-        type: 'flow',
-        title: 'Main thread vs worker pool',
-        code: `flowchart LR
-  REQ["HTTP requests"]:::client --> MAIN["Main thread<br/>event loop: routing, I/O"]:::server
-  MAIN -->|"pool.run(task)"| Q["Task queue"]:::queue
-  Q --> W1["Worker 1"]:::highlight
-  Q --> W2["Worker 2"]:::highlight
-  Q --> W3["Worker 3"]:::highlight
-  W1 -->|postMessage result| MAIN
-  W2 -->|postMessage result| MAIN
-  W3 -->|postMessage result| MAIN`,
-      },
-      {
-        type: 'bullets',
-        items: [
-          '**Worker threads vs cluster vs child_process:** workers = threads in one process, cheaper, can share memory, for CPU tasks; cluster = multiple processes sharing a port, for scaling HTTP throughput; child_process = run other programs or fully isolated scripts.',
-          '**Data transfer:** `postMessage` copies data (structured clone) — pass large binary data via the transfer list (`postMessage(buf, [buf.buffer])`) or `SharedArrayBuffer` + `Atomics`.',
-          '**Cost:** each worker has its own V8 heap and startup time (tens of ms) — reuse via a pool.',
-          "**Isolation:** workers do not share module state or the main thread's variables; an uncaught error in a worker emits `error`, it does not crash the main thread by default.",
-          '**Alternatives:** offload to a job queue (BullMQ) when the result is not needed in the HTTP response; native addons or other languages for extreme workloads.',
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: start with "why" (single-threaded JS, blocked event loop), then show a pool rather than one worker per request, and contrast with cluster. Mention that libuv\'s thread pool already handles crypto/zlib/fs async APIs — use their async versions before reaching for workers.',
       },
     ],
   },

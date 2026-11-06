@@ -178,105 +178,6 @@ firstUniqueIndex('sTreSS'); // 3  ('e' — 's' and 'S' count as the same)`,
     ],
   },
 
-  'Find duplicate values in an array': {
-    summary:
-      'Walk the array once with two `Set`s — `seen` for values already visited and `duplicates` for values seen more than once — giving O(n) time and O(n) space. Alternatives are a frequency `Map` (when you also need counts) or `filter` with `indexOf` (short but O(n²)).',
-    details: [
-      {
-        type: 'paragraph',
-        text: 'Clarify the expected output first: each duplicate value once (`[2, 4]`), every repeated occurrence, or a count per value? The Set approach returns each duplicate value once, which is what most interviewers mean.',
-      },
-      { type: 'heading3', text: 'Optimal — Set of seen values' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `function findDuplicates<T>(arr: T[]): T[] {
-  const seen = new Set<T>();
-  const duplicates = new Set<T>();
-
-  for (const item of arr) {
-    if (seen.has(item)) {
-      duplicates.add(item); // Set ensures each duplicate is reported once
-    } else {
-      seen.add(item);
-    }
-  }
-  return [...duplicates];
-}
-
-findDuplicates([1, 2, 2, 3, 4, 4, 4, 5]); // [2, 4]
-findDuplicates(['a', 'b', 'a']);          // ['a']
-findDuplicates([1, 2, 3]);                // []`,
-      },
-      { type: 'heading3', text: 'With counts — frequency Map' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `function duplicateCounts<T>(arr: T[]): Map<T, number> {
-  const freq = new Map<T, number>();
-  for (const item of arr) freq.set(item, (freq.get(item) ?? 0) + 1);
-
-  // Keep only entries that occur more than once
-  return new Map([...freq].filter(([, count]) => count > 1));
-}
-
-duplicateCounts([1, 2, 2, 3, 4, 4, 4]); // Map { 2 => 2, 4 => 3 }`,
-      },
-      { type: 'heading3', text: 'One-liner — filter + indexOf (small arrays only)' },
-      {
-        type: 'code',
-        lang: 'javascript',
-        code: `const arr = [1, 2, 2, 3, 4, 4, 4, 5];
-
-// Element is a duplicate if it is not at its first index;
-// wrap in a Set so 4 is not reported twice
-const dups = [...new Set(arr.filter((v, i) => arr.indexOf(v) !== i))];
-console.log(dups); // [2, 4]
-// indexOf inside filter → O(n²)`,
-      },
-      { type: 'heading3', text: 'Duplicate objects by a key' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `interface User { id: number; email: string }
-
-function duplicateEmails(users: User[]): string[] {
-  const seen = new Set<string>();
-  const dups = new Set<string>();
-  for (const u of users) {
-    const key = u.email.toLowerCase(); // compare by a primitive key
-    seen.has(key) ? dups.add(key) : seen.add(key);
-  }
-  return [...dups];
-}`,
-      },
-      { type: 'heading3', text: 'Complexity' },
-      {
-        type: 'bullets',
-        items: [
-          '**Set / Map:** O(n) time, O(n) space — `has`/`add` are O(1) on average.',
-          '**filter + indexOf:** O(n²) time — fine for 20 items, slow for 100k.',
-          '**Sort then compare neighbours:** O(n log n) time, O(1) extra space if you may mutate the input (copy first otherwise).',
-        ],
-      },
-      { type: 'heading3', text: 'Edge cases' },
-      {
-        type: 'bullets',
-        items: [
-          'Empty array or no duplicates → `[]`.',
-          'Objects are compared by **reference** in a Set — two `{ id: 1 }` literals are different. Use a key (id, email, or `JSON.stringify` for simple shapes).',
-          '`NaN`: Set uses SameValueZero, so `NaN` duplicates are detected; `indexOf(NaN)` returns -1, so the filter version misses them.',
-          'Mixed types: `1` and `"1"` are different values in a Set.',
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: mention the space/time trade-off — Set is O(n) time and O(n) memory, sorting is O(n log n) with O(1) extra memory. Asking "can I mutate the input?" shows good instincts.',
-      },
-    ],
-  },
-
   'Remove duplicate elements from an array [1,2,2,3,4,4,5] using built-in method and for loop': {
     summary:
       'Built-in: `[...new Set(arr)]` (or `Array.from(new Set(arr))`) returns `[1, 2, 3, 4, 5]` in O(n), preserving first-occurrence order. With a for loop: iterate once, keep a lookup of values already added, and push only unseen values into a result array. Avoid the `includes`-inside-a-loop version for large arrays — it is O(n²).',
@@ -387,6 +288,104 @@ dedupeSortedInPlace(a); // 5, a is now [1, 2, 3, 4, 5]  — O(n) time, O(1) spac
         type: 'callout',
         variant: 'tip',
         text: 'Interview tip: say "Set uses SameValueZero equality and keeps insertion order" — that one sentence explains why `[...new Set(arr)]` is both correct and order-preserving.',
+      },
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: Find duplicate values in an array' },
+      {
+        type: 'paragraph',
+        text: 'Walk the array once with two `Set`s — `seen` for values already visited and `duplicates` for values seen more than once — giving O(n) time and O(n) space. Alternatives are a frequency `Map` (when you also need counts) or `filter` with `indexOf` (short but O(n²)).',
+      },
+      {
+        type: 'paragraph',
+        text: 'Clarify the expected output first: each duplicate value once (`[2, 4]`), every repeated occurrence, or a count per value? The Set approach returns each duplicate value once, which is what most interviewers mean.',
+      },
+      { type: 'heading3', text: 'Optimal — Set of seen values' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `function findDuplicates<T>(arr: T[]): T[] {
+  const seen = new Set<T>();
+  const duplicates = new Set<T>();
+
+  for (const item of arr) {
+    if (seen.has(item)) {
+      duplicates.add(item); // Set ensures each duplicate is reported once
+    } else {
+      seen.add(item);
+    }
+  }
+  return [...duplicates];
+}
+
+findDuplicates([1, 2, 2, 3, 4, 4, 4, 5]); // [2, 4]
+findDuplicates(['a', 'b', 'a']);          // ['a']
+findDuplicates([1, 2, 3]);                // []`,
+      },
+      { type: 'heading3', text: 'With counts — frequency Map' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `function duplicateCounts<T>(arr: T[]): Map<T, number> {
+  const freq = new Map<T, number>();
+  for (const item of arr) freq.set(item, (freq.get(item) ?? 0) + 1);
+
+  // Keep only entries that occur more than once
+  return new Map([...freq].filter(([, count]) => count > 1));
+}
+
+duplicateCounts([1, 2, 2, 3, 4, 4, 4]); // Map { 2 => 2, 4 => 3 }`,
+      },
+      { type: 'heading3', text: 'One-liner — filter + indexOf (small arrays only)' },
+      {
+        type: 'code',
+        lang: 'javascript',
+        code: `const arr = [1, 2, 2, 3, 4, 4, 4, 5];
+
+// Element is a duplicate if it is not at its first index;
+// wrap in a Set so 4 is not reported twice
+const dups = [...new Set(arr.filter((v, i) => arr.indexOf(v) !== i))];
+console.log(dups); // [2, 4]
+// indexOf inside filter → O(n²)`,
+      },
+      { type: 'heading3', text: 'Duplicate objects by a key' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `interface User { id: number; email: string }
+
+function duplicateEmails(users: User[]): string[] {
+  const seen = new Set<string>();
+  const dups = new Set<string>();
+  for (const u of users) {
+    const key = u.email.toLowerCase(); // compare by a primitive key
+    seen.has(key) ? dups.add(key) : seen.add(key);
+  }
+  return [...dups];
+}`,
+      },
+      { type: 'heading3', text: 'Complexity' },
+      {
+        type: 'bullets',
+        items: [
+          '**Set / Map:** O(n) time, O(n) space — `has`/`add` are O(1) on average.',
+          '**filter + indexOf:** O(n²) time — fine for 20 items, slow for 100k.',
+          '**Sort then compare neighbours:** O(n log n) time, O(1) extra space if you may mutate the input (copy first otherwise).',
+        ],
+      },
+      { type: 'heading3', text: 'Edge cases' },
+      {
+        type: 'bullets',
+        items: [
+          'Empty array or no duplicates → `[]`.',
+          'Objects are compared by **reference** in a Set — two `{ id: 1 }` literals are different. Use a key (id, email, or `JSON.stringify` for simple shapes).',
+          '`NaN`: Set uses SameValueZero, so `NaN` duplicates are detected; `indexOf(NaN)` returns -1, so the filter version misses them.',
+          'Mixed types: `1` and `"1"` are different values in a Set.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: mention the space/time trade-off — Set is O(n) time and O(n) memory, sorting is O(n log n) with O(1) extra memory. Asking "can I mutate the input?" shows good instincts.',
       },
     ],
   },

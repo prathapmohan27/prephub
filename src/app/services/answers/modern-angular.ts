@@ -64,6 +64,88 @@ export const answers: AnswerMap = {
           variant: 'tip',
           text: 'Interview tip: say "it moved from runtime directives to compiler-level syntax" — that one sentence explains every benefit (no imports, better typing, faster diffing, smaller bundles). Mention `*ngIf`/`*ngFor` are deprecated since v20 so new code should not use them.',
         },
+        { type: 'divider' },
+        {
+          type: 'heading3',
+          text: 'Follow-up: If I want to toggle an element dynamically without using *ngIf, how?',
+        },
+        {
+          type: 'paragraph',
+          text: 'In modern Angular use the built-in `@if` block. Without removing the element from the DOM you can hide it with `[hidden]`, a `[class.x]` / `[style.display]` binding, or CSS. Other options: `[ngSwitch]`/`@switch`, `ng-template` + `ngTemplateOutlet`, a custom structural directive, `@defer`, or `ViewContainerRef` in code.',
+        },
+        {
+          type: 'paragraph',
+          text: 'The first decision is: should the element be **removed from the DOM** (destroying its components and state) or just **hidden** (kept alive, still in the DOM)? `*ngIf`/`@if` remove; `[hidden]` and style/class bindings hide.',
+        },
+        { type: 'heading3', text: 'Remove/add from the DOM' },
+        {
+          type: 'code',
+          lang: 'html',
+          code: `<!-- Built-in control flow (Angular 17+) — the modern replacement for *ngIf -->
+@if (isOpen()) {
+  <app-details />
+} @else {
+  <button (click)="isOpen.set(true)">Show details</button>
+}
+
+<!-- ng-template rendered conditionally via ngTemplateOutlet -->
+<ng-container *ngTemplateOutlet="isOpen() ? detailsTpl : null" />
+<ng-template #detailsTpl><app-details /></ng-template>
+
+<!-- @switch for several states -->
+@switch (status()) {
+  @case ('loading') { <app-spinner /> }
+  @case ('error') { <app-error /> }
+  @default { <app-content /> }
+}`,
+        },
+        { type: 'heading3', text: 'Hide but keep in the DOM' },
+        {
+          type: 'code',
+          lang: 'html',
+          code: `<!-- [hidden] sets the HTML hidden attribute (display: none by default) -->
+<div [hidden]="!isOpen()">Panel</div>
+
+<!-- class / style bindings -->
+<div [class.is-hidden]="!isOpen()">Panel</div>
+<div [style.display]="isOpen() ? 'block' : 'none'">Panel</div>
+
+<!-- visibility keeps the space reserved -->
+<div [style.visibility]="isOpen() ? 'visible' : 'hidden'">Panel</div>`,
+        },
+        { type: 'heading3', text: 'Programmatically / custom directive' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `// A tiny custom structural directive: *appShowIf="cond"
+@Directive({ selector: '[appShowIf]' })
+export class ShowIfDirective {
+  private tpl = inject(TemplateRef);
+  private vcr = inject(ViewContainerRef);
+  appShowIf = input.required<boolean>();
+
+  constructor() {
+    effect(() => {
+      this.vcr.clear();
+      if (this.appShowIf()) this.vcr.createEmbeddedView(this.tpl);
+    });
+  }
+}`,
+        },
+        {
+          type: 'bullets',
+          items: [
+            'Remove (`@if`) when the content is heavy or should reset its state; hide (`[hidden]`) when toggling often and you want to keep state (e.g. form input).',
+            '`[hidden]` can be overridden by CSS that sets `display` on the element — add `[hidden] { display: none !important; }` globally if needed.',
+            'Hidden components still run change detection and keep their subscriptions alive.',
+            '`@defer (when cond)` also lazy-loads the code for the block the first time the condition is true.',
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          text: 'Interview tip: start with "today I\'d use `@if`", then explain the remove-vs-hide trade-off — that is usually what the interviewer is really probing.',
+        },
       ],
     },
 

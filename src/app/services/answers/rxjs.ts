@@ -485,13 +485,68 @@ export class ThemeService {
         variant: 'tip',
         text: 'Interview tip: a crisp way to remember — Subject = live, Behavior = current, Replay = history, Async = final. Note that if an `AsyncSubject` errors, subscribers get the error and no value.',
       },
-    ],
-  },
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: Have you used BehaviorSubject in any real scenario?' },
+      {
+        type: 'paragraph',
+        text: 'Answer with a concrete scenario: what state needed sharing, why a BehaviorSubject (it holds a current value and replays it to late subscribers), how you exposed it, and the result. Typical real examples: the logged-in user/auth state, cart contents, a selected filter shared between a sidebar and a list, or a loading indicator driven by an interceptor.',
+      },
+      {
+        type: 'paragraph',
+        text: 'The interviewer wants evidence that you understand **why** BehaviorSubject fits (state with a current value that late-loading components must see immediately) and that you used it cleanly (private subject, `asObservable()`, immutable updates, no leaks). Structure it with STAR: Situation, Task, Action, Result.',
+      },
+      { type: 'heading3', text: 'Sample answer (adapt to your project)' },
+      {
+        type: 'paragraph',
+        text: '"In [your project — e.g. an insurance claims portal], the header, sidebar menu and several lazy-loaded pages all needed the logged-in user and their roles. Initially each one called `/api/me`, which caused [duplicate requests / flicker]. I created an `AuthStateService` with a private `BehaviorSubject<User | null>(null)`, populated it once after login, and exposed `user$` and `isAdmin$`. Because it\'s a BehaviorSubject, a lazy route loaded later still got the current user instantly. The result was [one request instead of N, no menu flicker], and logout became a single `next(null)` that updated the whole UI."',
+      },
+      { type: 'heading3', text: 'What the code looked like' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Injectable({ providedIn: 'root' })
+export class AuthStateService {
+  private http = inject(HttpClient);
+  private readonly user = new BehaviorSubject<User | null>(null);
 
-  'How do you declare a `BehaviorSubject` and emit/share values to all subscribed components?': {
-    summary:
-      'Put a private `BehaviorSubject` with an initial value in a root-provided (singleton) service, expose it read-only with `asObservable()`, and provide methods that call `next()` with the new value. Every component that injects the service and subscribes (preferably with the `async` pipe or `toSignal`) immediately gets the current value and every future update.',
-    details: [
+  readonly user$ = this.user.asObservable();
+  readonly isLoggedIn$ = this.user$.pipe(map(Boolean), distinctUntilChanged());
+  readonly isAdmin$ = this.user$.pipe(map((u) => !!u?.roles.includes('admin')), distinctUntilChanged());
+
+  loadCurrentUser() {
+    return this.http.get<User>('/api/me').pipe(tap((u) => this.user.next(u)));
+  }
+  logout() {
+    this.user.next(null);
+  }
+  get snapshot() { return this.user.value; }   // sync access for guards/interceptors
+}`,
+      },
+      { type: 'heading3', text: 'Other realistic scenarios you can mention' },
+      {
+        type: 'bullets',
+        items: [
+          "**Global loading spinner**: an interceptor increments/decrements a counter in a `BehaviorSubject<number>`; the shell shows the spinner when it's > 0.",
+          '**Filters shared between components**: a sidebar sets filters, a results grid and a URL-sync effect react to them.',
+          '**Theme / language** preference with an initial default.',
+          '**Wizard / multi-step form** state shared across step components.',
+          'Today you might implement the same with signals; say so — "for new code I\'d use a signal, but BehaviorSubject was the standard pattern before Angular 16 and is still useful when you need RxJS operators."',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: include one lesson learned, e.g. "we initially mutated the array inside the subject and OnPush components didn\'t update — switching to immutable `next([...items, x])` fixed it." It makes the story credible.',
+      },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: How do you declare a `BehaviorSubject` and emit/share values to all subscribed components?',
+      },
+      {
+        type: 'paragraph',
+        text: 'Put a private `BehaviorSubject` with an initial value in a root-provided (singleton) service, expose it read-only with `asObservable()`, and provide methods that call `next()` with the new value. Every component that injects the service and subscribes (preferably with the `async` pipe or `toSignal`) immediately gets the current value and every future update.',
+      },
       { type: 'heading3', text: '1. The service (single source of truth)' },
       {
         type: 'code',
@@ -576,60 +631,6 @@ export class CartPageComponent {
         type: 'callout',
         variant: 'warning',
         text: 'Pitfall: manual `subscribe()` in components without unsubscribing leaks memory because the service outlives the component. Use the `async` pipe, `toSignal()` or `takeUntilDestroyed()`.',
-      },
-    ],
-  },
-
-  'Have you used BehaviorSubject in any real scenario?': {
-    summary:
-      'Answer with a concrete scenario: what state needed sharing, why a BehaviorSubject (it holds a current value and replays it to late subscribers), how you exposed it, and the result. Typical real examples: the logged-in user/auth state, cart contents, a selected filter shared between a sidebar and a list, or a loading indicator driven by an interceptor.',
-    details: [
-      {
-        type: 'paragraph',
-        text: 'The interviewer wants evidence that you understand **why** BehaviorSubject fits (state with a current value that late-loading components must see immediately) and that you used it cleanly (private subject, `asObservable()`, immutable updates, no leaks). Structure it with STAR: Situation, Task, Action, Result.',
-      },
-      { type: 'heading3', text: 'Sample answer (adapt to your project)' },
-      {
-        type: 'paragraph',
-        text: '"In [your project — e.g. an insurance claims portal], the header, sidebar menu and several lazy-loaded pages all needed the logged-in user and their roles. Initially each one called `/api/me`, which caused [duplicate requests / flicker]. I created an `AuthStateService` with a private `BehaviorSubject<User | null>(null)`, populated it once after login, and exposed `user$` and `isAdmin$`. Because it\'s a BehaviorSubject, a lazy route loaded later still got the current user instantly. The result was [one request instead of N, no menu flicker], and logout became a single `next(null)` that updated the whole UI."',
-      },
-      { type: 'heading3', text: 'What the code looked like' },
-      {
-        type: 'code',
-        lang: 'typescript',
-        code: `@Injectable({ providedIn: 'root' })
-export class AuthStateService {
-  private http = inject(HttpClient);
-  private readonly user = new BehaviorSubject<User | null>(null);
-
-  readonly user$ = this.user.asObservable();
-  readonly isLoggedIn$ = this.user$.pipe(map(Boolean), distinctUntilChanged());
-  readonly isAdmin$ = this.user$.pipe(map((u) => !!u?.roles.includes('admin')), distinctUntilChanged());
-
-  loadCurrentUser() {
-    return this.http.get<User>('/api/me').pipe(tap((u) => this.user.next(u)));
-  }
-  logout() {
-    this.user.next(null);
-  }
-  get snapshot() { return this.user.value; }   // sync access for guards/interceptors
-}`,
-      },
-      { type: 'heading3', text: 'Other realistic scenarios you can mention' },
-      {
-        type: 'bullets',
-        items: [
-          "**Global loading spinner**: an interceptor increments/decrements a counter in a `BehaviorSubject<number>`; the shell shows the spinner when it's > 0.",
-          '**Filters shared between components**: a sidebar sets filters, a results grid and a URL-sync effect react to them.',
-          '**Theme / language** preference with an initial default.',
-          '**Wizard / multi-step form** state shared across step components.',
-          'Today you might implement the same with signals; say so — "for new code I\'d use a signal, but BehaviorSubject was the standard pattern before Angular 16 and is still useful when you need RxJS operators."',
-        ],
-      },
-      {
-        type: 'callout',
-        variant: 'tip',
-        text: 'Interview tip: include one lesson learned, e.g. "we initially mutated the array inside the subject and OnPush components didn\'t update — switching to immutable `next([...items, x])` fixed it." It makes the story credible.',
       },
     ],
   },
@@ -1641,13 +1642,15 @@ source$.pipe(
         variant: 'tip',
         text: 'Interview tip: say "before, in the pipe — because an error terminates the stream" and show the dead-search-box example. That cause-and-effect explanation is what interviewers want.',
       },
-    ],
-  },
-
-  'How to handle errors and retry an API call up to 3 times using RxJS?': {
-    summary:
-      "Pipe the HTTP call through `retry({ count: 3, delay: … })` and then `catchError` to handle the final failure. Because `HttpClient` observables are cold, each retry resubscribes and sends a fresh request — so you get 1 original attempt + up to 3 retries. Add a delay or exponential backoff, and skip retries for errors that won't succeed (4xx).",
-    details: [
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: How to handle errors and retry an API call up to 3 times using RxJS?',
+      },
+      {
+        type: 'paragraph',
+        text: "Pipe the HTTP call through `retry({ count: 3, delay: … })` and then `catchError` to handle the final failure. Because `HttpClient` observables are cold, each retry resubscribes and sends a fresh request — so you get 1 original attempt + up to 3 retries. Add a delay or exponential backoff, and skip retries for errors that won't succeed (4xx).",
+      },
       { type: 'heading3', text: 'Simplest version' },
       {
         type: 'code',

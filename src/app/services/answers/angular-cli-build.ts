@@ -401,23 +401,24 @@ export class App {}`,
         variant: 'tip',
         text: 'Interview tip: tell it as a story — "index.html → bundles → main.ts → bootstrapApplication → root injector → app-root rendered → router". Mentioning lazy chunks and hydration lifts the answer to senior level.',
       },
-    ],
-  },
-
-  'Is `AppComponent` mandatory? Can we build and bootstrap an Angular project without `AppComponent`?':
-    {
-      summary:
-        "No. `AppComponent` is just the CLI's default name. You can bootstrap any standalone component with `bootstrapApplication(AnyComponent)`, as long as its selector is in `index.html`. You can even start Angular with no root component at all using `createApplication()` — for example to expose components as Angular Elements (custom elements) — or with `ngDoBootstrap()` in a legacy NgModule app.",
-      details: [
-        {
-          type: 'paragraph',
-          text: 'This question focuses on alternatives. There are three practical ways to start an Angular app, and only the first two use a root component of any name.',
-        },
-        { type: 'heading3', text: '1. Any component as root (standalone)' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: Is `AppComponent` mandatory? Can we build and bootstrap an Angular project without `AppComponent`?',
+      },
+      {
+        type: 'paragraph',
+        text: "No. `AppComponent` is just the CLI's default name. You can bootstrap any standalone component with `bootstrapApplication(AnyComponent)`, as long as its selector is in `index.html`. You can even start Angular with no root component at all using `createApplication()` — for example to expose components as Angular Elements (custom elements) — or with `ngDoBootstrap()` in a legacy NgModule app.",
+      },
+      {
+        type: 'paragraph',
+        text: 'This question focuses on alternatives. There are three practical ways to start an Angular app, and only the first two use a root component of any name.',
+      },
+      { type: 'heading3', text: '1. Any component as root (standalone)' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'dashboard-root',
   imports: [RouterOutlet],
   template: '<router-outlet />',
@@ -428,12 +429,12 @@ bootstrapApplication(DashboardShell, {
   providers: [provideRouter(routes)],
 });
 // index.html: <dashboard-root></dashboard-root>`,
-        },
-        { type: 'heading3', text: '2. No root component — Angular Elements via createApplication' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `import { createApplication } from '@angular/platform-browser';
+      },
+      { type: 'heading3', text: '2. No root component — Angular Elements via createApplication' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `import { createApplication } from '@angular/platform-browser';
 import { createCustomElement } from '@angular/elements';
 
 // Starts Angular (platform + root injector) without rendering any root component
@@ -445,12 +446,12 @@ customElements.define(
   createCustomElement(PriceWidgetComponent, { injector: appRef.injector }),
 );
 // <price-widget currency="INR"></price-widget> can now be used in a CMS or another framework`,
-        },
-        { type: 'heading3', text: '3. Legacy NgModule — manual bootstrap' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@NgModule({
+      },
+      { type: 'heading3', text: '3. Legacy NgModule — manual bootstrap' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@NgModule({
   imports: [BrowserModule],
   // no bootstrap: [...] array
 })
@@ -463,29 +464,29 @@ export class AppModule implements DoBootstrap {
 }
 
 platformBrowserDynamic().bootstrapModule(AppModule);`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Use cases for no root component: embedding widgets in non-Angular sites, micro-frontends, gradual migration from AngularJS/other frameworks.',
-            'Building (`ng build`) only needs an entry file (`main.ts`); the component tree is whatever that file bootstraps.',
-            "Recent CLI versions generate the root as `App` in `app.ts`, so many new projects don't have an `AppComponent` at all.",
-          ],
-        },
-        { type: 'divider' },
-        {
-          type: 'heading3',
-          text: "Follow-up: What happens if we don't have `AppComponent` in an Angular project?",
-        },
-        {
-          type: 'paragraph',
-          text: "`AppComponent` is only a naming convention from the CLI — Angular doesn't look for that name. What Angular needs is **a root component to bootstrap**: whatever class you pass to `bootstrapApplication()` (or list in an NgModule's `bootstrap` array), whose selector exists in `index.html`. If you rename it, the app works. If you delete it without bootstrapping anything else, the build fails on the broken import, and with no bootstrapped component nothing renders.",
-        },
-        { type: 'heading3', text: 'Scenario 1 — renamed root component: works fine' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// shell.component.ts
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Use cases for no root component: embedding widgets in non-Angular sites, micro-frontends, gradual migration from AngularJS/other frameworks.',
+          'Building (`ng build`) only needs an entry file (`main.ts`); the component tree is whatever that file bootstraps.',
+          "Recent CLI versions generate the root as `App` in `app.ts`, so many new projects don't have an `AppComponent` at all.",
+        ],
+      },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: "Follow-up: What happens if we don't have `AppComponent` in an Angular project?",
+      },
+      {
+        type: 'paragraph',
+        text: "`AppComponent` is only a naming convention from the CLI — Angular doesn't look for that name. What Angular needs is **a root component to bootstrap**: whatever class you pass to `bootstrapApplication()` (or list in an NgModule's `bootstrap` array), whose selector exists in `index.html`. If you rename it, the app works. If you delete it without bootstrapping anything else, the build fails on the broken import, and with no bootstrapped component nothing renders.",
+      },
+      { type: 'heading3', text: 'Scenario 1 — renamed root component: works fine' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// shell.component.ts
 @Component({ selector: 'app-shell', template: '<h1>Hello</h1>' })
 export class ShellComponent {}
 
@@ -493,43 +494,43 @@ export class ShellComponent {}
 bootstrapApplication(ShellComponent, appConfig);
 
 // index.html must contain: <app-shell></app-shell>`,
-        },
-        { type: 'heading3', text: 'Scenario 2 — the selector is missing from index.html' },
-        {
-          type: 'code',
-          lang: 'text',
-          code: `index.html has <app-root>, but the bootstrapped component's selector is 'app-shell'
+      },
+      { type: 'heading3', text: 'Scenario 2 — the selector is missing from index.html' },
+      {
+        type: 'code',
+        lang: 'text',
+        code: `index.html has <app-root>, but the bootstrapped component's selector is 'app-shell'
 
 → Runtime error in the console, roughly:
   The selector "app-shell" did not match any elements
 → Blank page`,
-        },
-        { type: 'heading3', text: 'Scenario 3 — AppComponent deleted, nothing replaces it' },
-        {
-          type: 'code',
-          lang: 'text',
-          code: `main.ts still imports './app/app.component'
+      },
+      { type: 'heading3', text: 'Scenario 3 — AppComponent deleted, nothing replaces it' },
+      {
+        type: 'code',
+        lang: 'text',
+        code: `main.ts still imports './app/app.component'
 → Build error: Could not resolve "./app/app.component"
 
 Legacy NgModule app with an empty bootstrap array and no ngDoBootstrap():
 → Runtime error: the module was bootstrapped but declares no
   "bootstrap" components nor an "ngDoBootstrap" method`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'The root component is the top of the component tree and the host for `<router-outlet>`, layout (header/footer) and app-level setup.',
-            'Without a root component you can still start Angular in special cases — e.g. `createApplication()` to register Angular Elements (web components), or `ngDoBootstrap()` in an NgModule to bootstrap manually.',
-            'You can even bootstrap several root components (multiple `bootstrapApplication` calls, or several entries in an NgModule `bootstrap` array) — rare, but valid.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: "Not mandatory" + one alternative (`createApplication` with Angular Elements) is a strong, memorable answer — it shows you understand bootstrapping, not just the CLI template.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          'The root component is the top of the component tree and the host for `<router-outlet>`, layout (header/footer) and app-level setup.',
+          'Without a root component you can still start Angular in special cases — e.g. `createApplication()` to register Angular Elements (web components), or `ngDoBootstrap()` in an NgModule to bootstrap manually.',
+          'You can even bootstrap several root components (multiple `bootstrapApplication` calls, or several entries in an NgModule `bootstrap` array) — rare, but valid.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: "Not mandatory" + one alternative (`createApplication` with Angular Elements) is a strong, memorable answer — it shows you understand bootstrapping, not just the CLI template.',
+      },
+    ],
+  },
 
   'What changed in recent Angular releases (v19–v21)?': {
     summary:
@@ -610,6 +611,72 @@ ng test              # runs Vitest through the Angular CLI builder
         type: 'callout',
         variant: 'warning',
         text: 'Be precise about status: Signal Forms were experimental and Angular Aria was in developer preview at launch. Saying "I would not use experimental APIs in production without a fallback plan" is a good, mature point. Always double-check version specifics in the official changelog before an interview.',
+      },
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: Which Angular versions have you worked on?' },
+      {
+        type: 'paragraph',
+        text: 'Give the honest range you have used in production (e.g. "Angular [X] through [Y]"), then prove depth by naming what changed between those versions and what you migrated — standalone components, signals, the new `@if/@for` control flow, the esbuild application builder, and zoneless change detection. The version number alone means little; the upgrades you drove are what impress.',
+      },
+      {
+        type: 'paragraph',
+        text: 'This looks like a trivia question, but the interviewer is checking whether your knowledge is current and whether you have **lived through upgrades**. A candidate who says "Angular 8 to 19, and I led the migration to standalone and signals" is far stronger than one who says "Angular 17".',
+      },
+      { type: 'heading3', text: 'How to structure the answer' },
+      {
+        type: 'numbered',
+        items: [
+          '**Range:** the versions you used in real projects (be honest — "[Angular 12] on [legacy app], [Angular 19/20] on [current app]").',
+          '**Milestones you used:** 2–3 features that mark modern Angular, in your own words.',
+          '**Migration story:** one upgrade you performed and how (ng update, schematics, fixing breaking changes).',
+          '**What you are following now:** the current version and what you are evaluating (zoneless, signal forms, etc.).',
+        ],
+      },
+      { type: 'heading3', text: 'Version landmarks worth knowing' },
+      {
+        type: 'bullets',
+        items: [
+          '**v9:** Ivy compiler and runtime became the default (smaller bundles, better debugging).',
+          '**v14:** strictly typed reactive forms; standalone components in developer preview; `inject()` usable in more places.',
+          '**v15:** standalone APIs stable; functional router guards and HTTP interceptors; `NgOptimizedImage`.',
+          '**v16:** signals introduced (developer preview); required inputs; `takeUntilDestroyed`; `DestroyRef`.',
+          '**v17:** built-in control flow (`@if`, `@for`, `@switch`), `@defer` blocks, the esbuild/Vite-based application builder by default; signal `input()` arrived in the 17.x line.',
+          '**v18–v19:** experimental zoneless change detection, `output()`, `model()`, signal queries; standalone became the default; `linkedSignal` and `resource` introduced as experimental APIs.',
+          '**v20+:** core signal APIs (`effect`, `linkedSignal`, `toSignal`) stabilised, zoneless matured toward the default, structural directives like `*ngIf` deprecated in favour of control flow. Check the official changelog for the exact status in the newest release.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'bash',
+        code: `# The upgrade path you can describe (one major version at a time)
+ng update @angular/core@18 @angular/cli@18
+ng update @angular/core@19 @angular/cli@19
+
+# Optional migrations Angular ships as schematics
+ng generate @angular/core:standalone-migration    # NgModules → standalone
+ng generate @angular/core:control-flow-migration  # *ngIf/*ngFor → @if/@for
+ng generate @angular/core:signal-input-migration   # @Input() → input()
+ng generate @angular/core:inject-migration        # constructor DI → inject()`,
+      },
+      { type: 'heading3', text: 'Sample answer' },
+      {
+        type: 'paragraph',
+        text: '"I have worked with Angular from version [11] up to [20]. On [company / project A] I maintained an Angular [11] app built with NgModules and RxJS-heavy state. On [project B] I led the upgrade from [15] to [19] — we went one major at a time with `ng update`, fixed breaking changes in [Material / RxJS / a third-party library], then ran the standalone and control-flow schematics module by module. After that we moved new features to signals with `input()`, `computed()` and `toSignal()`, which cut our change-detection work noticeably — [our dashboard went from X to Y ms per interaction]. Right now I am following [Angular 21/22] and experimenting with zoneless change detection on [a side project / POC]."',
+      },
+      {
+        type: 'flow',
+        title: 'A safe major-version upgrade',
+        code: `flowchart LR
+  A["Read update.angular.dev<br/>for from → to"]:::external --> B["ng update core + cli<br/>one major at a time"]:::server
+  B --> C["Update 3rd-party libs<br/>Material, NgRx, etc."]:::server
+  C --> D["Run tests + e2e<br/>fix breaking changes"]:::highlight
+  D --> E["Optional schematics<br/>standalone, control flow"]:::client
+  E --> F([Release behind<br/>monitoring]):::db`,
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Pitfall: claiming the latest version without being able to name what is new in it. If you have only used older versions in production, say so and add what you have learned about recent features on your own — honesty plus curiosity beats a stretched claim.',
       },
     ],
   },

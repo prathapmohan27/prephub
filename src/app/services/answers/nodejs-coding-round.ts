@@ -1150,4 +1150,228 @@ async function countWordsByChunk(filePath: string): Promise<Map<string, number>>
       },
     ],
   },
+
+  'Write Express error-handling middleware that maps domain errors to Problem Details responses and hides internal details in production.':
+    {
+      summary:
+        "I define a small error hierarchy (`AppError` with `status`, `type` and `title`, plus subclasses like `NotFoundError` and `ConflictError`), throw those from services, and register one 4-argument middleware last. It maps known errors and `ZodError` to `application/problem+json` with the right status, adds `instance` and a request id, logs the full error server-side, and turns anything unknown into a generic 500 with no stack or message in production. If headers were already sent, it delegates to Express's default handler with `next(err)`.",
+      details: [
+        { type: 'heading3', text: 'Requirements to state first' },
+        {
+          type: 'bullets',
+          items: [
+            'One response format for every error (RFC 9457 Problem Details, see the API Design answer for the members).',
+            'Expected (operational) errors keep their status and a safe message; unexpected errors become 500 and leak nothing.',
+            'Validation errors return field-level details.',
+            'Every response carries a request id that matches the server log line.',
+            'Works for async handlers (Express 5 forwards rejected promises; on Express 4 wrap handlers).',
+          ],
+        },
+        { type: 'heading3', text: '1. Error hierarchy' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `// errors.ts
+export abstract class AppError extends Error {
+  abstract readonly status: number;
+  abstract readonly type: string; // stable URI clients can switch on
+  abstract readonly title: string;
+  readonly expose = true; // message is safe to show to clients
+
+  constructor(message: string, readonly extras: Record<string, unknown> = {}, options?: ErrorOptions) {
+    super(message, options);
+    this.name = new.target.name;
+  }
+}
+
+const base = 'https://api.example.com/problems';
+
+export class NotFoundError extends AppError {
+  readonly status = 404;
+  readonly type = base + '/not-found';
+  readonly title = 'Resource not found';
+}
+
+export class ConflictError extends AppError {
+  readonly status = 409;
+  readonly type = base + '/conflict';
+  readonly title = 'Request conflicts with the current state';
+}
+
+export class ForbiddenError extends AppError {
+  readonly status = 403;
+  readonly type = base + '/forbidden';
+  readonly title = 'Not allowed';
+}`,
+        },
+        { type: 'heading3', text: '2. The middleware' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `// error-handler.ts
+import type { ErrorRequestHandler } from 'express';
+import { ZodError } from 'zod';
+import { AppError } from './errors';
+import { logger } from './logger';
+
+const isProd = process.env.NODE_ENV === 'production';
+
+export const problemDetails: ErrorRequestHandler = (err, req, res, next) => {
+  // Response already streaming: we cannot change status or headers.
+  // Express's default handler will close the connection.
+  if (res.headersSent) return next(err);
+
+  const requestId = String(req.id ?? req.headers['x-request-id'] ?? '');
+  let status = 500;
+  let body: Record<string, unknown>;
+
+  if (err instanceof ZodError) {
+    status = 400;
+    body = {
+      type: 'https://api.example.com/problems/validation-error',
+      title: 'Your request is not valid',
+      detail: err.issues.length + ' field(s) failed validation',
+      errors: err.issues.map((i) => ({ pointer: '/' + i.path.join('/'), detail: i.message })),
+    };
+  } else if (err instanceof AppError) {
+    status = err.status;
+    body = { type: err.type, title: err.title, detail: err.message, ...err.extras };
+  } else if (isBodyParserError(err)) {
+    status = err.status; // e.g. 400 malformed JSON, 413 payload too large
+    body = { type: 'about:blank', title: err.status === 413 ? 'Payload too large' : 'Bad request' };
+  } else {
+    body = {
+      type: 'about:blank',
+      title: 'Internal Server Error',
+      // Never leak internals in production
+      ...(isProd ? {} : { detail: String(err?.message ?? err), stack: err?.stack }),
+    };
+  }
+
+  const log = status >= 500 ? logger.error.bind(logger) : logger.warn.bind(logger);
+  log({ err, requestId, method: req.method, path: req.originalUrl, status }, 'request failed');
+
+  res
+    .status(status)
+    .type('application/problem+json')
+    .json({ ...body, status, instance: req.originalUrl, requestId });
+};
+
+function isBodyParserError(err: any): err is { status: number; type: string } {
+  return typeof err?.status === 'number' && typeof err?.type === 'string' && err.status < 500;
+}`,
+        },
+        { type: 'heading3', text: '3. Wiring' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `const app = express();
+app.use(requestId());          // sets req.id and the X-Request-Id response header
+app.use(express.json({ limit: '1mb' }));
+app.use('/orders', ordersRouter);
+
+// 404 for unmatched routes, in the same format
+app.use((req, _res, next) => next(new NotFoundError('No route for ' + req.method + ' ' + req.path)));
+
+app.use(problemDetails);        // must be last, and must have 4 parameters
+
+// Express 4 only: forward async errors (Express 5 does this automatically)
+export const ah = (fn: RequestHandler): RequestHandler => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch(next);`,
+        },
+        {
+          type: 'paragraph',
+          text: "Inside a route the service just throws: `if (!order) throw new NotFoundError('Order ' + id + ' not found');`. Validation is `Schema.parse(req.body)`, which throws a `ZodError` that the middleware maps. No route needs its own try/catch.",
+        },
+        { type: 'heading3', text: '4. Tests with supertest' },
+        {
+          type: 'code',
+          lang: 'typescript',
+          code: `function buildApp() {
+  const app = express();
+  app.use(express.json());
+  app.get('/missing', () => { throw new NotFoundError('Order 42 not found'); });
+  app.post('/orders', (req, res) => {
+    z.object({ qty: z.number().int().min(1) }).parse(req.body);
+    res.status(201).end();
+  });
+  app.get('/boom', async () => { throw new Error('db password is hunter2'); });
+  app.use(problemDetails);
+  return app;
+}
+
+it('maps a domain error', async () => {
+  const res = await request(buildApp()).get('/missing').expect(404);
+  expect(res.headers['content-type']).toMatch(/application\\/problem\\+json/);
+  expect(res.body).toMatchObject({ status: 404, title: 'Resource not found', instance: '/missing' });
+});
+
+it('returns field errors for invalid input', async () => {
+  const res = await request(buildApp()).post('/orders').send({ qty: 0 }).expect(400);
+  expect(res.body.errors[0].pointer).toBe('/qty');
+});
+
+it('hides internal details in production', async () => {
+  process.env.NODE_ENV = 'production'; // or inject isProd as an option for cleaner tests
+  const res = await request(buildApp()).get('/boom').expect(500);
+  expect(JSON.stringify(res.body)).not.toContain('hunter2');
+  expect(res.body.stack).toBeUndefined();
+});`,
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          text: 'Reading `NODE_ENV` at module load makes the production test order-dependent. A cleaner design is a factory, `problemDetails({ exposeInternals: false, logger })`, so tests pass options instead of mutating globals.',
+        },
+        { type: 'heading3', text: 'Design decisions worth saying out loud' },
+        {
+          type: 'bullets',
+          items: [
+            '**Domain errors do not know HTTP**: an alternative is to keep `status` out of the domain classes and map them in the middleware with a lookup table. That keeps services reusable from queue consumers and CLIs.',
+            '**Stable `type` URIs** are the contract; `detail` is for humans and may change.',
+            '**4xx are warnings, 5xx are errors** in logs and alerts, so a spike of bad client input does not page anyone.',
+            '**Do not echo user input** into `detail` without care; it can end up in logs and error UIs.',
+            '**Programmer errors** (a `TypeError` from a bug) still get a 500 here, and the process keeps running because the request is isolated. Errors outside the request path still go to the process-level handlers.',
+          ],
+        },
+        { type: 'heading3', text: 'Complexity and edge cases' },
+        {
+          type: 'bullets',
+          items: [
+            'O(1) per error, plus O(n) over validation issues.',
+            'Errors thrown after streaming started (`res.headersSent`).',
+            'Non-`Error` values thrown (`throw "oops"`): handled by the generic branch via `String(err)`.',
+            'Errors from `express.json()` (malformed JSON, 413) are client errors and should not become 500.',
+            'Error middleware registered before the routes never runs for them.',
+          ],
+        },
+        { type: 'divider' },
+        { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+        {
+          type: 'bullets',
+          items: [
+            'Why must the handler have exactly four parameters? Hint: Express detects error middleware by `fn.length === 4`; dropping `next` turns it into normal middleware.',
+            'What changes in Express 5? Hint: rejected promises from handlers are passed to `next(err)` automatically, so the `ah()` wrapper is no longer needed.',
+            'How do you correlate the response with logs and traces? Hint: request id via `AsyncLocalStorage` in every log line, plus the OpenTelemetry trace id in the body.',
+            'How would you translate database errors such as a duplicate key? Hint: map driver codes (Postgres `23505`, MongoDB `11000`) to `ConflictError` in the repository layer.',
+          ],
+        },
+        { type: 'heading3', text: 'Common mistakes' },
+        {
+          type: 'bullets',
+          items: [
+            'Returning `err.message` or `err.stack` for every error, leaking SQL, file paths or secrets.',
+            'Every route having its own try/catch with a slightly different JSON shape.',
+            'Turning malformed JSON or validation failures into 500s, which pollutes error rates and alerts.',
+            'Calling `res.status()` after headers were sent, which throws `ERR_HTTP_HEADERS_SENT`.',
+            'Forgetting async errors in Express 4, so requests hang instead of reaching the handler.',
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'important',
+          text: 'Senior signal: one central boundary, a clear split between safe operational errors and hidden internal ones, request ids that tie responses to logs, correct handling of `headersSent` and body-parser errors, and tests proving that nothing sensitive leaks.',
+        },
+      ],
+    },
 };

@@ -40,6 +40,8 @@ const LONG_FORM_TOPICS = new Set([
   'coding-round',
   'nodejs-system-design',
   'nodejs-coding-round',
+  'fullstack-scenarios',
+  'lld-design',
 ]);
 const SECONDS_SHORT = 120;
 const SECONDS_LONG = 300;

@@ -32,6 +32,8 @@ export const ANSWER_LOADERS: Record<string, () => Promise<AnswerMap>> = {
   'frontend-debugging': () => import('./frontend-debugging').then((m) => m.answers),
   'experience-behavioral': () => import('./experience-behavioral').then((m) => m.answers),
   'coding-round': () => import('./coding-round').then((m) => m.answers),
+  'fullstack-scenarios': () => import('./fullstack-scenarios').then((m) => m.answers),
+  'lld-design': () => import('./lld-design').then((m) => m.answers),
   'nodejs-fundamentals': () => import('./nodejs-fundamentals').then((m) => m.answers),
   'nodejs-error-handling': () => import('./nodejs-error-handling').then((m) => m.answers),
   'nodejs-streams': () => import('./nodejs-streams').then((m) => m.answers),

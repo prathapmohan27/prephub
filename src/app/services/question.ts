@@ -68,6 +68,10 @@ const FOUNDATION_TOPICS = new Set([
   // Interview rounds that are not specific to one framework
   'experience-behavioral',
   'coding-round',
+  // End-to-end scenarios that span Angular, Node and the database
+  'fullstack-scenarios',
+  // Low-level design and OOP: asked in both Angular and Node interview loops
+  'lld-design',
 ]);
 
 export function trackOf(categoryId: string): Track {
@@ -89,6 +93,24 @@ export function trackInfo(track: Track): TrackInfo {
  * Keyed by exact question text, like progress; update this list when rewording a question.
  */
 const SENIOR_QUESTIONS = new Set<string>([
+  // lld-design
+  'How do you design code for testability (dependency inversion, ports and adapters, a pure core)?',
+  'How do you add cross-cutting behaviour (caching, retries, logging) with the Decorator pattern without changing the original class?',
+  'You inherit a 600-line "god service". How do you refactor it safely, and what do you extract first?',
+  'Design a parking lot system (LLD): entities, classes, relationships and how it handles concurrency.',
+  'Design a rate-limiter library with pluggable algorithms (LLD): interfaces, classes and how you test it.',
+  'Design a notification service (LLD) that supports email, SMS and push, with retries, templates and user preferences.',
+  'Design an in-memory cache with pluggable eviction policies (LRU, LFU, TTL) (LLD).',
+  'Design an expense-sharing app like Splitwise (LLD): groups, split types and settling balances.',
+  // fullstack-scenarios
+  'Trace a login end to end in an Angular + Node app: form, API, token or cookie, interceptor, silent refresh and logout everywhere.',
+  'How do you let users upload a 2 GB file from Angular: presigned URLs, progress, resume, scanning, background processing and notifying the UI?',
+  'Design live order-status updates from Node to Angular: WebSocket vs SSE vs polling, reconnection, and scaling across several server instances.',
+  'Design a paginated, filterable, sortable table end to end: the API contract, MongoDB indexes, Angular state and URL-synced filters.',
+  'Two users edit the same record. How do you handle optimistic UI updates and server-side conflicts (version field, ETag, 409) end to end?',
+  'A user saves a change but still sees old data. How do you find which layer is stale: browser cache, CDN, Redis, or a read replica?',
+  'A page is slow. How do you work out whether the problem is in Angular, the network, the API or the database, and which tools do you use?',
+  'How do you roll out a breaking API change while users still have old Angular bundles cached in their browsers?',
   // web-performance + Angular performance (depth)
   'How do you improve Largest Contentful Paint (LCP)?',
   'What is Interaction to Next Paint (INP), and how do you fix a slow interaction?',
@@ -292,6 +314,10 @@ const SENIOR_QUESTIONS = new Set<string>([
   'What are Worker Threads in Node.js and when should you use them?',
   'What is the difference between child_process.fork(), spawn(), and exec()?',
   // nodejs-error-handling
+  'How do you design a custom error hierarchy for a Node.js API, and where should errors be translated into HTTP responses?',
+  'What are the common ways async errors get lost in Node.js (floating promises, missing `await`, async callbacks in `forEach`, emitters and streams), and how do you catch them?',
+  'What is `AsyncLocalStorage`, and how do you use it to carry request context such as a request ID? What are its pitfalls?',
+  'How should a Node.js service handle failures of a dependency (database, Redis, third-party API) without taking the whole service down?',
   'What is the difference between try/catch and process.on("uncaughtException")?',
   'How do you implement graceful shutdown in Node.js?',
   // nodejs-streams
@@ -303,6 +329,12 @@ const SENIOR_QUESTIONS = new Set<string>([
   'How do you detect and diagnose memory leaks in a production Node.js app?',
   'How do you test for memory leaks in Node.js?',
   // nodejs-express-nestjs
+  'How do you structure a production Express app (routes, controllers, services, repositories), and where do validation, auth and transactions belong?',
+  'What changed in Express 5, and what breaks when you upgrade from Express 4?',
+  'A request in Express never gets a response and nothing appears in the logs. What are the likely causes, and how do you find it?',
+  'How do you stop downstream work when the client disconnects or a request times out (`AbortController`)?',
+  'How do NestJS modules and provider scopes work, and why can request-scoped providers hurt performance?',
+  'How do you deal with circular dependencies in NestJS (`forwardRef`), and what do they tell you about your design?',
   'What is the difference between Fastify and Express?',
   'What are Guards, Interceptors, and Pipes in NestJS?',
   'How do you implement versioned APIs in NestJS?',
@@ -394,6 +426,8 @@ export const TOPIC_GROUPS: { track: Track; title: string; topics: string[] }[] =
     topics: ['browser-dom-css', 'web-accessibility', 'web-performance'],
   },
   { track: 'foundations', title: 'Problem solving', topics: ['dsa-patterns', 'coding-round'] },
+  { track: 'foundations', title: 'Software design', topics: ['lld-design'] },
+  { track: 'foundations', title: 'Full stack', topics: ['fullstack-scenarios'] },
   { track: 'foundations', title: 'Interview skills', topics: ['experience-behavioral'] },
   {
     track: 'angular',
@@ -1145,6 +1179,49 @@ export class Question {
       ],
     },
     {
+      id: 'lld-design',
+      icon: 'ti-hierarchy',
+      title: 'Low-Level Design & OOP',
+      color: '#0F766E',
+      bg: '#CCFBF1',
+      questions: [
+        'How do you approach a low-level design interview, and what are interviewers looking for?',
+        'Explain SOLID with Node.js/TypeScript examples. Which principle do you see violated most often in real code?',
+        'Composition vs inheritance: when is inheritance the right tool, and how do you refactor a deep class hierarchy?',
+        'What are coupling and cohesion, and how do you spot and reduce bad coupling in a codebase?',
+        'How do you design code for testability (dependency inversion, ports and adapters, a pure core)?',
+        'A service has a growing `switch` over payment providers. Refactor it with the Strategy pattern and explain the trade-offs.',
+        'When do you use a Factory or Abstract Factory, and when is it over-engineering?',
+        'How do the Adapter and Facade patterns help you integrate a third-party SDK you might replace later?',
+        'How do you add cross-cutting behaviour (caching, retries, logging) with the Decorator pattern without changing the original class?',
+        'You inherit a 600-line "god service". How do you refactor it safely, and what do you extract first?',
+        'Design a parking lot system (LLD): entities, classes, relationships and how it handles concurrency.',
+        'Design a rate-limiter library with pluggable algorithms (LLD): interfaces, classes and how you test it.',
+        'Design a notification service (LLD) that supports email, SMS and push, with retries, templates and user preferences.',
+        'Design an in-memory cache with pluggable eviction policies (LRU, LFU, TTL) (LLD).',
+        'Design an expense-sharing app like Splitwise (LLD): groups, split types and settling balances.',
+      ],
+    },
+    {
+      id: 'fullstack-scenarios',
+      icon: 'ti-layers-linked',
+      title: 'Full-Stack Scenarios',
+      color: '#4338CA',
+      bg: '#E0E7FF',
+      questions: [
+        'Trace a login end to end in an Angular + Node app: form, API, token or cookie, interceptor, silent refresh and logout everywhere.',
+        'How do you let users upload a 2 GB file from Angular: presigned URLs, progress, resume, scanning, background processing and notifying the UI?',
+        'Design live order-status updates from Node to Angular: WebSocket vs SSE vs polling, reconnection, and scaling across several server instances.',
+        'Design a paginated, filterable, sortable table end to end: the API contract, MongoDB indexes, Angular state and URL-synced filters.',
+        'How do you share types and validation between Angular and Node (OpenAPI codegen, a shared package in a monorepo, or Zod schemas)?',
+        'How do you handle errors end to end so the user sees a useful message and support can trace it (Problem Details, interceptor, correlation ID, logging)?',
+        'Two users edit the same record. How do you handle optimistic UI updates and server-side conflicts (version field, ETag, 409) end to end?',
+        'A user saves a change but still sees old data. How do you find which layer is stale: browser cache, CDN, Redis, or a read replica?',
+        'A page is slow. How do you work out whether the problem is in Angular, the network, the API or the database, and which tools do you use?',
+        'How do you roll out a breaking API change while users still have old Angular bundles cached in their browsers?',
+      ],
+    },
+    {
       id: 'experience-behavioral',
       icon: 'ti-user-star',
       title: 'Experience & Behavioral',
@@ -1218,8 +1295,12 @@ export class Question {
       bg: '#FEE2E2',
       questions: [
         'What is the difference between operational errors and programmer errors?',
+        'How do you design a custom error hierarchy for a Node.js API, and where should errors be translated into HTTP responses?',
+        'What are the common ways async errors get lost in Node.js (floating promises, missing `await`, async callbacks in `forEach`, emitters and streams), and how do you catch them?',
         'How do you handle uncaught exceptions in Node.js?',
         'What is the difference between try/catch and process.on("uncaughtException")?',
+        'What is `AsyncLocalStorage`, and how do you use it to carry request context such as a request ID? What are its pitfalls?',
+        'How should a Node.js service handle failures of a dependency (database, Redis, third-party API) without taking the whole service down?',
         'How do you implement graceful shutdown in Node.js?',
       ],
     },
@@ -1263,12 +1344,20 @@ export class Question {
       questions: [
         'How does Express middleware work?',
         'What is the difference between app.use() and app.get() in Express?',
+        'How do you validate requests in Express with a schema library such as Zod, and why validate at the edge?',
+        'How do you structure a production Express app (routes, controllers, services, repositories), and where do validation, auth and transactions belong?',
+        'What changed in Express 5, and what breaks when you upgrade from Express 4?',
+        'A request in Express never gets a response and nothing appears in the logs. What are the likely causes, and how do you find it?',
+        'How do you stop downstream work when the client disconnects or a request times out (`AbortController`)?',
         'What is the difference between Fastify and Express?',
         'What is NestJS and how does it differ from Express?',
+        'How do NestJS modules and provider scopes work, and why can request-scoped providers hurt performance?',
         'What are Guards, Interceptors, and Pipes in NestJS?',
         'How do you implement request validation in NestJS using class-validator?',
         'How do you implement JWT authentication in NestJS?',
         'How do you implement versioned APIs in NestJS?',
+        'How do you deal with circular dependencies in NestJS (`forwardRef`), and what do they tell you about your design?',
+        'How do you test a NestJS service and controller (`Test.createTestingModule`, overriding providers)?',
         'How do you handle file uploads in Express/NestJS?',
       ],
     },
@@ -1610,6 +1699,7 @@ export class Question {
         'Implement a simple EventEmitter with `on`, `off`, `once`, and `emit`.',
         'Implement `promisify` for callback-style (error-first) functions.',
         'Implement a token-bucket rate limiter as Express middleware.',
+        'Write Express error-handling middleware that maps domain errors to Problem Details responses and hides internal details in production.',
         'Count word frequencies in a very large file using streams.',
       ],
     },

@@ -84,7 +84,7 @@ type ViewState = 'setup' | 'session';
               </div>
               <div class="mode-card-title">Single Topic</div>
               <div class="mode-card-desc">
-                Focus deeply on one category. All 10 questions from your chosen topic.
+                Focus deeply on one category. Up to 10 questions from your chosen topic.
               </div>
             </button>
 
@@ -136,7 +136,7 @@ type ViewState = 'setup' | 'session';
               <p class="topic-hint">
                 {{
                   selectedMode() === 'single'
-                    ? 'All 10 questions will be from this category.'
+                    ? 'Up to 10 questions will be from this category.'
                     : selectedTopics().length + ' selected — questions spread evenly.'
                 }}
               </p>
@@ -178,7 +178,9 @@ type ViewState = 'setup' | 'session';
             <div class="session-header">
               <div class="session-meta">
                 <span class="session-date-label">{{ formattedDate() }}</span>
-                <span class="session-title">Today's 10 Questions</span>
+                <span class="session-title"
+                  >Today's {{ session()!.questions.length }} Questions</span
+                >
                 <span class="session-mode-tag">
                   <i [class]="'ti ' + modeIcon()"></i>
                   {{ modeLabel() }}
@@ -195,7 +197,9 @@ type ViewState = 'setup' | 'session';
             <div class="progress-bar-wrap">
               <div class="progress-row">
                 <span class="progress-label">Progress</span>
-                <span class="progress-count">{{ completedCount() }} / 10</span>
+                <span class="progress-count"
+                  >{{ completedCount() }} / {{ session()!.questions.length }}</span
+                >
               </div>
               <div class="progress-track">
                 <div class="progress-fill" [style.width]="progress() + '%'"></div>
@@ -308,7 +312,8 @@ type ViewState = 'setup' | 'session';
                 <div class="completion-emoji">🎉</div>
                 <p class="completion-title">Session Complete!</p>
                 <p class="completion-sub">
-                  You've reviewed all 10 questions for today. Come back tomorrow for a fresh set.
+                  You've reviewed all {{ session()!.questions.length }} questions for today. Come
+                  back tomorrow for a fresh set.
                   @if (streak() > 0) {
                     <br />🔥 Keep your {{ streak() }}-day streak going!
                   }
@@ -366,6 +371,7 @@ export class DailyLearning implements OnInit {
   // ── Lifecycle ─────────────────────────────────────────────────────────────
   ngOnInit() {
     this.allCategories.set(this.questionService.getCategories());
+    this.dailyService.refreshStreak();
 
     const savedMode = localStorage.getItem('prep_mode');
     if (isTrack(savedMode)) {
@@ -421,6 +427,7 @@ export class DailyLearning implements OnInit {
       this.selectedTopics(),
     );
     this.expandedIndex.set(null);
+    this.revealed.set(new Set());
     this.view.set('session');
   }
 
@@ -428,6 +435,7 @@ export class DailyLearning implements OnInit {
     this.dailyService.clearSession();
     this.selectedTopics.set([]);
     this.expandedIndex.set(null);
+    this.revealed.set(new Set());
     this.view.set('setup');
   }
 

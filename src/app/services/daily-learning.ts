@@ -41,15 +41,18 @@ export class DailyLearningService {
 
   readonly progress = computed(() => {
     const s = this._session();
-    if (!s) return 0;
-    return Math.round((this.completedCount() / QUESTIONS_PER_DAY) * 100);
+    if (!s || !s.questions.length) return 0;
+    return Math.round((this.completedCount() / s.questions.length) * 100);
   });
 
-  readonly isComplete = computed(() => this.completedCount() >= QUESTIONS_PER_DAY);
+  readonly isComplete = computed(() => {
+    const s = this._session();
+    return !!s && s.questions.length > 0 && this.completedCount() >= s.questions.length;
+  });
 
-  /** Returns today's date as YYYY-MM-DD */
+  /** Returns today's local date as YYYY-MM-DD */
   today(): string {
-    return new Date().toISOString().slice(0, 10);
+    return this.dateOffset(0);
   }
 
   /** Re-reads the streak from storage (it is otherwise only refreshed with today's session). */
@@ -104,7 +107,6 @@ export class DailyLearningService {
 
     this._session.set(session);
     this.persistSession(session);
-    this.updateStreak();
     this._streak.set(this.computeStreak());
     return session;
   }
@@ -150,12 +152,25 @@ export class DailyLearningService {
     const perCat = Math.floor(total / categories.length);
     const remainder = total % categories.length;
     const result: DailyQuestion[] = [];
+    const leftovers: DailyQuestion[][] = [];
 
     categories.forEach((cat, i) => {
       const take = perCat + (i < remainder ? 1 : 0);
-      const shuffled = this.seededShuffle([...cat.questions], seed + cat.id);
-      shuffled.slice(0, take).forEach((q) => result.push(this.toQuestion(q, cat)));
+      const shuffled = this.seededShuffle([...cat.questions], seed + cat.id).map((q) =>
+        this.toQuestion(q, cat),
+      );
+      result.push(...shuffled.slice(0, take));
+      leftovers.push(shuffled.slice(take));
     });
+
+    // Small topics may not cover their share: top up round-robin from the others.
+    while (result.length < total && leftovers.some((l) => l.length)) {
+      for (const l of leftovers) {
+        if (result.length >= total) break;
+        const next = l.shift();
+        if (next) result.push(next);
+      }
+    }
 
     return this.seededShuffle(result, seed + 'mixed');
   }
@@ -246,6 +261,7 @@ export class DailyLearningService {
   private dateOffset(days: number): string {
     const d = new Date();
     d.setDate(d.getDate() + days);
-    return d.toISOString().slice(0, 10);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   }
 }

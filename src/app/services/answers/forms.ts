@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What can Reactive Forms do in a real-time application?': {
+  'reactive-forms-in-real-apps': {
     summary:
       'Reactive Forms give you a model-driven, observable form state in the component class. Because every control exposes `valueChanges` and `statusChanges` streams, you can react to input in real time — live validation, debounced search/autosave, dependent fields, async server checks, dynamic add/remove of controls — and test all of it without a DOM.',
     details: [
@@ -106,7 +106,7 @@ canSubmit = toSignal(this.form.statusChanges.pipe(map((s) => s === 'VALID')), { 
     ],
   },
 
-  'Difference between setValue and patchValue': {
+  'setvalue-vs-patchvalue': {
     summary:
       '`setValue` replaces the value of a FormGroup/FormArray and requires an object that matches the whole structure exactly — missing or extra keys throw an error. `patchValue` updates only the keys you pass and silently ignores unknown ones. Use `setValue` when you have the complete model, `patchValue` for partial updates.',
     details: [
@@ -165,7 +165,7 @@ this.form.controls.firstName.setValue('X', { onlySelf: true });`,
     ],
   },
 
-  'How to implement Dynamic Forms in Angular using FormArray?': {
+  'dynamic-forms-with-formarray': {
     summary:
       'A `FormArray` holds an ordered, variable-length list of controls or groups. You expose it via a getter, push/remove `FormGroup`s at runtime (`push`, `removeAt`, `insert`, `clear`), and render it in the template with `formArrayName` plus `@for` and `[formGroupName]="$index"`.',
     details: [
@@ -300,7 +300,7 @@ form.setControl('phones', new FormArray(user.phones.map((p) => new FormControl(p
     ],
   },
 
-  'How to implement a dynamic form where input fields are shown/hidden based on selection?': {
+  'show-or-hide-fields-based-on-a-selection': {
     summary:
       "Listen to the selector control's `valueChanges` and, for each dependent field, both **show/hide it in the template** with `@if` and **enable/disable it in the form model** (or add/remove the control). Disabling is key: a disabled control is excluded from `form.value` and its validators do not run, so hidden required fields don't block submission.",
     details: [
@@ -390,7 +390,7 @@ form.setControl('phones', new FormArray(user.phones.map((p) => new FormControl(p
     ],
   },
 
-  'How would you build a dynamic form using JSON configuration instead of hardcoding controls?': {
+  'forms-from-json-configuration': {
     summary:
       'Define a typed field config (key, type, label, validators, options, visibility rules), loop over it to build a `FormGroup` with `FormControl`s and mapped validators, and render each field with `@for` + `@switch` on its type (or a small field component per type). The form becomes data — it can come from the server, a CMS, or a JSON file.',
     details: [
@@ -525,20 +525,19 @@ export class DynamicForm {
     ],
   },
 
-  'Your form has more than 50 fields. Will you keep the complete reactive form and template inside one component?':
-    {
-      summary:
-        'No. I keep **one form model** (a single root `FormGroup` owned by a parent or a form service) but split the **UI** into section components, each bound to its own nested `FormGroup`. That gives small, testable components while validation, value and submit stay in one place.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'A 50-field component means a huge template, slow reviews, merge conflicts and poor reuse. But splitting the form model into 5 unrelated forms makes cross-section validation and submit painful. The balance: split by section, keep one tree.',
-        },
-        { type: 'heading3', text: 'Approach 1: pass the nested FormGroup as an input' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// parent: owns the full model
+  'splitting-a-50-field-form': {
+    summary:
+      'No. I keep **one form model** (a single root `FormGroup` owned by a parent or a form service) but split the **UI** into section components, each bound to its own nested `FormGroup`. That gives small, testable components while validation, value and submit stay in one place.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'A 50-field component means a huge template, slow reviews, merge conflicts and poor reuse. But splitting the form model into 5 unrelated forms makes cross-section validation and submit painful. The balance: split by section, keep one tree.',
+      },
+      { type: 'heading3', text: 'Approach 1: pass the nested FormGroup as an input' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// parent: owns the full model
 export class ApplicationForm {
   private fb = inject(NonNullableFormBuilder);
   form = this.fb.group({
@@ -564,22 +563,22 @@ export class ApplicationForm {
 export class AddressSection {
   group = input.required<FormGroup<AddressControls>>();
 }`,
-        },
-        {
-          type: 'code',
-          lang: 'html',
-          code: `<form [formGroup]="form" (ngSubmit)="submit()">
+      },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<form [formGroup]="form" (ngSubmit)="submit()">
   <app-personal-section [group]="form.controls.personal" />
   <app-address-section [group]="form.controls.address" />
   <app-employment-section [group]="form.controls.employment" />
   <button [disabled]="form.invalid">Submit</button>
 </form>`,
-        },
-        { type: 'heading3', text: 'Approach 2: ControlContainer (child uses formGroupName)' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Child reuses the parent's FormGroupDirective — no input needed
+      },
+      { type: 'heading3', text: 'Approach 2: ControlContainer (child uses formGroupName)' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Child reuses the parent's FormGroupDirective — no input needed
 @Component({
   selector: 'app-address-section',
   imports: [ReactiveFormsModule],
@@ -587,41 +586,40 @@ export class AddressSection {
   template: \`<fieldset formGroupName="address"> <input formControlName="city" /> </fieldset>\`,
 })
 export class AddressSection {}`,
-        },
-        { type: 'heading3', text: 'Other techniques for big forms' },
-        {
-          type: 'bullets',
-          items: [
-            '**Reusable field components** implementing `ControlValueAccessor` (address, phone, date-range) — used across many forms.',
-            '**Form service / factory** that builds the FormGroup, so the structure, defaults and validators are testable without a template.',
-            '**Typed forms** (`NonNullableFormBuilder`, interfaces per section) so refactors are compiler-checked.',
-            '**Lazy sections / tabs / stepper** — render only the visible section (`@defer` or `@if`) to reduce initial DOM.',
-            "**Performance** — OnPush / zoneless + signals; `updateOn: 'blur'` for expensive validators.",
-            '**JSON config** — if many forms share the pattern, drive them from config.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: say "one model, many views". Explain that keeping a single root FormGroup makes cross-section validation (e.g. salary required if employed) and a single `submit()` trivial, while section components stay small and focused.',
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'Other techniques for big forms' },
+      {
+        type: 'bullets',
+        items: [
+          '**Reusable field components** implementing `ControlValueAccessor` (address, phone, date-range) — used across many forms.',
+          '**Form service / factory** that builds the FormGroup, so the structure, defaults and validators are testable without a template.',
+          '**Typed forms** (`NonNullableFormBuilder`, interfaces per section) so refactors are compiler-checked.',
+          '**Lazy sections / tabs / stepper** — render only the visible section (`@defer` or `@if`) to reduce initial DOM.',
+          "**Performance** — OnPush / zoneless + signals; `updateOn: 'blur'` for expensive validators.",
+          '**JSON config** — if many forms share the pattern, drive them from config.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: say "one model, many views". Explain that keeping a single root FormGroup makes cross-section validation (e.g. salary required if employed) and a single `submit()` trivial, while section components stay small and focused.',
+      },
+    ],
+  },
 
-  'Your application has a stepper and each step is implemented in a different Angular component. How would you share the complete form across all steps?':
-    {
-      summary:
-        "Create the complete `FormGroup` once — in the stepper parent or, better, in a form service provided at the stepper's component level — with one nested group per step. Each step component injects the service (or receives its nested group as an input) and binds only to its section. Step validity is just `form.controls.stepX.valid`, and the final submit reads the whole form.",
-      details: [
-        {
-          type: 'paragraph',
-          text: "The key decisions are: who owns the form (a scoped service, so it lives exactly as long as the wizard), how steps access it (inject or input), and how the stepper knows a step is complete (the nested group's validity).",
-        },
-        { type: 'heading3', text: 'Scoped form service' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Injectable() // NOT providedIn: 'root' — one instance per wizard
+  'sharing-one-form-across-stepper-steps': {
+    summary:
+      "Create the complete `FormGroup` once — in the stepper parent or, better, in a form service provided at the stepper's component level — with one nested group per step. Each step component injects the service (or receives its nested group as an input) and binds only to its section. Step validity is just `form.controls.stepX.valid`, and the final submit reads the whole form.",
+    details: [
+      {
+        type: 'paragraph',
+        text: "The key decisions are: who owns the form (a scoped service, so it lives exactly as long as the wizard), how steps access it (inject or input), and how the stepper knows a step is complete (the nested group's validity).",
+      },
+      { type: 'heading3', text: 'Scoped form service' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Injectable() // NOT providedIn: 'root' — one instance per wizard
 export class OnboardingFormService {
   private fb = inject(NonNullableFormBuilder);
   private http = inject(HttpClient);
@@ -649,11 +647,11 @@ export class Onboarding {
   protected svc = inject(OnboardingFormService);
   protected form = this.svc.form;
 }`,
-        },
-        {
-          type: 'code',
-          lang: 'html',
-          code: `<mat-stepper linear>
+      },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<mat-stepper linear>
   <mat-step [stepControl]="form.controls.account" label="Account">
     <app-account-step />
   </mat-step>
@@ -665,11 +663,11 @@ export class Onboarding {
     <button (click)="save()" [disabled]="form.invalid">Finish</button>
   </mat-step>
 </mat-stepper>`,
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-account-step',
   imports: [ReactiveFormsModule],
   template: \`
@@ -684,11 +682,11 @@ export class AccountStep {
   // Same instance as the parent — state survives moving back and forth
   protected group = inject(OnboardingFormService).form.controls.account;
 }`,
-        },
-        {
-          type: 'flow',
-          title: 'Ownership in a multi-step form',
-          code: `flowchart TD
+      },
+      {
+        type: 'flow',
+        title: 'Ownership in a multi-step form',
+        code: `flowchart TD
   P["Onboarding (stepper)<br/>providers: FormService"]:::highlight --> S[(FormService.form)]:::cache
   S --> A[account group]
   S --> B[profile group]
@@ -697,39 +695,38 @@ export class AccountStep {
   B --> SB[ProfileStep]:::client
   C --> SC[PlanStep]:::client
   S --> API[Submit full value]:::server`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            "Provide the service at the stepper component level so state resets when the user leaves the wizard; use `providedIn: 'root'` only if the draft must survive navigation.",
-            'If steps are separate **routes**, provide the service on the parent route (`providers` in the route config) so child routes share one instance.',
-            'Persist drafts with `valueChanges` → `debounceTime` → `localStorage` / API to survive refreshes.',
-            'Alternative: steps receive their nested group via `input.required<FormGroup>()` — simpler for small wizards, but the parent must wire every step.',
-            'Avoid separate FormGroups per step merged at the end: you lose cross-step validation and have to re-sync state.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: mention `[stepControl]` + `linear` (Angular Material) or your own "can go next" check using the nested group\'s validity, and that `markAllAsTouched()` on the step group shows errors when the user tries to advance.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          "Provide the service at the stepper component level so state resets when the user leaves the wizard; use `providedIn: 'root'` only if the draft must survive navigation.",
+          'If steps are separate **routes**, provide the service on the parent route (`providers` in the route config) so child routes share one instance.',
+          'Persist drafts with `valueChanges` → `debounceTime` → `localStorage` / API to survive refreshes.',
+          'Alternative: steps receive their nested group via `input.required<FormGroup>()` — simpler for small wizards, but the parent must wire every step.',
+          'Avoid separate FormGroups per step merged at the end: you lose cross-step validation and have to re-sync state.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: mention `[stepControl]` + `linear` (Angular Material) or your own "can go next" check using the nested group\'s validity, and that `markAllAsTouched()` on the step group shows errors when the user tries to advance.',
+      },
+    ],
+  },
 
-  'Suppose a Reactive Form contains a dropdown that gets enabled/disabled from multiple events. A defect is reported where the dropdown behaves incorrectly. How would you debug which event is changing its state?':
-    {
-      summary:
-        "First reproduce it, then make the state changes observable: subscribe to the control's `statusChanges` (or `events` in Angular 18+) and log with a stack trace (`console.trace`) or set a breakpoint inside it to see exactly which code path called `enable()`/`disable()`. The real fix is usually to stop toggling from many places and derive the disabled state from **one** function of the inputs.",
-      details: [
-        {
-          type: 'paragraph',
-          text: 'The bug pattern is a race between several writers — a value change in another field, an API response, a permission check, a route param — each calling `enable()` or `disable()`. The last one wins, and the order changes with timing. Debugging is about finding the writers; fixing is about having a single writer.',
-        },
-        { type: 'heading3', text: 'Step 1: trace every state change' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `const ctrl = this.form.controls.region;
+  'debug-a-dropdown-toggled-by-many-events': {
+    summary:
+      "First reproduce it, then make the state changes observable: subscribe to the control's `statusChanges` (or `events` in Angular 18+) and log with a stack trace (`console.trace`) or set a breakpoint inside it to see exactly which code path called `enable()`/`disable()`. The real fix is usually to stop toggling from many places and derive the disabled state from **one** function of the inputs.",
+    details: [
+      {
+        type: 'paragraph',
+        text: 'The bug pattern is a race between several writers — a value change in another field, an API response, a permission check, a route param — each calling `enable()` or `disable()`. The last one wins, and the order changes with timing. Debugging is about finding the writers; fixing is about having a single writer.',
+      },
+      { type: 'heading3', text: 'Step 1: trace every state change' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `const ctrl = this.form.controls.region;
 
 // statusChanges emits 'DISABLED' / 'VALID' / 'INVALID' / 'PENDING'
 ctrl.statusChanges.subscribe((status) => {
@@ -741,33 +738,33 @@ ctrl.statusChanges.subscribe((status) => {
 // (ValueChangeEvent, StatusChangeEvent, TouchedChangeEvent, PristineChangeEvent, ...)
 ctrl.events.pipe(filter((e) => e instanceof StatusChangeEvent))
   .subscribe((e) => console.log('status event', e.status, 'source:', e.source));`,
-        },
-        { type: 'heading3', text: 'Step 2: catch silent changes (emitEvent: false)' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Calls with { emitEvent: false } won't emit — temporarily wrap the methods (dev only!)
+      },
+      { type: 'heading3', text: 'Step 2: catch silent changes (emitEvent: false)' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Calls with { emitEvent: false } won't emit — temporarily wrap the methods (dev only!)
 const origDisable = ctrl.disable.bind(ctrl);
 const origEnable = ctrl.enable.bind(ctrl);
 ctrl.disable = (opts) => { console.trace('[region] disable()', opts); origDisable(opts); };
 ctrl.enable  = (opts) => { console.trace('[region] enable()', opts);  origEnable(opts); };`,
-        },
-        { type: 'heading3', text: 'Step 3: other checks' },
-        {
-          type: 'bullets',
-          items: [
-            "Search the codebase for `region.disable`, `get('region')`, `[disabled]` on the element, and parent `form.disable()/enable()` — enabling a parent group enables ALL children.",
-            'Check for `[disabled]="..."` binding on a reactive control — mixing it with `disable()` causes conflicting writers (Angular logs a warning).',
-            'Look for subscriptions that are never unsubscribed — a component recreated twice can have two live handlers toggling the same control.',
-            'Use DevTools "Event Listener Breakpoints" or the Angular DevTools profiler to see which change-detection cycle/event preceded the change.',
-            'Write a unit test that fires the events in different orders to reproduce deterministically.',
-          ],
-        },
-        { type: 'heading3', text: 'Step 4: the fix — single source of truth' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Combine every input that affects the dropdown, decide in ONE place
+      },
+      { type: 'heading3', text: 'Step 3: other checks' },
+      {
+        type: 'bullets',
+        items: [
+          "Search the codebase for `region.disable`, `get('region')`, `[disabled]` on the element, and parent `form.disable()/enable()` — enabling a parent group enables ALL children.",
+          'Check for `[disabled]="..."` binding on a reactive control — mixing it with `disable()` causes conflicting writers (Angular logs a warning).',
+          'Look for subscriptions that are never unsubscribed — a component recreated twice can have two live handlers toggling the same control.',
+          'Use DevTools "Event Listener Breakpoints" or the Angular DevTools profiler to see which change-detection cycle/event preceded the change.',
+          'Write a unit test that fires the events in different orders to reproduce deterministically.',
+        ],
+      },
+      { type: 'heading3', text: 'Step 4: the fix — single source of truth' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Combine every input that affects the dropdown, decide in ONE place
 const country = this.form.controls.country;
 combineLatest([
   country.valueChanges.pipe(startWith(country.value)),
@@ -783,22 +780,22 @@ combineLatest([
     enabled ? this.form.controls.region.enable({ emitEvent: false })
             : this.form.controls.region.disable({ emitEvent: false }),
   );`,
-        },
-        {
-          type: 'flow',
-          title: 'From many writers to one',
-          code: `flowchart LR
+      },
+      {
+        type: 'flow',
+        title: 'From many writers to one',
+        code: `flowchart LR
   E1[country change]:::client --> D
   E2[permission check]:::security --> D
   E3[API loaded]:::server --> D
   D["combineLatest + map<br/>isEnabled(...)"]:::highlight --> R[region.enable / disable]
   R --> UI[Dropdown]:::client`,
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: structure the answer as reproduce → instrument (`statusChanges` + `console.trace`/breakpoint) → identify writers → refactor to a single derived rule → add a regression test. That shows debugging discipline, not just an API name.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: structure the answer as reproduce → instrument (`statusChanges` + `console.trace`/breakpoint) → identify writers → refactor to a single derived rule → add a regression test. That shows debugging discipline, not just an API name.',
+      },
+    ],
+  },
 };

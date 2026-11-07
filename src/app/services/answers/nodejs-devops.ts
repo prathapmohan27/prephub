@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What is CI/CD and what tools have you used?': {
+  'ci-cd-and-the-tools-you-used': {
     summary:
       'CI (Continuous Integration) means every push is automatically built, linted and tested so integration problems surface within minutes. CD means the validated build is automatically released — Continuous Delivery keeps it always deployable with a manual approval, Continuous Deployment ships every passing change to production. Common tools are GitHub Actions, GitLab CI, Jenkins, CircleCI, plus Docker, Kubernetes and Argo CD for deployment.',
     details: [
@@ -80,7 +80,7 @@ jobs:
     ],
   },
 
-  'What is Docker and how is it used with Node.js?': {
+  'docker-with-node-js': {
     summary:
       'Docker packages an application with its runtime, OS libraries and dependencies into an image, which runs as an isolated container the same way on a laptop, in CI and in production. For Node.js you build an image from a `node` base image, install dependencies, copy the code and run `node server.js`; Docker Compose then runs it locally alongside Postgres, Redis and so on.',
     details: [
@@ -165,7 +165,7 @@ docker exec -it <container> sh             # shell into a running container`,
     ],
   },
 
-  'What is a Dockerfile and how do you write one for Node.js?': {
+  'write-a-dockerfile-for-node-js': {
     summary:
       'A Dockerfile is a text recipe of instructions (`FROM`, `WORKDIR`, `COPY`, `RUN`, `CMD`…) that Docker executes to build an image layer by layer. A good Node.js Dockerfile uses an official slim/alpine base, copies `package*.json` first so `npm ci` is cached, uses a multi-stage build to keep dev dependencies and build tools out of the final image, runs as a non-root user and starts with `CMD ["node", "dist/server.js"]`.',
     details: [
@@ -238,7 +238,7 @@ Dockerfile`,
     ],
   },
 
-  'What is Kubernetes and what problem does it solve?': {
+  'what-kubernetes-solves': {
     summary:
       'Kubernetes is a container orchestration platform. You declare the desired state — "run 5 replicas of api:1.4 with these resources, behind this Service" — and it keeps reality matching it: scheduling containers onto machines, restarting failed ones, load balancing, rolling deployments and rollbacks, autoscaling, and managing config and secrets. It solves running many containers reliably across a fleet of servers.',
     details: [
@@ -317,7 +317,7 @@ spec:
     ],
   },
 
-  'What is a reverse proxy and why is Nginx used with Node.js?': {
+  'reverse-proxies-and-nginx': {
     summary:
       'A reverse proxy sits in front of your servers and receives client requests on their behalf, forwarding them to backend apps. Nginx is commonly put in front of Node.js to terminate TLS, load-balance across Node instances, serve static files and cache efficiently, compress responses, buffer slow clients, and add rate limiting and security headers — so Node only handles application logic.',
     details: [
@@ -407,7 +407,7 @@ app.set('trust proxy', 1); // trust exactly one hop (Nginx)`,
     ],
   },
 
-  'How do you manage environment variables securely in Node.js?': {
+  'manage-environment-variables-securely': {
     summary:
       'Keep configuration and secrets out of source code: read them from `process.env`, load a git-ignored `.env` only in local development (Node 20.6+ supports `--env-file`), validate everything at startup with a schema, and in production inject secrets from a secrets manager (AWS Secrets Manager, Vault, Kubernetes Secrets) — never bake them into images or log them.',
     details: [
@@ -480,7 +480,7 @@ export const config = Object.freeze(parsed.data);
     ],
   },
 
-  'What are health checks and how do you implement them in Node.js?': {
+  'health-checks': {
     summary:
       'Health checks are endpoints or commands that orchestrators and load balancers call to decide whether an instance is alive and able to take traffic. Implement a cheap liveness endpoint (`/health` or `/livez`: is the process responsive?) and a readiness endpoint (`/ready`: are DB, cache and other critical dependencies reachable?), and flip readiness to failing during graceful shutdown.',
     details: [
@@ -578,7 +578,7 @@ startupProbe:              # slow boot (migrations, cache warm-up)
     ],
   },
 
-  'Blue-green vs canary vs rolling deployments: how do you choose?': {
+  'blue-green-vs-canary-vs-rolling': {
     summary:
       'Rolling replaces instances a few at a time and is the cheap default. Blue-green runs a full second environment and switches all traffic at once, so rollback is an instant switch back, but you pay for double capacity during the cutover. Canary sends a small share of real traffic to the new version and widens it only while error rate and latency stay healthy, which limits the blast radius. All three have old and new code running at the same time, so the database schema and APIs must work with both versions.',
     details: [
@@ -672,7 +672,7 @@ spec:
     ],
   },
 
-  'How do feature flags help you release safely, and what are the risks?': {
+  'feature-flags-benefits-and-risks': {
     summary:
       'Feature flags separate deploying code from releasing a feature: the code ships turned off and you turn it on at runtime for internal users, a percentage or a customer segment, and turn it off instantly if something breaks. That makes trunk-based development and small, frequent merges possible. The risks are flag debt, untested combinations of flags, and a stale or misconfigured flag changing production behaviour without a deploy.',
     details: [
@@ -747,7 +747,7 @@ async function checkout(user: User, cart: Cart) {
     ],
   },
 
-  'What is Infrastructure as Code, and how do Terraform and AWS CDK compare?': {
+  'infrastructure-as-code-terraform-vs-cdk': {
     summary:
       'Infrastructure as Code means servers, networks, databases and permissions are defined in version-controlled files and created by a tool, so every environment is reproducible, reviewed in pull requests and free of hand-made console changes. Terraform uses declarative HCL, works across many clouds and tracks what it created in a state file. AWS CDK lets you write TypeScript that synthesises CloudFormation, so it is AWS-focused but gives you real programming-language abstractions.',
     details: [
@@ -854,19 +854,18 @@ new ApiStack(app, 'api-prod', { env: 'prod' });`,
     ],
   },
 
-  'How do you build a small, secure production Docker image for Node.js (multi-stage builds, non-root user, scanning)?':
-    {
-      summary:
-        'Build in one stage with all the tools, then copy only the compiled output and production dependencies into a minimal runtime image such as `node:22-slim` or distroless, pinned by digest. Run as a non-root user with `NODE_ENV=production`, make sure SIGTERM reaches Node, keep secrets out of every layer with BuildKit secret mounts, and scan the image (Trivy or Grype) and publish an SBOM in CI so vulnerable images never reach the registry.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'The basic multi-stage Dockerfile is covered in the Dockerfile answer; this one is about hardening and supply chain for a NestJS API.',
-        },
-        {
-          type: 'code',
-          lang: 'dockerfile',
-          code: `# syntax=docker/dockerfile:1
+  'small-secure-production-docker-image': {
+    summary:
+      'Build in one stage with all the tools, then copy only the compiled output and production dependencies into a minimal runtime image such as `node:22-slim` or distroless, pinned by digest. Run as a non-root user with `NODE_ENV=production`, make sure SIGTERM reaches Node, keep secrets out of every layer with BuildKit secret mounts, and scan the image (Trivy or Grype) and publish an SBOM in CI so vulnerable images never reach the registry.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'The basic multi-stage Dockerfile is covered in the Dockerfile answer; this one is about hardening and supply chain for a NestJS API.',
+      },
+      {
+        type: 'code',
+        lang: 'dockerfile',
+        code: `# syntax=docker/dockerfile:1
 # Pin by digest: the tag can be moved, the digest cannot
 FROM node:22-slim@sha256:<digest> AS deps
 WORKDIR /app
@@ -890,64 +889,64 @@ COPY --from=build /app/package.json ./
 EXPOSE 3000
 # distroless images already use node as the entrypoint
 CMD ["dist/main.js"]`,
-        },
-        {
-          type: 'code',
-          lang: 'bash',
-          code: `DOCKER_BUILDKIT=1 docker build --secret id=npmrc,src=$HOME/.npmrc -t acme/api:$GIT_SHA .
+      },
+      {
+        type: 'code',
+        lang: 'bash',
+        code: `DOCKER_BUILDKIT=1 docker build --secret id=npmrc,src=$HOME/.npmrc -t acme/api:$GIT_SHA .
 
 # fail CI on fixable high/critical CVEs
 trivy image --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 acme/api:$GIT_SHA
 
 # software bill of materials for audits and future CVE lookups
 syft acme/api:$GIT_SHA -o spdx-json > sbom.json`,
-        },
-        { type: 'heading3', text: 'Each choice and why' },
-        {
-          type: 'bullets',
-          items: [
-            '**Base image:** `slim` (Debian, glibc) is a safe default; `alpine` is smaller but uses musl, which can break native modules; **distroless** removes the shell and package manager, so an attacker who gets in has little to work with, and scanners report far fewer CVEs. Debugging then needs an ephemeral debug container (`kubectl debug`).',
-            '**Digest pinning:** `node:22-slim@sha256:...` makes builds reproducible. Use Renovate or Dependabot to bump the digest so you still get security patches.',
-            '**`npm ci` then `npm prune --omit=dev`:** the final image has no TypeScript, Jest or build tools. Consider `npm ci --ignore-scripts` when you can, since install scripts run arbitrary code.',
-            '**Non-root:** `USER node` on official images, or the `nonroot` distroless tag. Add `readOnlyRootFilesystem`, drop all Linux capabilities and `allowPrivilegeEscalation: false` in the Kubernetes `securityContext`.',
-            '**`.dockerignore`:** exclude `.git`, `.env*`, `node_modules`, tests and local configs so they never enter the build context.',
-            '**Secrets:** `ARG`/`ENV` values and copied files stay in image history (`docker history` shows them). BuildKit `--mount=type=secret` is the right way; runtime secrets come from the orchestrator.',
-          ],
-        },
-        { type: 'heading3', text: 'Signals and PID 1' },
-        {
-          type: 'paragraph',
-          text: 'Use the exec form of `CMD` so Node is PID 1 and receives SIGTERM directly; `npm start` or a shell wrapper may not forward it, and the container is SIGKILLed after the grace period, dropping in-flight requests. PID 1 also has no default signal handlers in Linux, so your app must handle SIGTERM itself (NestJS: `app.enableShutdownHooks()`). If the process spawns children, add a tiny init: `docker run --init`, or `tini` as the entrypoint, to forward signals and reap zombies.',
-        },
-        { type: 'heading3', text: 'HEALTHCHECK vs orchestrator probes' },
-        {
-          type: 'paragraph',
-          text: 'Docker `HEALTHCHECK` is used by plain Docker and Compose. Kubernetes ignores it and uses its own probes; ECS uses the task definition health check. Distroless has no `wget` or `curl`, so either rely on orchestrator probes or write the check as a small Node script.',
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'A secret deleted in a later layer is still in the earlier layer. `COPY .npmrc` then `RUN rm .npmrc` leaks the token to anyone who can pull the image.',
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: go beyond "multi-stage and non-root". Mention digest pinning with automated updates, a scan gate in CI, an SBOM, and image signing (for example Sigstore cosign) with admission policies that only allow signed images.',
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'How do you debug a container with no shell?',
-            'A scan finds a critical CVE in the base image with no fix. What do you do?',
-            'How do you keep build times fast with these stages?',
-            'Why might a Node app not shut down gracefully in a container?',
-          ],
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'Each choice and why' },
+      {
+        type: 'bullets',
+        items: [
+          '**Base image:** `slim` (Debian, glibc) is a safe default; `alpine` is smaller but uses musl, which can break native modules; **distroless** removes the shell and package manager, so an attacker who gets in has little to work with, and scanners report far fewer CVEs. Debugging then needs an ephemeral debug container (`kubectl debug`).',
+          '**Digest pinning:** `node:22-slim@sha256:...` makes builds reproducible. Use Renovate or Dependabot to bump the digest so you still get security patches.',
+          '**`npm ci` then `npm prune --omit=dev`:** the final image has no TypeScript, Jest or build tools. Consider `npm ci --ignore-scripts` when you can, since install scripts run arbitrary code.',
+          '**Non-root:** `USER node` on official images, or the `nonroot` distroless tag. Add `readOnlyRootFilesystem`, drop all Linux capabilities and `allowPrivilegeEscalation: false` in the Kubernetes `securityContext`.',
+          '**`.dockerignore`:** exclude `.git`, `.env*`, `node_modules`, tests and local configs so they never enter the build context.',
+          '**Secrets:** `ARG`/`ENV` values and copied files stay in image history (`docker history` shows them). BuildKit `--mount=type=secret` is the right way; runtime secrets come from the orchestrator.',
+        ],
+      },
+      { type: 'heading3', text: 'Signals and PID 1' },
+      {
+        type: 'paragraph',
+        text: 'Use the exec form of `CMD` so Node is PID 1 and receives SIGTERM directly; `npm start` or a shell wrapper may not forward it, and the container is SIGKILLed after the grace period, dropping in-flight requests. PID 1 also has no default signal handlers in Linux, so your app must handle SIGTERM itself (NestJS: `app.enableShutdownHooks()`). If the process spawns children, add a tiny init: `docker run --init`, or `tini` as the entrypoint, to forward signals and reap zombies.',
+      },
+      { type: 'heading3', text: 'HEALTHCHECK vs orchestrator probes' },
+      {
+        type: 'paragraph',
+        text: 'Docker `HEALTHCHECK` is used by plain Docker and Compose. Kubernetes ignores it and uses its own probes; ECS uses the task definition health check. Distroless has no `wget` or `curl`, so either rely on orchestrator probes or write the check as a small Node script.',
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'A secret deleted in a later layer is still in the earlier layer. `COPY .npmrc` then `RUN rm .npmrc` leaks the token to anyone who can pull the image.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: go beyond "multi-stage and non-root". Mention digest pinning with automated updates, a scan gate in CI, an SBOM, and image signing (for example Sigstore cosign) with admission policies that only allow signed images.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'How do you debug a container with no shell?',
+          'A scan finds a critical CVE in the base image with no fix. What do you do?',
+          'How do you keep build times fast with these stages?',
+          'Why might a Node app not shut down gracefully in a container?',
+        ],
+      },
+    ],
+  },
 
-  'What are Kubernetes liveness, readiness and startup probes, and how does autoscaling work?': {
+  'kubernetes-probes-and-autoscaling': {
     summary:
       'Readiness decides whether a pod receives traffic, liveness decides whether Kubernetes restarts it, and startup holds off the other two until a slow-booting app is up. Autoscaling is layered: the Horizontal Pod Autoscaler adds pods based on CPU or custom metrics compared with resource requests, KEDA scales on event sources such as queue depth, and the cluster autoscaler or Karpenter adds nodes when pods cannot be scheduled.',
     details: [
@@ -1063,7 +1062,7 @@ spec:
     ],
   },
 
-  'What are SLIs, SLOs and error budgets, and how do they change how a team works?': {
+  'slis-slos-and-error-budgets': {
     summary:
       'An SLI is a measured indicator of user experience, such as the share of requests that succeed or finish under 300 ms. An SLO is the target for it over a window, such as 99.9% over 30 days, and the error budget is what is left over: 0.1%, about 43 minutes of full downtime in 30 days. Teams alert on how fast the budget is burning rather than on every error, and use the remaining budget to decide between shipping features and reliability work.',
     details: [
@@ -1143,28 +1142,27 @@ burn rate 14.4 -> 2% of the monthly budget gone in 1 hour`,
     ],
   },
 
-  'What does a good CI/CD pipeline for a full-stack app look like, from pull request to production?':
-    {
-      summary:
-        'On every pull request, run fast checks (lint, type-check, unit tests, build) only for the projects that changed, plus security scans and a preview environment. After merge, build each artifact once, tag it with the commit SHA and promote that same artifact through staging to production. Each deploy runs backward-compatible migrations, a progressive rollout, smoke tests and automatic rollback on failing health metrics, with an approval gate where the business needs one.',
-      details: [
-        { type: 'heading3', text: 'Stages' },
-        {
-          type: 'numbered',
-          items: [
-            '**PR checks (target under 10 minutes):** install with cache, lint, `tsc --noEmit`, unit tests, build. In an Nx or Turborepo monorepo, run only affected projects (`nx affected -t lint test build`).',
-            '**Security:** dependency audit (`npm audit`, Dependabot/Renovate, Snyk), SAST (CodeQL or Semgrep), secret scanning, and later an image scan with Trivy.',
-            '**Preview environment:** each PR gets a URL for the Angular app (and optionally an ephemeral API with a seeded DB) so reviewers and product can test it.',
-            '**Integration/e2e:** API tests against real Postgres/Redis in service containers; a small Playwright suite on critical journeys. Keep the big e2e suite off the PR critical path if it is slow.',
-            '**Build once:** after merge, build the Docker image and the SPA bundle, tag with the SHA, push, sign, and generate an SBOM. Nothing is rebuilt per environment.',
-            '**Staging:** deploy the same SHA, run migrations, smoke and e2e tests.',
-            '**Production:** approval if required, migrations (expand/contract), canary or rolling deploy, smoke tests, automated rollback on error rate or latency.',
-          ],
-        },
-        {
-          type: 'code',
-          lang: 'yaml',
-          code: `name: pipeline
+  'full-stack-ci-cd-pipeline-pr-to-prod': {
+    summary:
+      'On every pull request, run fast checks (lint, type-check, unit tests, build) only for the projects that changed, plus security scans and a preview environment. After merge, build each artifact once, tag it with the commit SHA and promote that same artifact through staging to production. Each deploy runs backward-compatible migrations, a progressive rollout, smoke tests and automatic rollback on failing health metrics, with an approval gate where the business needs one.',
+    details: [
+      { type: 'heading3', text: 'Stages' },
+      {
+        type: 'numbered',
+        items: [
+          '**PR checks (target under 10 minutes):** install with cache, lint, `tsc --noEmit`, unit tests, build. In an Nx or Turborepo monorepo, run only affected projects (`nx affected -t lint test build`).',
+          '**Security:** dependency audit (`npm audit`, Dependabot/Renovate, Snyk), SAST (CodeQL or Semgrep), secret scanning, and later an image scan with Trivy.',
+          '**Preview environment:** each PR gets a URL for the Angular app (and optionally an ephemeral API with a seeded DB) so reviewers and product can test it.',
+          '**Integration/e2e:** API tests against real Postgres/Redis in service containers; a small Playwright suite on critical journeys. Keep the big e2e suite off the PR critical path if it is slow.',
+          '**Build once:** after merge, build the Docker image and the SPA bundle, tag with the SHA, push, sign, and generate an SBOM. Nothing is rebuilt per environment.',
+          '**Staging:** deploy the same SHA, run migrations, smoke and e2e tests.',
+          '**Production:** approval if required, migrations (expand/contract), canary or rolling deploy, smoke tests, automated rollback on error rate or latency.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'yaml',
+        code: `name: pipeline
 on:
   pull_request:
   push: { branches: [main] }
@@ -1209,43 +1207,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: ./deploy.sh production \${{ needs.image.outputs.tag }}`,
-        },
-        { type: 'heading3', text: 'Principles behind it' },
-        {
-          type: 'bullets',
-          items: [
-            '**Build once, promote:** what you tested in staging is byte-for-byte what runs in production. Configuration comes from the environment.',
-            '**Migrations as their own step,** run once per deploy (a job or init task, not on every pod start), and always backward compatible so rollback of the code is safe.',
-            '**Fast feedback:** caching, parallel jobs, affected-only builds and `concurrency` to cancel outdated runs. A 40-minute PR pipeline gets bypassed.',
-            '**Rollback is a deploy of the previous SHA** (or an aborted canary) and should be one click or automatic. Practise it.',
-            '**Least privilege:** OIDC federation instead of long-lived cloud keys, environment-scoped secrets, and protected branches.',
-            '**Frontend:** upload hashed assets first, then `index.html` with no-cache, so the SPA never references files that are not there yet (see the S3/CloudFront answer).',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Rebuilding the image per environment (`docker build` in the staging job and again in the prod job) means production runs an artifact that was never tested: dependencies or base images may have changed in between.',
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: walk through the pipeline in order and name one real failure each stage caught in your projects. Then mention DORA metrics (deployment frequency, lead time, change failure rate, time to restore) as how you measured whether the pipeline was getting better.',
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'How do you deal with flaky tests in the pipeline?',
-            'How do you deploy the frontend and backend when they change together?',
-            'What happens if a migration fails halfway through a deploy?',
-            'How do you keep secrets out of CI logs and forked PRs?',
-          ],
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'Principles behind it' },
+      {
+        type: 'bullets',
+        items: [
+          '**Build once, promote:** what you tested in staging is byte-for-byte what runs in production. Configuration comes from the environment.',
+          '**Migrations as their own step,** run once per deploy (a job or init task, not on every pod start), and always backward compatible so rollback of the code is safe.',
+          '**Fast feedback:** caching, parallel jobs, affected-only builds and `concurrency` to cancel outdated runs. A 40-minute PR pipeline gets bypassed.',
+          '**Rollback is a deploy of the previous SHA** (or an aborted canary) and should be one click or automatic. Practise it.',
+          '**Least privilege:** OIDC federation instead of long-lived cloud keys, environment-scoped secrets, and protected branches.',
+          '**Frontend:** upload hashed assets first, then `index.html` with no-cache, so the SPA never references files that are not there yet (see the S3/CloudFront answer).',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Rebuilding the image per environment (`docker build` in the staging job and again in the prod job) means production runs an artifact that was never tested: dependencies or base images may have changed in between.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: walk through the pipeline in order and name one real failure each stage caught in your projects. Then mention DORA metrics (deployment frequency, lead time, change failure rate, time to restore) as how you measured whether the pipeline was getting better.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'How do you deal with flaky tests in the pipeline?',
+          'How do you deploy the frontend and backend when they change together?',
+          'What happens if a migration fails halfway through a deploy?',
+          'How do you keep secrets out of CI logs and forked PRs?',
+        ],
+      },
+    ],
+  },
 
-  'How do you manage configuration across dev, staging and production without drift?': {
+  'config-across-environments-without-drift': {
     summary:
       'Build one artifact and inject everything that differs per environment at runtime (12-factor config). The per-environment values live in version control: in IaC variables, Helm or Kustomize overlays, or parameter stores populated by IaC, never in manual console edits. GitOps tools such as Argo CD or Flux then continuously reconcile the cluster with Git, so any drift is detected and reverted, and secrets come from a secret manager rather than the repo.',
     details: [

@@ -76,7 +76,8 @@ const KEY_SECTIONS: Record<string, string> = {
 })
 export class Answer {
   readonly categoryId = input.required<string>();
-  readonly question = input.required<string>();
+  /** Stable question id (answers are keyed by id). */
+  readonly questionId = input.required<string>();
   /** Show a table of contents built from the answer's headings (used by the reader). */
   readonly toc = input(false);
 
@@ -85,7 +86,9 @@ export class Answer {
   private readonly answers = inject(AnswerService);
 
   /** Already-loaded answer, shown immediately so prev/next doesn't flash "Loading…". */
-  protected readonly cached = computed(() => this.answers.peek(this.categoryId(), this.question()));
+  protected readonly cached = computed(() =>
+    this.answers.peek(this.categoryId(), this.questionId()),
+  );
 
   /** Headings of the detailed answer, for the table of contents. */
   protected outline(blocks: ContentBlock[]): { index: number; label: string; key: boolean }[] {
@@ -105,7 +108,7 @@ export class Answer {
   }
 
   protected readonly answer = resource({
-    params: () => ({ categoryId: this.categoryId(), question: this.question() }),
-    loader: ({ params }) => this.answers.getAnswer(params.categoryId, params.question),
+    params: () => ({ categoryId: this.categoryId(), questionId: this.questionId() }),
+    loader: ({ params }) => this.answers.getAnswer(params.categoryId, params.questionId),
   });
 }

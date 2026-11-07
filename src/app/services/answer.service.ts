@@ -12,18 +12,18 @@ export class AnswerService {
   private loaded = new Map<string, AnswerMap>();
 
   /** Resolves to the answer, or `null` if this question has no answer yet. */
-  async getAnswer(categoryId: string, question: string): Promise<QuestionAnswer | null> {
+  async getAnswer(categoryId: string, questionId: string): Promise<QuestionAnswer | null> {
     const answers = await this.loadCategory(categoryId);
-    return answers[question] ?? null;
+    return answers[questionId] ?? null;
   }
 
   /**
    * Answer from an already-loaded category without waiting: `undefined` means the
    * category isn't loaded yet, `null` means the question has no answer.
    */
-  peek(categoryId: string, question: string): QuestionAnswer | null | undefined {
+  peek(categoryId: string, questionId: string): QuestionAnswer | null | undefined {
     const answers = this.loaded.get(categoryId);
-    return answers ? (answers[question] ?? null) : undefined;
+    return answers ? (answers[questionId] ?? null) : undefined;
   }
 
   /** Starts loading a category in the background (e.g. the next question's). */

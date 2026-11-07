@@ -1,58 +1,57 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'How do you analyse time and space complexity, and what Big-O should you aim for in an interview?':
-    {
-      summary:
-        'I count how the number of basic operations grows with the input size n, keep the dominant term and drop constants: one loop is O(n), a nested loop over the same data is O(n²), halving the search space each step is O(log n). Space is the extra memory I allocate, including the recursion stack. I pick the target complexity from the input limits: n ≤ 10^5 usually means O(n log n) or better, n ≤ 20 allows exponential backtracking.',
-      details: [
-        { type: 'heading3', text: 'How to analyse code quickly' },
-        {
-          type: 'bullets',
-          items: [
-            '**Sequential blocks add:** O(n) then O(n log n) is O(n log n). Keep the biggest term.',
-            '**Nested loops multiply:** a loop inside a loop over the same array is O(n²). Over two different inputs it is O(n · m), not O(n²).',
-            '**Halving is logarithmic:** binary search, balanced trees and "divide by 2 until 1" are O(log n).',
-            '**Recursion:** (number of calls) × (work per call). Naive Fibonacci makes ~2^n calls; with memoisation it makes n calls, so O(n).',
-            '**Sorting** with a comparison sort is O(n log n). If you sort, the whole solution is at least that.',
-            '**Hidden loops count:** `indexOf`, `includes`, `slice`, `splice`, spread `[...arr]` and `Array.prototype.shift` are all O(n).',
-          ],
-        },
-        { type: 'heading3', text: 'Rules of thumb: input size → acceptable complexity' },
-        {
-          type: 'paragraph',
-          text: 'A judge (or a reasonable interviewer) allows roughly 10^7–10^8 simple operations per second. Read the constraints and work backwards:',
-        },
-        {
-          type: 'bullets',
-          items: [
-            '**n ≤ 10–12** → O(n!) permutations are fine.',
-            '**n ≤ 20–25** → O(2^n) subsets / backtracking.',
-            '**n ≤ 500** → O(n³) (e.g. interval DP, Floyd–Warshall).',
-            '**n ≤ 5,000** → O(n²) (simple DP over pairs).',
-            '**n ≤ 10^5–10^6** → O(n log n) or O(n): sorting, heaps, hash maps, two pointers, sliding window.',
-            '**n ≥ 10^9** (or a value range, not an array) → O(log n) or O(1): binary search on the answer, maths.',
-          ],
-        },
-        { type: 'heading3', text: 'Space complexity' },
-        {
-          type: 'bullets',
-          items: [
-            'Count **extra** memory: hash maps, copies, queues, result arrays (say whether you count the output).',
-            '**The recursion stack is space.** A DFS that recurses n levels deep is O(n) space even with no arrays allocated. Balanced recursion (merge sort, tree height) is O(log n) stack.',
-            'In-place algorithms (two pointers, swapping) are O(1) extra space.',
-          ],
-        },
-        { type: 'heading3', text: 'Amortised cost' },
-        {
-          type: 'paragraph',
-          text: '`push` on a JS array is O(1) **amortised**: occasionally the engine reallocates and copies the backing store (O(n)), but because capacity doubles, the total cost of n pushes is O(n), so O(1) each on average. The same reasoning applies to a sliding window: the inner `while` looks nested, but each element enters and leaves the window once, so the total is O(n), not O(n²).',
-        },
-        { type: 'heading3', text: 'JavaScript gotchas that change the Big-O' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// 1. shift() re-indexes the whole array: O(n) per call, O(n²) for a BFS
+  'time-and-space-complexity': {
+    summary:
+      'I count how the number of basic operations grows with the input size n, keep the dominant term and drop constants: one loop is O(n), a nested loop over the same data is O(n²), halving the search space each step is O(log n). Space is the extra memory I allocate, including the recursion stack. I pick the target complexity from the input limits: n ≤ 10^5 usually means O(n log n) or better, n ≤ 20 allows exponential backtracking.',
+    details: [
+      { type: 'heading3', text: 'How to analyse code quickly' },
+      {
+        type: 'bullets',
+        items: [
+          '**Sequential blocks add:** O(n) then O(n log n) is O(n log n). Keep the biggest term.',
+          '**Nested loops multiply:** a loop inside a loop over the same array is O(n²). Over two different inputs it is O(n · m), not O(n²).',
+          '**Halving is logarithmic:** binary search, balanced trees and "divide by 2 until 1" are O(log n).',
+          '**Recursion:** (number of calls) × (work per call). Naive Fibonacci makes ~2^n calls; with memoisation it makes n calls, so O(n).',
+          '**Sorting** with a comparison sort is O(n log n). If you sort, the whole solution is at least that.',
+          '**Hidden loops count:** `indexOf`, `includes`, `slice`, `splice`, spread `[...arr]` and `Array.prototype.shift` are all O(n).',
+        ],
+      },
+      { type: 'heading3', text: 'Rules of thumb: input size → acceptable complexity' },
+      {
+        type: 'paragraph',
+        text: 'A judge (or a reasonable interviewer) allows roughly 10^7–10^8 simple operations per second. Read the constraints and work backwards:',
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**n ≤ 10–12** → O(n!) permutations are fine.',
+          '**n ≤ 20–25** → O(2^n) subsets / backtracking.',
+          '**n ≤ 500** → O(n³) (e.g. interval DP, Floyd–Warshall).',
+          '**n ≤ 5,000** → O(n²) (simple DP over pairs).',
+          '**n ≤ 10^5–10^6** → O(n log n) or O(n): sorting, heaps, hash maps, two pointers, sliding window.',
+          '**n ≥ 10^9** (or a value range, not an array) → O(log n) or O(1): binary search on the answer, maths.',
+        ],
+      },
+      { type: 'heading3', text: 'Space complexity' },
+      {
+        type: 'bullets',
+        items: [
+          'Count **extra** memory: hash maps, copies, queues, result arrays (say whether you count the output).',
+          '**The recursion stack is space.** A DFS that recurses n levels deep is O(n) space even with no arrays allocated. Balanced recursion (merge sort, tree height) is O(log n) stack.',
+          'In-place algorithms (two pointers, swapping) are O(1) extra space.',
+        ],
+      },
+      { type: 'heading3', text: 'Amortised cost' },
+      {
+        type: 'paragraph',
+        text: '`push` on a JS array is O(1) **amortised**: occasionally the engine reallocates and copies the backing store (O(n)), but because capacity doubles, the total cost of n pushes is O(n), so O(1) each on average. The same reasoning applies to a sliding window: the inner `while` looks nested, but each element enters and leaves the window once, so the total is O(n), not O(n²).',
+      },
+      { type: 'heading3', text: 'JavaScript gotchas that change the Big-O' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// 1. shift() re-indexes the whole array: O(n) per call, O(n²) for a BFS
 const queue = [1, 2, 3];
 queue.shift(); // avoid in hot loops; use an index pointer instead
 let head = 0;
@@ -68,40 +67,40 @@ const idSet = new Set(ids);
 idSet.has(7); // O(1) average
 
 // 4. String concatenation in a loop is fine in V8, but s.split('') / [...s] copies: O(n) space`,
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'A common bug is calling `arr.includes(x)` or `arr.indexOf(x)` inside a loop and then claiming O(n). That is O(n²). Say "this lookup is linear, so I will build a Set first".',
-        },
-        { type: 'heading3', text: 'What to aim for in an interview' },
-        {
-          type: 'numbered',
-          items: [
-            'State the brute force and its complexity first, so you have a baseline.',
-            'Ask about (or assume) the input size and name the target: "n is up to 10^5, so I want O(n log n) or better".',
-            'Optimise towards the best reasonable bound. Usually that is O(n) or O(n log n) time, often trading O(n) extra space for it.',
-            'Finish by stating time **and** space, and say which term dominates and why.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: justify the complexity in one sentence tied to the code, e.g. "each index is pushed and popped at most once, so the two loops together are O(n)". That sounds far more senior than just saying "O(n)".',
-        },
-        { type: 'heading3', text: 'Similar problems' },
-        {
-          type: 'bullets',
-          items: [
-            'Explain the complexity of merge sort vs quicksort (average and worst case).',
-            'Why is building a heap O(n) while n pushes are O(n log n)?',
-            'Complexity of naive vs memoised Fibonacci.',
-          ],
-        },
-      ],
-    },
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'A common bug is calling `arr.includes(x)` or `arr.indexOf(x)` inside a loop and then claiming O(n). That is O(n²). Say "this lookup is linear, so I will build a Set first".',
+      },
+      { type: 'heading3', text: 'What to aim for in an interview' },
+      {
+        type: 'numbered',
+        items: [
+          'State the brute force and its complexity first, so you have a baseline.',
+          'Ask about (or assume) the input size and name the target: "n is up to 10^5, so I want O(n log n) or better".',
+          'Optimise towards the best reasonable bound. Usually that is O(n) or O(n log n) time, often trading O(n) extra space for it.',
+          'Finish by stating time **and** space, and say which term dominates and why.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: justify the complexity in one sentence tied to the code, e.g. "each index is pushed and popped at most once, so the two loops together are O(n)". That sounds far more senior than just saying "O(n)".',
+      },
+      { type: 'heading3', text: 'Similar problems' },
+      {
+        type: 'bullets',
+        items: [
+          'Explain the complexity of merge sort vs quicksort (average and worst case).',
+          'Why is building a heap O(n) while n pushes are O(n log n)?',
+          'Complexity of naive vs memoised Fibonacci.',
+        ],
+      },
+    ],
+  },
 
-  'Two Sum: solve it in O(n) with a hash map. When is a hash map the right tool?': {
+  'two-sum-with-a-hash-map': {
     summary:
       'Two Sum is the **complement lookup** pattern: for each number x, the partner I need is `target - x`, so I keep a Map from value to index of everything seen so far and check it before inserting the current number. One pass, O(n) time and O(n) space, versus O(n²) for checking every pair.',
     details: [
@@ -202,30 +201,29 @@ twoSum([1, 2], 7); // null`,
     ],
   },
 
-  'Two pointers: check whether a sorted array has a pair with a given sum, and remove duplicates in place.':
-    {
-      summary:
-        'Two pointers uses two indices that move towards each other (pair sum on a sorted array) or in the same direction at different speeds (a slow "write" pointer and a fast "read" pointer for in-place edits). Because the array is sorted, each comparison lets me discard one element for good, so both problems run in O(n) time with O(1) extra space.',
-      details: [
-        { type: 'heading3', text: 'How to recognise this pattern' },
-        {
-          type: 'bullets',
-          items: [
-            'The input is **sorted** (or sorting it is cheap and allowed).',
-            'You are looking for a pair or triplet with a target sum or difference.',
-            'The problem says **in place** or **O(1) extra space**: remove, compact, partition, reverse.',
-            'Palindromes and "compare from both ends" questions.',
-          ],
-        },
-        {
-          type: 'paragraph',
-          text: '**Brute force:** check every pair (O(n²)) or copy unique values into a new array (O(n) space). Two pointers removes both costs.',
-        },
-        { type: 'heading3', text: 'Pair with a given sum (opposite ends)' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `function hasPairWithSum(sorted: number[], target: number): boolean {
+  'two-pointers-pair-sum-dedupe-in-place': {
+    summary:
+      'Two pointers uses two indices that move towards each other (pair sum on a sorted array) or in the same direction at different speeds (a slow "write" pointer and a fast "read" pointer for in-place edits). Because the array is sorted, each comparison lets me discard one element for good, so both problems run in O(n) time with O(1) extra space.',
+    details: [
+      { type: 'heading3', text: 'How to recognise this pattern' },
+      {
+        type: 'bullets',
+        items: [
+          'The input is **sorted** (or sorting it is cheap and allowed).',
+          'You are looking for a pair or triplet with a target sum or difference.',
+          'The problem says **in place** or **O(1) extra space**: remove, compact, partition, reverse.',
+          'Palindromes and "compare from both ends" questions.',
+        ],
+      },
+      {
+        type: 'paragraph',
+        text: '**Brute force:** check every pair (O(n²)) or copy unique values into a new array (O(n) space). Two pointers removes both costs.',
+      },
+      { type: 'heading3', text: 'Pair with a given sum (opposite ends)' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `function hasPairWithSum(sorted: number[], target: number): boolean {
   let left = 0;
   let right = sorted.length - 1;
   while (left < right) {
@@ -239,16 +237,16 @@ twoSum([1, 2], 7); // null`,
 
 hasPairWithSum([1, 3, 4, 6, 9], 10); // true (1 + 9)
 hasPairWithSum([1, 3, 4, 6, 9], 8); // false`,
-        },
-        {
-          type: 'paragraph',
-          text: '**Why it is correct:** if `sum < target`, then `sorted[left]` plus anything left of `right` is even smaller, so `sorted[left]` can never be part of the answer and we drop it. The mirror argument applies to `right`.',
-        },
-        { type: 'heading3', text: 'Remove duplicates in place (slow and fast pointers)' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `function removeDuplicates(nums: number[]): number {
+      },
+      {
+        type: 'paragraph',
+        text: '**Why it is correct:** if `sum < target`, then `sorted[left]` plus anything left of `right` is even smaller, so `sorted[left]` can never be part of the answer and we drop it. The mirror argument applies to `right`.',
+      },
+      { type: 'heading3', text: 'Remove duplicates in place (slow and fast pointers)' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `function removeDuplicates(nums: number[]): number {
   if (nums.length === 0) return 0;
   let write = 1; // nums[0..write-1] holds the unique values so far
   for (let read = 1; read < nums.length; read++) {
@@ -263,57 +261,57 @@ hasPairWithSum([1, 3, 4, 6, 9], 8); // false`,
 const arr = [1, 1, 2, 3, 3, 3, 4];
 const k = removeDuplicates(arr); // 4
 arr.slice(0, k); // [1, 2, 3, 4]`,
-        },
-        { type: 'heading3', text: 'Complexity' },
-        {
-          type: 'bullets',
-          items: [
-            '**Time:** O(n) for both. Every step moves at least one pointer, and pointers never move back.',
-            '**Space:** O(1) extra. We only keep two indices.',
-          ],
-        },
-        { type: 'heading3', text: 'Dry run: [1, 3, 4, 6, 9], target 10' },
-        {
-          type: 'numbered',
-          items: [
-            'left = 0 (1), right = 4 (9): sum 10, so return true.',
-            'With target 8: 1 + 9 = 10 > 8, so right-- → 1 + 6 = 7 < 8, so left++ → 3 + 6 = 9 > 8, so right-- → 3 + 4 = 7 < 8, so left++ → left === right, stop, return false.',
-          ],
-        },
-        { type: 'heading3', text: 'Edge cases to mention' },
-        {
-          type: 'bullets',
-          items: [
-            'Empty or single-element array: the `while (left < right)` loop never runs.',
-            'Using the same element twice: `left < right` (strict) prevents it.',
-            'All duplicates, e.g. [2, 2, 2]: remove-duplicates returns 1.',
-            'Unsorted input: pair sum breaks. Either sort first (O(n log n)) or use a hash map.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Do not `splice` duplicates out while looping: each `splice` is O(n), making the whole thing O(n²), and it shifts indices under your loop variable so you skip elements. Overwrite with a write pointer instead.',
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: state the invariant out loud, e.g. "everything before `write` is unique and in order". Invariants make two-pointer code easy to defend and easy to debug.',
-        },
-        { type: 'heading3', text: 'Similar problems' },
-        {
-          type: 'bullets',
-          items: [
-            '3Sum (sort, then two pointers per element).',
-            'Container with most water.',
-            'Valid palindrome.',
-            'Move zeroes to the end in place.',
-          ],
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'Complexity' },
+      {
+        type: 'bullets',
+        items: [
+          '**Time:** O(n) for both. Every step moves at least one pointer, and pointers never move back.',
+          '**Space:** O(1) extra. We only keep two indices.',
+        ],
+      },
+      { type: 'heading3', text: 'Dry run: [1, 3, 4, 6, 9], target 10' },
+      {
+        type: 'numbered',
+        items: [
+          'left = 0 (1), right = 4 (9): sum 10, so return true.',
+          'With target 8: 1 + 9 = 10 > 8, so right-- → 1 + 6 = 7 < 8, so left++ → 3 + 6 = 9 > 8, so right-- → 3 + 4 = 7 < 8, so left++ → left === right, stop, return false.',
+        ],
+      },
+      { type: 'heading3', text: 'Edge cases to mention' },
+      {
+        type: 'bullets',
+        items: [
+          'Empty or single-element array: the `while (left < right)` loop never runs.',
+          'Using the same element twice: `left < right` (strict) prevents it.',
+          'All duplicates, e.g. [2, 2, 2]: remove-duplicates returns 1.',
+          'Unsorted input: pair sum breaks. Either sort first (O(n log n)) or use a hash map.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Do not `splice` duplicates out while looping: each `splice` is O(n), making the whole thing O(n²), and it shifts indices under your loop variable so you skip elements. Overwrite with a write pointer instead.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: state the invariant out loud, e.g. "everything before `write` is unique and in order". Invariants make two-pointer code easy to defend and easy to debug.',
+      },
+      { type: 'heading3', text: 'Similar problems' },
+      {
+        type: 'bullets',
+        items: [
+          '3Sum (sort, then two pointers per element).',
+          'Container with most water.',
+          'Valid palindrome.',
+          'Move zeroes to the end in place.',
+        ],
+      },
+    ],
+  },
 
-  'Sliding window: find the longest substring without repeating characters.': {
+  'sliding-window-longest-unique-substring': {
     summary:
       'This is a **variable-size sliding window**: I grow the window with a right pointer and, when a character repeats, move the left pointer just past its previous occurrence. A Map from character to last-seen index lets the left pointer jump in O(1). Each character is visited once, so it is O(n) time and O(k) space, where k is the alphabet size.',
     details: [
@@ -420,29 +418,28 @@ lengthOfLongestSubstring('abba'); // 2`,
     ],
   },
 
-  'Binary search: find the first position where a condition becomes true (e.g. first bad version).':
-    {
-      summary:
-        'Whenever a condition is false, false, ..., true, true over an ordered range (it is **monotonic**), I can binary search for the boundary. I keep a half-open search on `[lo, hi]` with `while (lo < hi)`: if `mid` is true it might be the answer, so `hi = mid`; otherwise `lo = mid + 1`. When they meet, `lo` is the first true position. O(log n) time and O(1) space.',
-      details: [
-        { type: 'heading3', text: 'How to recognise this pattern' },
-        {
-          type: 'bullets',
-          items: [
-            'Sorted data, or a yes/no question whose answer flips **once** as the index grows.',
-            '"First / last position", "minimum value such that...", "smallest capacity that works".',
-            'Huge ranges (n up to 10^9) where a linear scan is impossible: **binary search on the answer** (e.g. Koko eating bananas, ship packages within D days).',
-          ],
-        },
-        {
-          type: 'paragraph',
-          text: '**Brute force:** check every version from 1 up to n until the first bad one: O(n) calls to the expensive `isBad` API.',
-        },
-        { type: 'heading3', text: 'Optimal solution: one reusable template' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Returns the smallest i in [lo, hi] where isTrue(i) is true.
+  'binary-search-first-true-position': {
+    summary:
+      'Whenever a condition is false, false, ..., true, true over an ordered range (it is **monotonic**), I can binary search for the boundary. I keep a half-open search on `[lo, hi]` with `while (lo < hi)`: if `mid` is true it might be the answer, so `hi = mid`; otherwise `lo = mid + 1`. When they meet, `lo` is the first true position. O(log n) time and O(1) space.',
+    details: [
+      { type: 'heading3', text: 'How to recognise this pattern' },
+      {
+        type: 'bullets',
+        items: [
+          'Sorted data, or a yes/no question whose answer flips **once** as the index grows.',
+          '"First / last position", "minimum value such that...", "smallest capacity that works".',
+          'Huge ranges (n up to 10^9) where a linear scan is impossible: **binary search on the answer** (e.g. Koko eating bananas, ship packages within D days).',
+        ],
+      },
+      {
+        type: 'paragraph',
+        text: '**Brute force:** check every version from 1 up to n until the first bad one: O(n) calls to the expensive `isBad` API.',
+      },
+      { type: 'heading3', text: 'Optimal solution: one reusable template' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Returns the smallest i in [lo, hi] where isTrue(i) is true.
 // Pass hi = "one past the end" if it is possible that nothing is true.
 function firstTrue(lo: number, hi: number, isTrue: (i: number) => boolean): number {
   while (lo < hi) {
@@ -464,62 +461,62 @@ firstBadVersion(5, (v) => v >= 4); // 4
 const lowerBound = (a: number[], x: number) => firstTrue(0, a.length, (i) => a[i] >= x);
 lowerBound([1, 3, 3, 5], 3); // 1
 lowerBound([1, 3, 3, 5], 6); // 4`,
-        },
-        { type: 'heading3', text: 'Complexity' },
-        {
-          type: 'bullets',
-          items: [
-            '**Time:** O(log n) calls to the predicate. Each iteration halves the range.',
-            '**Space:** O(1). No recursion, two integers.',
-          ],
-        },
-        { type: 'heading3', text: 'Dry run: n = 5, first bad = 4' },
-        {
-          type: 'numbered',
-          items: [
-            'lo = 1, hi = 5, mid = 3: not bad, so lo = 4.',
-            'lo = 4, hi = 5, mid = 4: bad, so hi = 4.',
-            'lo === hi = 4, the loop ends. Return 4 after only 2 calls.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Off-by-one traps: (1) with `hi = mid` you must use `while (lo < hi)`, not `<=`, or the loop never ends when lo === hi; (2) never write `lo = mid` with a rounded-down mid, because when hi = lo + 1 the range stops shrinking; (3) for lower bound use `hi = a.length`, not `a.length - 1`, so "not found" has a value to return.',
-        },
-        {
-          type: 'paragraph',
-          text: '`lo + Math.floor((hi - lo) / 2)` avoids integer overflow in languages with fixed-width integers. In JS numbers are safe up to 2^53, but interviewers like seeing the habit. `(lo + hi) >>> 1` is also common, but only works below 2^31.',
-        },
-        { type: 'heading3', text: 'Edge cases to mention' },
-        {
-          type: 'bullets',
-          items: [
-            'Only one version (n = 1): loop does not run, returns 1.',
-            'All versions bad: returns 1. Nothing bad (if allowed): use hi = n + 1 and check for it.',
-            'Empty array for lower bound: returns 0.',
-            'Duplicates: this template returns the **first** occurrence; for the last, search for the first index with `a[i] > x` and subtract 1.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: phrase every binary search as "find the first index where predicate is true" and say the predicate out loud. One template then covers search insert position, first/last occurrence, square root and capacity problems, and you avoid juggling three different loop styles.',
-        },
-        { type: 'heading3', text: 'Similar problems' },
-        {
-          type: 'bullets',
-          items: [
-            'Search insert position.',
-            'Find first and last position of an element in a sorted array.',
-            'Search in a rotated sorted array.',
-            'Koko eating bananas (binary search on the answer).',
-          ],
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'Complexity' },
+      {
+        type: 'bullets',
+        items: [
+          '**Time:** O(log n) calls to the predicate. Each iteration halves the range.',
+          '**Space:** O(1). No recursion, two integers.',
+        ],
+      },
+      { type: 'heading3', text: 'Dry run: n = 5, first bad = 4' },
+      {
+        type: 'numbered',
+        items: [
+          'lo = 1, hi = 5, mid = 3: not bad, so lo = 4.',
+          'lo = 4, hi = 5, mid = 4: bad, so hi = 4.',
+          'lo === hi = 4, the loop ends. Return 4 after only 2 calls.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Off-by-one traps: (1) with `hi = mid` you must use `while (lo < hi)`, not `<=`, or the loop never ends when lo === hi; (2) never write `lo = mid` with a rounded-down mid, because when hi = lo + 1 the range stops shrinking; (3) for lower bound use `hi = a.length`, not `a.length - 1`, so "not found" has a value to return.',
+      },
+      {
+        type: 'paragraph',
+        text: '`lo + Math.floor((hi - lo) / 2)` avoids integer overflow in languages with fixed-width integers. In JS numbers are safe up to 2^53, but interviewers like seeing the habit. `(lo + hi) >>> 1` is also common, but only works below 2^31.',
+      },
+      { type: 'heading3', text: 'Edge cases to mention' },
+      {
+        type: 'bullets',
+        items: [
+          'Only one version (n = 1): loop does not run, returns 1.',
+          'All versions bad: returns 1. Nothing bad (if allowed): use hi = n + 1 and check for it.',
+          'Empty array for lower bound: returns 0.',
+          'Duplicates: this template returns the **first** occurrence; for the last, search for the first index with `a[i] > x` and subtract 1.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: phrase every binary search as "find the first index where predicate is true" and say the predicate out loud. One template then covers search insert position, first/last occurrence, square root and capacity problems, and you avoid juggling three different loop styles.',
+      },
+      { type: 'heading3', text: 'Similar problems' },
+      {
+        type: 'bullets',
+        items: [
+          'Search insert position.',
+          'Find first and last position of an element in a sorted array.',
+          'Search in a rotated sorted array.',
+          'Koko eating bananas (binary search on the answer).',
+        ],
+      },
+    ],
+  },
 
-  'Use a stack to check whether a string of brackets is balanced.': {
+  'balanced-brackets-with-a-stack': {
     summary:
       'Brackets close in **last-in, first-out** order, which is exactly a stack: push every opening bracket, and on a closing bracket pop and check that it matches. The string is balanced if no pop fails and the stack is empty at the end. O(n) time, O(n) space in the worst case (all openers).',
     details: [
@@ -612,7 +609,7 @@ isBalanced(')('); // false`,
     ],
   },
 
-  'Merge overlapping intervals.': {
+  'merge-overlapping-intervals': {
     summary:
       'Sort the intervals by start time; then overlaps can only happen between neighbours. I walk the sorted list keeping the last merged interval: if the next one starts at or before its end, I extend the end with `Math.max`; otherwise I start a new interval. O(n log n) time for the sort, O(n) space for the output.',
     details: [
@@ -705,7 +702,7 @@ merge([[1, 10], [2, 3]]); // [[1, 10]]`,
     ],
   },
 
-  'Top K frequent elements: heap vs bucket sort.': {
+  'top-k-frequent-heap-vs-bucket-sort': {
     summary:
       'First count frequencies with a Map. Then either keep a **min-heap of size k** ordered by frequency, evicting the smallest whenever it grows past k (O(n log k)), or use **bucket sort**: a frequency can be at most n, so I put values into an array indexed by frequency and read it from the top until I have k (O(n)). Both use O(n) space; bucket sort is faster, the heap also works for streams.',
     details: [
@@ -862,7 +859,7 @@ topKFrequentHeap([1, 1, 1, 2, 2, 3], 2); // [1, 2]`,
     ],
   },
 
-  'BFS vs DFS: count the number of islands in a grid.': {
+  'bfs-vs-dfs-number-of-islands': {
     summary:
       "Treat the grid as a graph where each land cell connects to its four neighbours. Scan every cell; when I find unvisited land I increment the count and flood-fill the whole island with BFS or DFS, marking cells as visited (sinking them to '0') so they are never counted again. Each cell is processed a constant number of times, so O(rows × cols) time; space is O(rows × cols) worst case for the queue, stack or recursion.",
     details: [
@@ -1017,7 +1014,7 @@ numIslandsDfs(grid); // 3`,
     ],
   },
 
-  'Detect a cycle in a dependency graph with topological sort (course schedule).': {
+  'cycle-detection-with-topological-sort': {
     summary:
       "Model prerequisites as a directed graph (prerequisite → course) and run **Kahn's algorithm**: compute in-degrees, queue every node with in-degree 0, and repeatedly remove a node and decrement its neighbours, queueing any that reach 0. If the number of processed nodes is less than the total, the leftover nodes are on or behind a cycle, so the courses cannot all be finished. O(V + E) time and space.",
     details: [
@@ -1128,7 +1125,7 @@ topoOrder(4, [[1, 0], [2, 0], [3, 1], [3, 2]]); // [0, 1, 2, 3]`,
     ],
   },
 
-  'How do you recognise a dynamic programming problem? Solve climbing stairs and coin change.': {
+  'spotting-dp-climbing-stairs-coin-change': {
     summary:
       'A problem is a DP problem when it asks for an optimum or a count, can be broken into smaller versions of itself (**optimal substructure**), and the same subproblems repeat (**overlapping subproblems**). I first write the recurrence, then memoise it top-down, then convert to a bottom-up table and shrink the state if I can. Climbing stairs becomes O(n) time and O(1) space; coin change is O(amount × coins) time and O(amount) space.',
     details: [
@@ -1259,7 +1256,7 @@ coinChange([1, 3, 4], 6); // 2 (3 + 3), greedy would say 3`,
     ],
   },
 
-  'How do you approach a coding problem you have not seen before in a live interview?': {
+  'tackling-an-unseen-coding-problem': {
     summary:
       'I follow a fixed framework so I never freeze: clarify the problem and constraints, work through small examples by hand, state a brute force with its complexity, look for the pattern that removes the bottleneck, agree on the approach, code it while narrating, then test with my examples and edge cases and state time and space. Interviewers grade the process and communication as much as the final code.',
     details: [

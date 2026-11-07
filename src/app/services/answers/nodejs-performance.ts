@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'How do you profile and debug Node.js performance issues?': {
+  'profile-and-debug-performance-issues': {
     summary:
       'Start by measuring, not guessing: confirm the symptom with metrics (latency percentiles, throughput, CPU, memory, event-loop lag), then narrow down with the right tool — CPU profiles and flame graphs (`--cpu-prof`, Chrome DevTools via `--inspect`, Clinic.js) for CPU-bound slowness, heap snapshots and `--heapsnapshot-signal` for memory leaks, and distributed tracing/APM for slow I/O like DB queries or downstream APIs. Fix the hottest path, then re-measure.',
     details: [
@@ -81,7 +81,7 @@ kill -USR2 <pid>      # snapshot 1 ... generate load ... snapshot 2
     ],
   },
 
-  'What techniques do you use to optimize Node.js application performance?': {
+  'performance-optimization-techniques': {
     summary:
       'Keep the event loop free (no heavy sync work — move CPU tasks to worker threads or queues), make I/O efficient (indexes, connection pooling, avoiding N+1, running independent calls in parallel), cache aggressively (in-memory, Redis, HTTP/CDN), reduce payloads (pagination, field selection, compression, streaming), and scale out across cores (cluster/PM2/containers). Always profile first and measure after each change.',
     details: [
@@ -222,7 +222,7 @@ for await (const doc of db.collection('events').find({ type: 'click' })) {
     ],
   },
 
-  'How does connection pooling work in Node.js database connections?': {
+  'database-connection-pooling': {
     summary:
       'A connection pool keeps a set of already-open database connections and lends them to queries on demand, returning them to the pool afterwards instead of closing them. This avoids the cost of a TCP + TLS + auth handshake per query and caps concurrent connections so the database is not overwhelmed. When all connections are busy, new requests wait in a queue until one is released or a timeout fires.',
     details: [
@@ -294,7 +294,7 @@ try {
     ],
   },
 
-  'How do you implement pagination — offset vs cursor-based?': {
+  'offset-vs-cursor-pagination': {
     summary:
       'Offset pagination uses `LIMIT n OFFSET k` (or `skip`) — simple and supports jumping to page N, but the database still scans and discards k rows, so deep pages get slow, and inserts/deletes cause duplicated or skipped items. Cursor (keyset) pagination remembers the last item\'s sort key and asks for rows "after" it (`WHERE (created_at, id) < ($1, $2)`) — constant-time with an index and stable under writes, but no random page jumps. Use offset for small admin tables, cursor for feeds, infinite scroll and large datasets.',
     details: [
@@ -374,7 +374,7 @@ db.posts.find({ _id: { $lt: ObjectId(lastSeenId) } }).sort({ _id: -1 }).limit(20
     ],
   },
 
-  'What is HTTP response compression and how do you enable it?': {
+  'http-response-compression': {
     summary:
       'Response compression encodes the body (usually gzip or Brotli) before sending it; the client advertises support via `Accept-Encoding` and the server responds with `Content-Encoding`. Text formats like JSON, HTML, CSS and JS typically shrink by 60–90%, cutting bandwidth and transfer time. In Node.js enable it with the `compression` middleware (Express) or `@fastify/compress` — or, preferably in production, at the reverse proxy/CDN (Nginx, Cloudflare) to keep CPU work off the event loop.',
     details: [

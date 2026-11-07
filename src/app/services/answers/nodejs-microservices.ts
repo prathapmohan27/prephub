@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What are microservices and how do they differ from a monolithic architecture?': {
+  'microservices-vs-monolith': {
     summary:
       'A monolith is one deployable application containing all features and usually one shared database. Microservices split the system into small, independently deployable services, each owning one business capability and its own data, communicating over the network (HTTP/gRPC or messaging). Monoliths are simpler to build and operate; microservices let teams deploy and scale parts independently at the price of distributed-systems complexity.',
     details: [
@@ -68,7 +68,7 @@ const user = await res.json();`,
     ],
   },
 
-  'What are the main advantages and disadvantages of microservices?': {
+  'pros-and-cons-of-microservices': {
     summary:
       'Advantages: independent deployment and scaling, team autonomy, fault isolation, freedom of technology, and smaller codebases that are easier to understand. Disadvantages: distributed-systems complexity (network failures, latency, eventual consistency), harder testing and debugging, data consistency across services, and much higher operational overhead for CI/CD, monitoring and infrastructure.',
     details: [
@@ -116,7 +116,7 @@ const stock = await breaker.fire(() =>
     ],
   },
 
-  'How do microservices communicate with each other?': {
+  'how-microservices-communicate': {
     summary:
       'Two families: synchronous request/response — REST over HTTP, gRPC, or GraphQL — where the caller waits for an answer; and asynchronous messaging — message queues (RabbitMQ, SQS) and event streams (Kafka, NATS, Redis Streams) — where services publish commands or events and consumers process them later. Most systems use synchronous calls for queries that need an immediate answer and events for propagating state changes.',
     details: [
@@ -190,7 +190,7 @@ await consumer.run({
     ],
   },
 
-  'What is the difference between synchronous and asynchronous communication in microservices?': {
+  'sync-vs-async-communication': {
     summary:
       "In synchronous communication (REST, gRPC) the caller sends a request and waits for the response, so both services must be up at the same time and the caller's latency includes the callee's. In asynchronous communication (queues, events) the sender publishes a message to a broker and continues; consumers process it later. Async gives loose coupling and resilience to outages, at the cost of eventual consistency and harder debugging.",
     details: [
@@ -259,7 +259,7 @@ new Worker('reports', async (job) => {
     ],
   },
 
-  'What is an API Gateway and what problems does it solve?': {
+  'api-gateways': {
     summary:
       "An API Gateway is a single entry point that sits between clients and backend microservices. It routes each request to the right service and handles cross-cutting concerns centrally — authentication, rate limiting, TLS, CORS, request/response transformation, caching, logging and metrics — so clients don't need to know the internal topology and services don't each reimplement those concerns.",
     details: [
@@ -344,7 +344,7 @@ app.listen(8080);`,
     ],
   },
 
-  'What is the Circuit Breaker pattern?': {
+  'circuit-breaker-pattern': {
     summary:
       'A circuit breaker wraps calls to a remote dependency and stops calling it once failures cross a threshold. In the Closed state calls pass through; too many failures trip it Open, where calls fail fast (or return a fallback) without hitting the dependency; after a cooldown it goes Half-Open and lets a few trial calls through — success closes it, failure re-opens it. It prevents cascading failures and gives the struggling service time to recover.',
     details: [
@@ -440,7 +440,7 @@ app.get('/home', async (req, res) => {
     ],
   },
 
-  'What is the Saga pattern in microservices?': {
+  'saga-pattern': {
     summary:
       "A saga manages a business transaction that spans several services as a sequence of local transactions, each in its own service and database. If a step fails, the saga runs compensating actions to undo the steps already completed (e.g. refund the payment, release the stock). It can be coordinated by choreography (services react to each other's events) or orchestration (a central orchestrator tells each service what to do).",
     details: [
@@ -523,7 +523,7 @@ Inventory  -- StockFailed -->      Payments (refund) and Orders (cancel)`,
     ],
   },
 
-  'How do you handle distributed transactions in a microservices architecture?': {
+  'distributed-transactions': {
     summary:
       'Avoid classic distributed ACID transactions (two-phase commit) because they block, couple services and scale poorly. Instead accept eventual consistency and use: sagas with compensating actions for multi-step business processes, the transactional outbox to atomically save data and publish events, idempotent consumers with retries and dead-letter queues, and — best of all — service boundaries designed so that most transactions stay inside one service.',
     details: [
@@ -606,7 +606,7 @@ async function handle(msg) {
     ],
   },
 
-  'What is the Strangler Fig pattern for migrating from monolith to microservices?': {
+  'strangler-fig-migration': {
     summary:
       'The Strangler Fig pattern migrates a monolith incrementally instead of rewriting it. You put a routing layer (proxy or API gateway) in front of the monolith, build new functionality or extract one capability at a time into a new service, and switch routes for that capability to the new service. Over time the monolith shrinks until it can be retired — while the system stays in production the whole way.',
     details: [

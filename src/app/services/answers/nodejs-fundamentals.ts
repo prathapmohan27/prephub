@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What is Node.js and how does it differ from browser JavaScript?': {
+  'node-js-vs-browser-javascript': {
     summary:
       "Node.js is a JavaScript runtime built on Chrome's V8 engine plus libuv, designed for running JavaScript outside the browser — typically servers, CLIs and tooling. The language is the same, but the environment differs: Node has no DOM or `window`, and instead gives you system APIs (file system, network sockets, processes, streams) and a module system, all built around a non-blocking event loop.",
     details: [
@@ -70,7 +70,7 @@ const text = await readFile('./config.json', 'utf8'); // direct file system acce
     ],
   },
 
-  'What is libuv and what role does it play in Node.js?': {
+  'what-libuv-does': {
     summary:
       "libuv is the C library that gives Node.js its event loop and asynchronous I/O. It wraps the OS's non-blocking mechanisms (epoll on Linux, kqueue on macOS, IOCP on Windows) behind one API, and provides a thread pool (default 4 threads) for operations the OS cannot do asynchronously — file system calls, DNS `lookup`, some `crypto` and `zlib` work.",
     details: [
@@ -134,7 +134,7 @@ for (let i = 1; i <= 6; i++) {
     ],
   },
 
-  'What is the difference between synchronous and asynchronous code in Node.js?': {
+  'synchronous-vs-asynchronous-code': {
     summary:
       'Synchronous code runs line by line and blocks the thread until each operation completes — in Node that means the entire process (every request) waits. Asynchronous code starts an operation, hands it off to libuv/the OS, and continues; the result arrives later via a callback, promise or `await`. In a server you should almost always use the async APIs.',
     details: [
@@ -203,7 +203,7 @@ http.createServer((req, res) => {
     ],
   },
 
-  'What is the Event Loop in Node.js and how does it work?': {
+  'node-fundamentals-how-the-event-loop-works': {
     summary:
       "The event loop is the mechanism (implemented by libuv) that lets Node's single JavaScript thread process asynchronous work. After your main script runs, the loop repeatedly cycles through phases — timers, pending callbacks, poll (I/O), check (`setImmediate`), close — running any callbacks whose operations are ready. Between every callback it drains the microtask queues (`process.nextTick`, then promises). When nothing is left to wait for, the process exits.",
     details: [
@@ -357,7 +357,7 @@ console.log('2: end of script');
     ],
   },
 
-  'What are the phases of the Node.js Event Loop?': {
+  'phases-of-the-event-loop': {
     summary:
       "Each iteration of the libuv event loop goes through six phases in order: **timers** (expired `setTimeout`/`setInterval`), **pending callbacks** (some deferred system-level I/O errors), **idle/prepare** (internal), **poll** (retrieve new I/O events and run their callbacks; may block here waiting), **check** (`setImmediate` callbacks), and **close callbacks** (e.g. `socket.on('close')`). Microtasks — `process.nextTick` then promises — run between every callback.",
     details: [
@@ -424,7 +424,7 @@ queueMicrotask(() => console.log('not a phase: promise/microtask queue'));`,
     ],
   },
 
-  'What is the difference between process.nextTick() and setImmediate()?': {
+  'process-nexttick-vs-setimmediate': {
     summary:
       '`process.nextTick()` queues a callback to run immediately after the current operation finishes — before promises and before the event loop continues to any phase. `setImmediate()` queues a callback for the **check** phase of the event loop, i.e. after I/O polling. The names are confusingly swapped: nextTick is actually the more "immediate" one.',
     details: [
@@ -496,31 +496,30 @@ c.on('ready', () => console.log('ready!')); // works thanks to nextTick`,
     ],
   },
 
-  'What is the difference between setTimeout() and setImmediate() in the context of the event loop?':
-    {
-      summary:
-        '`setTimeout(fn, 0)` schedules `fn` for the **timers** phase once at least ~1 ms has passed; `setImmediate(fn)` schedules it for the **check** phase, right after the poll phase. When both are called from the main module their order is non-deterministic (it depends on process performance/timer granularity), but when both are called inside an I/O callback, `setImmediate` always runs first.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Node clamps a 0 ms timeout to 1 ms. When the loop starts, if 1 ms has already elapsed since the timer was set, the timers phase runs it first; if not, the loop moves on and the check phase runs the immediate first. That race is why the main-module order varies.',
-        },
-        { type: 'heading3', text: 'From the main module: order is not guaranteed' },
-        {
-          type: 'code',
-          lang: 'javascript',
-          code: `// main.mjs
+  'settimeout-vs-setimmediate': {
+    summary:
+      '`setTimeout(fn, 0)` schedules `fn` for the **timers** phase once at least ~1 ms has passed; `setImmediate(fn)` schedules it for the **check** phase, right after the poll phase. When both are called from the main module their order is non-deterministic (it depends on process performance/timer granularity), but when both are called inside an I/O callback, `setImmediate` always runs first.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Node clamps a 0 ms timeout to 1 ms. When the loop starts, if 1 ms has already elapsed since the timer was set, the timers phase runs it first; if not, the loop moves on and the check phase runs the immediate first. That race is why the main-module order varies.',
+      },
+      { type: 'heading3', text: 'From the main module: order is not guaranteed' },
+      {
+        type: 'code',
+        lang: 'javascript',
+        code: `// main.mjs
 setTimeout(() => console.log('timeout'), 0);
 setImmediate(() => console.log('immediate'));
 
 // $ node main.mjs  → timeout, immediate
 // $ node main.mjs  → immediate, timeout   (can differ between runs)`,
-        },
-        { type: 'heading3', text: 'Inside an I/O callback: setImmediate always wins' },
-        {
-          type: 'code',
-          lang: 'javascript',
-          code: `import fs from 'node:fs';
+      },
+      { type: 'heading3', text: 'Inside an I/O callback: setImmediate always wins' },
+      {
+        type: 'code',
+        lang: 'javascript',
+        code: `import fs from 'node:fs';
 
 fs.readFile(import.meta.filename, () => {
   setTimeout(() => console.log('timeout'), 0);
@@ -529,33 +528,33 @@ fs.readFile(import.meta.filename, () => {
 // Always: immediate, timeout
 // We are in the poll phase → next comes check (immediate),
 // then the loop wraps around to timers (timeout).`,
-        },
-        {
-          type: 'flow',
-          title: 'Why I/O callbacks favour setImmediate',
-          code: `flowchart LR
+      },
+      {
+        type: 'flow',
+        title: 'Why I/O callbacks favour setImmediate',
+        code: `flowchart LR
   PO["poll phase<br/>I/O callback schedules both"]:::network --> CH["check phase<br/>setImmediate runs"]:::highlight
   CH --> CL["close callbacks"]:::server
   CL --> T["timers phase<br/>setTimeout 0 runs"]:::server`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '**setTimeout(fn, ms)**: "run after at least ms milliseconds" — time-based, timers phase; delays below 1 are treated as 1.',
-            '**setImmediate(fn)**: "run after this round of I/O" — phase-based, check phase; no timer bookkeeping, so slightly cheaper.',
-            'Use `setImmediate` to defer work or yield to I/O; use `setTimeout` when you actually need a time delay.',
-            'Both return handles: `clearTimeout` / `clearImmediate`; both keep the process alive unless you call `.unref()` on a timeout.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: the strong answer is "it depends where they are called from" — explain the non-determinism in the main module and the guaranteed order inside an I/O callback, and why (poll → check → timers).',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**setTimeout(fn, ms)**: "run after at least ms milliseconds" — time-based, timers phase; delays below 1 are treated as 1.',
+          '**setImmediate(fn)**: "run after this round of I/O" — phase-based, check phase; no timer bookkeeping, so slightly cheaper.',
+          'Use `setImmediate` to defer work or yield to I/O; use `setTimeout` when you actually need a time delay.',
+          'Both return handles: `clearTimeout` / `clearImmediate`; both keep the process alive unless you call `.unref()` on a timeout.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: the strong answer is "it depends where they are called from" — explain the non-determinism in the main module and the guaranteed order inside an I/O callback, and why (poll → check → timers).',
+      },
+    ],
+  },
 
-  'What is the difference between CommonJS (require) and ES Modules (import) in Node.js?': {
+  'commonjs-vs-es-modules': {
     summary:
       'CommonJS is Node\'s original module system: `require()` loads modules **synchronously** at runtime and `module.exports` exports a value. ES Modules are the JavaScript standard: `import`/`export` are **static** declarations, resolved and linked before code runs, loaded asynchronously, support top-level `await` and enable tree-shaking. Node picks the system by file extension (`.cjs`/`.mjs`) or the `"type"` field in package.json.',
     details: [
@@ -715,7 +714,7 @@ declare namespace MyLegacySdk {
     ],
   },
 
-  'What is module caching in Node.js?': {
+  'module-caching': {
     summary:
       'The first time a module is loaded, Node executes it and caches the result keyed by its resolved absolute filename. Every later `require()`/`import` of the same file returns the **same cached instance** without running the code again. This makes modules effectively singletons — useful for shared state like a DB pool, but a source of surprises if you expect fresh state.',
     details: [
@@ -782,7 +781,7 @@ const fresh = require('./config'); // executes config.js again
     ],
   },
 
-  'What are Worker Threads in Node.js and when should you use them?': {
+  'worker-threads-and-when-to-use-them': {
     summary:
       'The `worker_threads` module runs JavaScript in parallel threads inside the same process, each with its own V8 isolate and event loop. Workers communicate via message passing (`postMessage`) and can share memory with `SharedArrayBuffer`. Use them for **CPU-bound** work — image processing, hashing, parsing large files, compression — not for I/O, which Node already handles asynchronously.',
     details: [
@@ -958,7 +957,7 @@ app.post('/resize', async (req, res) => {
     ],
   },
 
-  'What is the difference between child_process.fork(), spawn(), and exec()?': {
+  'fork-vs-spawn-vs-exec': {
     summary:
       "`spawn()` launches any command and **streams** its stdout/stderr — best for long-running processes or large output. `exec()` runs a command **in a shell** and **buffers** the whole output into a callback — convenient for short commands, but limited by `maxBuffer` and risky with untrusted input. `fork()` is a special `spawn()` for **Node.js scripts** that sets up an IPC channel so parent and child can exchange messages with `send()`/`on('message')`.",
     details: [
@@ -1040,7 +1039,7 @@ process.on('message', async ({ month }) => {
     ],
   },
 
-  'How do you set up TypeScript in a Node.js project?': {
+  'set-up-typescript-in-node-js': {
     summary:
       'Install `typescript` and `@types/node` as dev dependencies, create a `tsconfig.json` with Node-appropriate settings (`"module": "nodenext"`, a modern `target`, `strict: true`, `outDir`/`rootDir`), compile with `tsc` to JavaScript for production, and use a fast runner like `tsx` (or Node\'s built-in type stripping in recent versions) during development.',
     details: [

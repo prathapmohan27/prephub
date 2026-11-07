@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'How does Change Detection work in Angular?': {
+  'how-change-detection-works': {
     summary:
       'Change detection keeps the DOM in sync with component state. Something notifies Angular that state may have changed (with Zone.js: any async event; zoneless: signals, `markForCheck`, template events), then Angular walks the component tree from the root, re-evaluates each template binding, compares it with the previous value, and updates only the DOM nodes whose values changed.',
     details: [
@@ -232,7 +232,7 @@ this.rows.push(newRow);         // ✅ Default child's @for shows the new row
     ],
   },
 
-  'Difference between Default and OnPush Change Detection Strategy': {
+  'default-vs-onpush': {
     summary:
       '`Default` checks a component on every change-detection cycle. `OnPush` checks it only when: an input reference changes, an event handler in its template (or a child) fires, `markForCheck()` is called (e.g. by `AsyncPipe`), or a signal it reads changes. Otherwise Angular skips it and its whole subtree, which is much faster but requires immutable data.',
     details: [
@@ -300,20 +300,19 @@ this.users = this.users.map(u => u.id === 1 ? { ...u, name: 'X' } : u); // ✅`,
     ],
   },
 
-  'Where and how do you implement custom change detection (`ChangeDetectionStrategy.OnPush` and `markForCheck()`) in code?':
-    {
-      summary:
-        'Set `changeDetection: ChangeDetectionStrategy.OnPush` in the `@Component` decorator. Then make sure every state change reaches the view through an OnPush-friendly path: new input references, template events, the `async` pipe, signals — or, when you update a field from a subscription/callback yourself, inject `ChangeDetectorRef` and call `markForCheck()`.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'OnPush is configured per component. The work is less in the one-line config and more in how the component receives data: anything that changes state outside an input or a template event needs to tell Angular. `markForCheck()` is that "tell" for imperative code.',
-        },
-        { type: 'heading3', text: '1. Enable OnPush' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+  'implementing-onpush-with-markforcheck': {
+    summary:
+      'Set `changeDetection: ChangeDetectionStrategy.OnPush` in the `@Component` decorator. Then make sure every state change reaches the view through an OnPush-friendly path: new input references, template events, the `async` pipe, signals — or, when you update a field from a subscription/callback yourself, inject `ChangeDetectorRef` and call `markForCheck()`.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'OnPush is configured per component. The work is less in the one-line config and more in how the component receives data: anything that changes state outside an input or a template event needs to tell Angular. `markForCheck()` is that "tell" for imperative code.',
+      },
+      { type: 'heading3', text: '1. Enable OnPush' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-stock-ticker',
   changeDetection: ChangeDetectionStrategy.OnPush, // 👈
   template: \`<span>{{ symbol() }}: {{ price }}</span>\`,
@@ -331,12 +330,12 @@ export class StockTickerComponent {
     });
   }
 }`,
-        },
-        { type: 'heading3', text: '2. Prefer approaches that need no manual call' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// a) async pipe — calls markForCheck internally
+      },
+      { type: 'heading3', text: '2. Prefer approaches that need no manual call' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// a) async pipe — calls markForCheck internally
 //    template: {{ price$ | async }}
 price$ = inject(PriceFeed).prices$;
 
@@ -346,22 +345,22 @@ price = toSignal(inject(PriceFeed).prices$, { initialValue: 0 });
 
 // c) immutable input updates from the parent
 //    this.items = [...this.items, newItem];`,
-        },
-        { type: 'heading3', text: 'Where markForCheck is typically needed' },
-        {
-          type: 'bullets',
-          items: [
-            'Manual `subscribe()` callbacks that assign fields.',
-            'Third-party library callbacks (charts, maps, websockets) that update component state.',
-            '`setTimeout`/`setInterval` updates inside an OnPush component.',
-            'A parent mutates an object that the OnPush child displays (better: stop mutating).',
-            'Not needed for: template event handlers, `async` pipe, signals, `setInput()`.',
-          ],
-        },
-        {
-          type: 'flow',
-          title: 'markForCheck in action',
-          code: `sequenceDiagram
+      },
+      { type: 'heading3', text: 'Where markForCheck is typically needed' },
+      {
+        type: 'bullets',
+        items: [
+          'Manual `subscribe()` callbacks that assign fields.',
+          'Third-party library callbacks (charts, maps, websockets) that update component state.',
+          '`setTimeout`/`setInterval` updates inside an OnPush component.',
+          'A parent mutates an object that the OnPush child displays (better: stop mutating).',
+          'Not needed for: template event handlers, `async` pipe, signals, `setInput()`.',
+        ],
+      },
+      {
+        type: 'flow',
+        title: 'markForCheck in action',
+        code: `sequenceDiagram
   participant WS as Price websocket
   participant C as StockTicker (OnPush)
   participant A as Angular scheduler
@@ -370,16 +369,16 @@ price = toSignal(inject(PriceFeed).prices$, { initialValue: 0 });
   C->>A: cdr.markForCheck() marks C and ancestors dirty
   A->>C: next tick checks the path to C
   C-->>WS: view shows 101.5`,
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: say you make OnPush the default for new components (you can set it in `angular.json` schematics) and that in signal-based code you rarely call `markForCheck()` — reaching for it often is a code smell.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: say you make OnPush the default for new components (you can set it in `angular.json` schematics) and that in signal-based code you rarely call `markForCheck()` — reaching for it often is a code smell.',
+      },
+    ],
+  },
 
-  'Difference between markForCheck() and detectChanges()': {
+  'markforcheck-vs-detectchanges': {
     summary:
       "`markForCheck()` doesn't run change detection — it marks the component and all its ancestors as dirty so the NEXT scheduled cycle checks them (needed for OnPush). `detectChanges()` runs change detection immediately and synchronously on this component and its children only, without touching ancestors. Use markForCheck by default; detectChanges for detached views or when you need the DOM updated right now.",
     details: [
@@ -452,20 +451,19 @@ export class LiveChartComponent {
     ],
   },
 
-  'Can you configure or trigger change detection strategies at the routing or module level in Angular?':
-    {
-      summary:
-        'Not directly — `ChangeDetectionStrategy` is a per-component setting; there is no option on a route or NgModule. What you can do: make routed/layout components OnPush (which effectively gates their whole subtree), configure how change detection is scheduled app-wide (`provideZoneChangeDetection({ eventCoalescing: true })` or `provideZonelessChangeDetection()`), set OnPush as the CLI schematic default, and trigger checks manually via `ChangeDetectorRef` or `ApplicationRef.tick()`.',
-      details: [
-        {
-          type: 'paragraph',
-          text: "Strategy belongs to the component because it describes how that component's view depends on data. But since an OnPush component that is skipped also skips all its descendants, choosing OnPush for a route's top-level component has a route-wide effect.",
-        },
-        { type: 'heading3', text: 'Route-level effect through the routed component' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export const routes: Routes = [
+  'change-detection-at-route-or-module-level': {
+    summary:
+      'Not directly — `ChangeDetectionStrategy` is a per-component setting; there is no option on a route or NgModule. What you can do: make routed/layout components OnPush (which effectively gates their whole subtree), configure how change detection is scheduled app-wide (`provideZoneChangeDetection({ eventCoalescing: true })` or `provideZonelessChangeDetection()`), set OnPush as the CLI schematic default, and trigger checks manually via `ChangeDetectorRef` or `ApplicationRef.tick()`.',
+    details: [
+      {
+        type: 'paragraph',
+        text: "Strategy belongs to the component because it describes how that component's view depends on data. But since an OnPush component that is skipped also skips all its descendants, choosing OnPush for a route's top-level component has a route-wide effect.",
+      },
+      { type: 'heading3', text: 'Route-level effect through the routed component' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export const routes: Routes = [
   {
     path: 'reports',
     loadComponent: () => import('./reports/reports-page.component').then(m => m.ReportsPageComponent),
@@ -480,12 +478,12 @@ export class LiveChartComponent {
 export class ReportsPageComponent {
   data = toSignal(inject(ReportsApi).load(), { initialValue: [] });
 }`,
-        },
-        { type: 'heading3', text: 'Application-level configuration' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Zone-based app: batch multiple events into one CD run
+      },
+      { type: 'heading3', text: 'Application-level configuration' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Zone-based app: batch multiple events into one CD run
 bootstrapApplication(AppComponent, {
   providers: [provideZoneChangeDetection({ eventCoalescing: true })],
 });
@@ -497,37 +495,37 @@ bootstrapApplication(AppComponent, {
 
 // Legacy NgModule bootstrap equivalent
 platformBrowserDynamic().bootstrapModule(AppModule, { ngZoneEventCoalescing: true });`,
-        },
-        { type: 'heading3', text: 'Making OnPush the default for generated components' },
-        {
-          type: 'code',
-          lang: 'json',
-          code: `// angular.json
+      },
+      { type: 'heading3', text: 'Making OnPush the default for generated components' },
+      {
+        type: 'code',
+        lang: 'json',
+        code: `// angular.json
 "schematics": {
   "@schematics/angular:component": {
     "changeDetection": "OnPush"
   }
 }
 // ng generate component foo → already has ChangeDetectionStrategy.OnPush`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Manual triggers: `ChangeDetectorRef.markForCheck()/detectChanges()/detach()` per component, `ApplicationRef.tick()` for the whole app.',
-            '`NgZone.runOutsideAngular()` keeps noisy listeners from triggering CD at all (zone-based apps).',
-            "Router events or resolvers don't change a strategy; they just cause state changes that CD then picks up.",
-            'Lint rules (e.g. angular-eslint `prefer-on-push-component-change-detection`) can enforce OnPush project-wide.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: answer "no, it is per component" clearly, then show you know the app-level knobs (event coalescing, zoneless) and the practical trick — OnPush on route/layout components plus a schematic default.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Manual triggers: `ChangeDetectorRef.markForCheck()/detectChanges()/detach()` per component, `ApplicationRef.tick()` for the whole app.',
+          '`NgZone.runOutsideAngular()` keeps noisy listeners from triggering CD at all (zone-based apps).',
+          "Router events or resolvers don't change a strategy; they just cause state changes that CD then picks up.",
+          'Lint rules (e.g. angular-eslint `prefer-on-push-component-change-detection`) can enforce OnPush project-wide.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: answer "no, it is per component" clearly, then show you know the app-level knobs (event coalescing, zoneless) and the practical trick — OnPush on route/layout components plus a schematic default.',
+      },
+    ],
+  },
 
-  'How does Angular detect changes in a zone-less environment?': {
+  'change-detection-without-zone-js': {
     summary:
       'Without Zone.js, Angular no longer runs change detection after every async task. Instead, specific notifications schedule a run: a signal read in a template changes, `ChangeDetectorRef.markForCheck()` (including via the `async` pipe), an event listener bound in a template fires, `ComponentRef.setInput()`, or views being attached/removed. You enable it with `provideZonelessChangeDetection()`.',
     details: [

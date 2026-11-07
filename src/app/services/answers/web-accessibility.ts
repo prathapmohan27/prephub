@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What does accessibility mean for a web app, and what do WCAG levels A, AA and AAA require?': {
+  'web-accessibility-and-wcag-levels': {
     summary:
       'Accessibility means people with disabilities (visual, motor, hearing, cognitive), whether permanent, temporary or situational, can perceive, operate and understand the app with whatever they use: keyboard, screen reader, zoom, voice control or switch devices. WCAG organises this under four principles (Perceivable, Operable, Understandable, Robust) and grades success criteria as A (the minimum), AA (the level laws and contracts ask for) and AAA (the strictest, used for specific content rather than whole sites). The current version is WCAG 2.2, and in practice the target is **WCAG 2.2 AA**.',
     details: [
@@ -61,7 +61,7 @@ export const answers: AnswerMap = {
     ],
   },
 
-  'Why should you start with semantic HTML, and when do you actually need ARIA?': {
+  'semantic-html-first-aria-when-needed': {
     summary:
       'Native elements like `<button>`, `<a href>`, `<label>`, `<nav>` and `<h1>`–`<h6>` give you role, accessible name, keyboard behaviour, focus and states for free, and browsers and screen readers have supported them for decades. ARIA only changes what assistive technology is told; it adds no behaviour. So the first rule of ARIA is: if a native element does the job, use it. Reach for ARIA when there is no native equivalent (tabs, combobox, tree), to expose state (`aria-expanded`, `aria-current`), to connect things (`aria-describedby`, `aria-controls`) or for live regions.',
     details: [
@@ -150,7 +150,7 @@ export class DisclosureDirective {
     ],
   },
 
-  'How do you make a custom component such as a dropdown or tabs fully keyboard accessible?': {
+  'keyboard-accessible-custom-components': {
     summary:
       'Follow the matching WAI-ARIA Authoring Practices pattern: correct roles and states, one Tab stop for the whole widget, arrow keys to move inside it (roving `tabindex` or `aria-activedescendant`), Home/End, Escape to close popups, and focus returning to the trigger. For tabs that means `tablist`/`tab`/`tabpanel` with `aria-selected` and `aria-controls`; for a dropdown it means a menu button or combobox/listbox with `aria-expanded`. Before building it, check whether a native element or a CDK primitive (CDK Menu, CDK Listbox, `FocusKeyManager`) already does it.',
     details: [
@@ -269,20 +269,19 @@ export class TabsComponent {
     ],
   },
 
-  'How do you manage focus in a single-page app: on route changes, in modals, and with focus traps?':
-    {
-      summary:
-        'In an SPA the browser no longer resets focus on navigation, so you do it yourself: after a route change, move focus to the new main heading (or a skip target) and update the page title, so screen-reader users hear where they are. Modals must move focus inside on open, keep Tab cycling within the dialog, close on Escape, make the background inert, and return focus to the trigger on close. Use the CDK Dialog or `cdkTrapFocus`, or the native `<dialog>` with `showModal()`, rather than hand-rolling a trap.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Without focus management, clicking a link in a client-side router leaves focus on the clicked link (or on `body` if it was removed). A sighted mouse user sees new content; a screen-reader user hears nothing and a keyboard user has to Tab from the top of the page again.',
-        },
-        { type: 'heading3', text: 'Route changes: focus the main heading' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+  'focus-management-in-an-spa': {
+    summary:
+      'In an SPA the browser no longer resets focus on navigation, so you do it yourself: after a route change, move focus to the new main heading (or a skip target) and update the page title, so screen-reader users hear where they are. Modals must move focus inside on open, keep Tab cycling within the dialog, close on Escape, make the background inert, and return focus to the trigger on close. Use the CDK Dialog or `cdkTrapFocus`, or the native `<dialog>` with `showModal()`, rather than hand-rolling a trap.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Without focus management, clicking a link in a client-side router leaves focus on the clicked link (or on `body` if it was removed). A sighted mouse user sees new content; a screen-reader user hears nothing and a keyboard user has to Tab from the top of the page again.',
+      },
+      { type: 'heading3', text: 'Route changes: focus the main heading' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-root',
   imports: [RouterOutlet],
   template: \`
@@ -319,31 +318,31 @@ export class App {
     this.doc.getElementById('main')?.focus();
   }
 }`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '`skip(1)` avoids stealing focus on the initial page load.',
-            'Set route `title`s (or a custom `TitleStrategy`) so the document title changes too; screen readers and browser history use it.',
-            'Do not move focus for in-page changes like filters or query-param updates; announce them with a live region instead.',
-            'Style `h1:focus` subtly (or not at all) since it is not interactive, but keep visible focus on real controls.',
-          ],
-        },
-        { type: 'heading3', text: 'Modals: the full checklist' },
-        {
-          type: 'numbered',
-          items: [
-            'On open, move focus into the dialog: the first field, or the heading/close button for informational dialogs.',
-            'Name it: `role="dialog"` + `aria-modal="true"` + `aria-labelledby` pointing at the title.',
-            'Trap Tab and Shift+Tab inside, and make the rest of the page `inert` so screen-reader virtual cursors cannot wander out.',
-            'Escape closes it (unless it is a destructive confirmation that needs an explicit choice).',
-            'On close, restore focus to the element that opened it, or to a sensible place if that element is gone.',
-          ],
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Option 1: CDK Dialog does all five steps (focus trap, aria-modal, restore focus)
+      },
+      {
+        type: 'bullets',
+        items: [
+          '`skip(1)` avoids stealing focus on the initial page load.',
+          'Set route `title`s (or a custom `TitleStrategy`) so the document title changes too; screen readers and browser history use it.',
+          'Do not move focus for in-page changes like filters or query-param updates; announce them with a live region instead.',
+          'Style `h1:focus` subtly (or not at all) since it is not interactive, but keep visible focus on real controls.',
+        ],
+      },
+      { type: 'heading3', text: 'Modals: the full checklist' },
+      {
+        type: 'numbered',
+        items: [
+          'On open, move focus into the dialog: the first field, or the heading/close button for informational dialogs.',
+          'Name it: `role="dialog"` + `aria-modal="true"` + `aria-labelledby` pointing at the title.',
+          'Trap Tab and Shift+Tab inside, and make the rest of the page `inert` so screen-reader virtual cursors cannot wander out.',
+          'Escape closes it (unless it is a destructive confirmation that needs an explicit choice).',
+          'On close, restore focus to the element that opened it, or to a sensible place if that element is gone.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Option 1: CDK Dialog does all five steps (focus trap, aria-modal, restore focus)
 private readonly dialog = inject(Dialog);
 openEdit(user: User) {
   this.dialog.open(EditUserDialog, { data: user, ariaLabelledBy: 'edit-user-title' });
@@ -354,34 +353,34 @@ openEdit(user: User) {
 //   <h2 id="t">Delete project?</h2> ...
 // </div>
 // AutoCapture focuses the first tabbable element and restores focus on destroy.`,
-        },
-        {
-          type: 'paragraph',
-          text: 'The native `<dialog>` element opened with `showModal()` is also a good option today: it renders in the top layer, makes the rest of the page inert, closes on Escape and returns focus to the previously focused element in current browsers.',
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'A focus trap is only correct for modal content. Trapping focus in a non-modal panel, a cookie banner or a chat widget violates "no keyboard trap" (2.1.2). And with sticky headers, make sure the newly focused element is not hidden under them (2.4.11 Focus Not Obscured), for example with `scroll-padding-top`.',
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: structure the answer as "route changes, modals, everything else" and mention that you restore focus on close. Forgetting focus restoration is the most common modal bug, and naming it shows you have tested with a keyboard.',
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'Where does focus go when the item a user just deleted disappears from a list?',
-            'Heading focus vs announcing the new page title with a live region: trade-offs?',
-            'How does `inert` differ from `aria-hidden="true"`?',
-          ],
-        },
-      ],
-    },
+      },
+      {
+        type: 'paragraph',
+        text: 'The native `<dialog>` element opened with `showModal()` is also a good option today: it renders in the top layer, makes the rest of the page inert, closes on Escape and returns focus to the previously focused element in current browsers.',
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'A focus trap is only correct for modal content. Trapping focus in a non-modal panel, a cookie banner or a chat widget violates "no keyboard trap" (2.1.2). And with sticky headers, make sure the newly focused element is not hidden under them (2.4.11 Focus Not Obscured), for example with `scroll-padding-top`.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: structure the answer as "route changes, modals, everything else" and mention that you restore focus on close. Forgetting focus restoration is the most common modal bug, and naming it shows you have tested with a keyboard.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'Where does focus go when the item a user just deleted disappears from a list?',
+          'Heading focus vs announcing the new page title with a live region: trade-offs?',
+          'How does `inert` differ from `aria-hidden="true"`?',
+        ],
+      },
+    ],
+  },
 
-  'How do you make dynamic content and form errors announced to screen-reader users?': {
+  'announcing-dynamic-content-and-errors': {
     summary:
       'Screen readers only read what has focus or what changes inside a live region, so async updates ("3 results found", "Saved") go into a polite live region (`role="status"`) that already exists in the DOM, or through the CDK `LiveAnnouncer`. Urgent messages use `role="alert"` (assertive), sparingly. For forms, each error is linked to its field with `aria-describedby`, the field gets `aria-invalid="true"`, and on submit you focus the first invalid field or an error summary, so errors are both announced and discoverable.',
     details: [
@@ -508,7 +507,7 @@ submit() {
     ],
   },
 
-  'What are the colour contrast, motion and zoom requirements, and how do you check them?': {
+  'contrast-motion-and-zoom-requirements': {
     summary:
       'Contrast at AA is **4.5:1** for normal text and **3:1** for large text (24px, or about 18.66px bold), and **3:1** for UI component boundaries, icons and focus indicators against adjacent colours. Motion must respect `prefers-reduced-motion`, anything that auto-moves for more than five seconds needs pause/stop, and nothing should flash more than three times a second. For zoom, text must resize to 200% and content must reflow at **320 CSS px** width (400% zoom on a 1280px screen) without two-dimensional scrolling. I check with DevTools, axe, a contrast analyser and by actually zooming the app.',
     details: [
@@ -620,46 +619,45 @@ export class MotionPreference {
     ],
   },
 
-  'What does the Angular CDK a11y package provide (`FocusTrap`, `LiveAnnouncer`, `FocusMonitor`, `ListKeyManager`)?':
-    {
-      summary:
-        '`@angular/cdk/a11y` is a set of unstyled, tested accessibility primitives that Angular Material is built on. `FocusTrap` / `cdkTrapFocus` keeps Tab inside a region such as a dialog; `LiveAnnouncer` announces messages through a shared live region; `FocusMonitor` tells you how an element got focus (keyboard, mouse, touch or program) so you can show focus styles only for keyboard; and `ListKeyManager` with its `FocusKeyManager` and `ActiveDescendantKeyManager` subclasses implements arrow-key navigation, wrapping, Home/End and type-ahead for lists, menus and listboxes. It also includes `InteractivityChecker`, `AriaDescriber`, high-contrast detection and a visually-hidden utility.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'The value for a senior engineer is consistency: instead of every team writing its own focus trap or arrow-key handler (each with different bugs), you build your design-system components on these primitives. Import the directives from `A11yModule` (or the standalone directives) and inject the services.',
-        },
-        { type: 'heading3', text: 'FocusTrap' },
-        {
-          type: 'code',
-          lang: 'html',
-          code: `<!-- Declarative: traps Tab, focuses first tabbable, restores focus when destroyed -->
+  'angular-cdk-a11y-tools': {
+    summary:
+      '`@angular/cdk/a11y` is a set of unstyled, tested accessibility primitives that Angular Material is built on. `FocusTrap` / `cdkTrapFocus` keeps Tab inside a region such as a dialog; `LiveAnnouncer` announces messages through a shared live region; `FocusMonitor` tells you how an element got focus (keyboard, mouse, touch or program) so you can show focus styles only for keyboard; and `ListKeyManager` with its `FocusKeyManager` and `ActiveDescendantKeyManager` subclasses implements arrow-key navigation, wrapping, Home/End and type-ahead for lists, menus and listboxes. It also includes `InteractivityChecker`, `AriaDescriber`, high-contrast detection and a visually-hidden utility.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'The value for a senior engineer is consistency: instead of every team writing its own focus trap or arrow-key handler (each with different bugs), you build your design-system components on these primitives. Import the directives from `A11yModule` (or the standalone directives) and inject the services.',
+      },
+      { type: 'heading3', text: 'FocusTrap' },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<!-- Declarative: traps Tab, focuses first tabbable, restores focus when destroyed -->
 <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="filters-title"
        cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
   <h2 id="filters-title">Filters</h2>
   <button cdkFocusInitial type="button">Apply</button>
 </aside>`,
-        },
-        {
-          type: 'paragraph',
-          text: 'For programmatic control, inject `FocusTrapFactory` and call `create(element)`, then `focusInitialElementWhenReady()` and `destroy()`. `cdkFocusInitial`, `cdkFocusRegionStart` and `cdkFocusRegionEnd` mark where focus starts and the trap boundaries. CDK `Dialog` and Material `MatDialog` already use this internally.',
-        },
-        { type: 'heading3', text: 'LiveAnnouncer' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `private readonly announcer = inject(LiveAnnouncer);
+      },
+      {
+        type: 'paragraph',
+        text: 'For programmatic control, inject `FocusTrapFactory` and call `create(element)`, then `focusInitialElementWhenReady()` and `destroy()`. `cdkFocusInitial`, `cdkFocusRegionStart` and `cdkFocusRegionEnd` mark where focus starts and the trap boundaries. CDK `Dialog` and Material `MatDialog` already use this internally.',
+      },
+      { type: 'heading3', text: 'LiveAnnouncer' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `private readonly announcer = inject(LiveAnnouncer);
 
 async onSaved() {
   await this.announcer.announce('Profile saved', 'polite'); // or 'assertive'
 }
 // announcer.clear() empties the region, e.g. before navigating away`,
-        },
-        { type: 'heading3', text: 'FocusMonitor' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Directive({
+      },
+      { type: 'heading3', text: 'FocusMonitor' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Directive({
   selector: '[appFocusOrigin]',
   host: { '[class.keyboard-focused]': "origin() === 'keyboard'" },
 })
@@ -677,20 +675,20 @@ export class FocusOriginDirective {
 }
 // focusVia(el, 'keyboard') focuses programmatically with a chosen origin.
 // The cdkMonitorElementFocus directive adds cdk-keyboard-focused / cdk-mouse-focused classes.`,
-        },
-        { type: 'heading3', text: 'ListKeyManager family' },
-        {
-          type: 'bullets',
-          items: [
-            '`FocusKeyManager`: moves real DOM focus between items (roving tabindex). Items implement `FocusableOption` (`focus()`, optional `disabled`, `getLabel()` for type-ahead).',
-            '`ActiveDescendantKeyManager`: focus stays on the host (e.g. a combobox input); items implement `Highlightable` (`setActiveStyles()` / `setInactiveStyles()`) and you bind `aria-activedescendant`.',
-            "Configuration is fluent: `.withWrap()`, `.withVerticalOrientation()`, `.withHorizontalOrientation('ltr')`, `.withHomeAndEnd()`, `.withTypeAhead()`, and it skips disabled items.",
-          ],
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+      },
+      { type: 'heading3', text: 'ListKeyManager family' },
+      {
+        type: 'bullets',
+        items: [
+          '`FocusKeyManager`: moves real DOM focus between items (roving tabindex). Items implement `FocusableOption` (`focus()`, optional `disabled`, `getLabel()` for type-ahead).',
+          '`ActiveDescendantKeyManager`: focus stays on the host (e.g. a combobox input); items implement `Highlightable` (`setActiveStyles()` / `setInactiveStyles()`) and you bind `aria-activedescendant`.',
+          "Configuration is fluent: `.withWrap()`, `.withVerticalOrientation()`, `.withHorizontalOrientation('ltr')`, `.withHomeAndEnd()`, `.withTypeAhead()`, and it skips disabled items.",
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-toolbar',
   host: { role: 'toolbar', '(keydown)': 'keyManager.onKeydown($event)' },
   template: \`<ng-content />\`,
@@ -706,35 +704,35 @@ export class Toolbar implements AfterContentInit {
       .withHomeAndEnd();
   }
 }`,
-        },
-        { type: 'heading3', text: 'Other useful pieces' },
-        {
-          type: 'bullets',
-          items: [
-            '`InteractivityChecker`: `isFocusable`, `isTabbable`, `isVisible` checks for an element.',
-            '`AriaDescriber`: adds `aria-describedby` text without you managing hidden elements (tooltips use it).',
-            '`HighContrastModeDetector` and the `cdk-visually-hidden` class (from the `cdk.a11y-visually-hidden()` mixin).',
-            'Higher-level CDK packages build on this: CDK Menu, CDK Listbox, CDK Dialog, and Material components.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: for each primitive, give the problem it solves in one sentence, then say you would build design-system components on top of it. Mentioning `FocusKeyManager` vs `ActiveDescendantKeyManager` and when each fits (focus must stay in an input) is a strong senior signal.',
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'Why does `MatDialog` restore focus, and how do you change where it goes?',
-            'How would you build a listbox with `ActiveDescendantKeyManager`?',
-            'When would you use CDK primitives instead of Angular Material?',
-          ],
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'Other useful pieces' },
+      {
+        type: 'bullets',
+        items: [
+          '`InteractivityChecker`: `isFocusable`, `isTabbable`, `isVisible` checks for an element.',
+          '`AriaDescriber`: adds `aria-describedby` text without you managing hidden elements (tooltips use it).',
+          '`HighContrastModeDetector` and the `cdk-visually-hidden` class (from the `cdk.a11y-visually-hidden()` mixin).',
+          'Higher-level CDK packages build on this: CDK Menu, CDK Listbox, CDK Dialog, and Material components.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: for each primitive, give the problem it solves in one sentence, then say you would build design-system components on top of it. Mentioning `FocusKeyManager` vs `ActiveDescendantKeyManager` and when each fits (focus must stay in an input) is a strong senior signal.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'Why does `MatDialog` restore focus, and how do you change where it goes?',
+          'How would you build a listbox with `ActiveDescendantKeyManager`?',
+          'When would you use CDK primitives instead of Angular Material?',
+        ],
+      },
+    ],
+  },
 
-  'How do you test accessibility: automated tools, keyboard-only checks and screen readers?': {
+  'testing-accessibility': {
     summary:
       'Use layers. Automated tools (Angular ESLint template accessibility rules, axe-core in unit and Playwright tests, Lighthouse) are cheap and run in CI, but they only catch part of the issues, mostly missing names, contrast and invalid ARIA. Then a manual keyboard-only pass on every new flow checks order, visible focus, traps and Escape. Finally a screen-reader check with NVDA and VoiceOver on key journeys confirms names, states and announcements make sense. Real users with disabilities, or an external audit, close the gap.',
     details: [

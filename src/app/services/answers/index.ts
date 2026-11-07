@@ -5,6 +5,7 @@ import type { AnswerMap } from './answer.model';
 export const ANSWER_LOADERS: Record<string, () => Promise<AnswerMap>> = {
   'javascript-fundamentals': () => import('./javascript-fundamentals').then((m) => m.answers),
   typescript: () => import('./typescript').then((m) => m.answers),
+  'js-output': () => import('./js-output').then((m) => m.answers),
   'browser-dom-css': () => import('./browser-dom-css').then((m) => m.answers),
   'web-accessibility': () => import('./web-accessibility').then((m) => m.answers),
   'web-performance': () => import('./web-performance').then((m) => m.answers),

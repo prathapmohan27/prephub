@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What is a Buffer in Node.js and when would you use it?': {
+  'buffers-and-when-to-use-them': {
     summary:
       'A `Buffer` is a fixed-length chunk of raw binary memory (a subclass of `Uint8Array`) allocated outside the V8 heap. You use it whenever you deal with bytes rather than JavaScript strings: file and socket I/O, binary protocols, images, hashing/crypto, and encoding conversions such as UTF-8 ↔ base64.',
     details: [
@@ -69,7 +69,7 @@ const body = Buffer.concat(chunks).toString('utf8');`,
     ],
   },
 
-  'What are the four types of streams in Node.js?': {
+  'four-stream-types': {
     summary:
       '**Readable** (a source you read from, e.g. `fs.createReadStream`, an HTTP request), **Writable** (a destination, e.g. `fs.createWriteStream`, an HTTP response), **Duplex** (independent readable and writable sides, e.g. a TCP socket) and **Transform** (a Duplex whose output is computed from its input, e.g. `zlib.createGzip()`). All are EventEmitters that move data in chunks.',
     details: [
@@ -147,7 +147,7 @@ numbers.pipe(double).pipe(logger); // got 2, got 4, got 6`,
     ],
   },
 
-  'What is backpressure and how does Node.js handle it?': {
+  backpressure: {
     summary:
       'Backpressure is what happens when a producer generates data faster than a consumer can handle it. Node handles it with buffers bounded by `highWaterMark`: `writable.write()` returns `false` when the buffer is full, the producer should pause until the `drain` event, and `pipe()`/`pipeline()` do this pause/resume for you automatically.',
     details: [
@@ -235,7 +235,7 @@ await pipeline(Readable.from(lines()), createWriteStream('big.txt'));
     ],
   },
 
-  'What is stream.pipeline() and why is it preferred over .pipe()?': {
+  'stream-pipeline-vs-pipe': {
     summary:
       '`stream.pipeline()` connects a chain of streams, forwards backpressure, and — unlike `.pipe()` — propagates errors from any stage, destroys every stream in the chain on failure or completion, and gives you a single callback/promise for "done or failed". `.pipe()` does not forward errors and can leave file descriptors and sockets open, leaking resources.',
     details: [
@@ -323,7 +323,7 @@ http.createServer(async (req, res) => {
     ],
   },
 
-  'How do you create a custom Transform stream?': {
+  'write-a-custom-transform-stream': {
     summary:
       'Either extend `stream.Transform` and implement `_transform(chunk, encoding, callback)` (plus optional `_flush(callback)` for end-of-stream output), or pass `transform`/`flush` functions to `new Transform({...})`. Call `this.push(data)` or `callback(null, data)` to emit output, and `callback(err)` to fail. In modern code an async generator in `pipeline()` is often simpler.',
     details: [
@@ -427,7 +427,7 @@ await pipeline(createReadStream('app.log'), new LineSplitter(), parseJson, sink)
     ],
   },
 
-  'How would you process a large CSV file efficiently in Node.js?': {
+  'process-a-large-csv-efficiently': {
     summary:
       'Stream it: `fs.createReadStream` → a streaming CSV parser (e.g. `csv-parse` or `fast-csv`) → a transform/batching step → the destination, all wired with `pipeline()` so memory stays constant and backpressure is respected. Insert into the database in batches (e.g. 500–5,000 rows per bulk insert or `COPY`), and handle bad rows without aborting the whole job.',
     details: [

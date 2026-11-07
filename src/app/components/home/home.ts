@@ -1,14 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import {
-  CategoryModel,
-  Question,
-  RENAMED_QUESTIONS,
-  TRACKS,
-  Track,
-  isTrack,
-  trackOf,
-} from '@services/question';
+import { CategoryModel, Question, TRACKS, Track, isTrack, trackOf } from '@services/question';
 import { DailyLearningService } from '@services/daily-learning';
 import { exportProgress, importProgress } from '@services/progress-backup';
 
@@ -86,7 +78,8 @@ const pct = (read: number, total: number) => (total ? Math.round((read / total) 
 function readList(key: string): string[] {
   try {
     const list = JSON.parse(localStorage.getItem(key) || '[]');
-    return Array.isArray(list) ? list.map((q: string) => RENAMED_QUESTIONS[q] ?? q) : [];
+    // Question ids (saved text from older versions is converted at startup)
+    return Array.isArray(list) ? list : [];
   } catch {
     return [];
   }
@@ -268,7 +261,7 @@ export class Home implements OnInit {
   private qaProgress(track: Track): Progress {
     const cats = this.categories.filter((c) => trackOf(c.id) === track);
     const all = cats.flatMap((c) => c.questions);
-    const read = all.filter((q) => this.prepared.has(q)).length;
+    const read = all.filter((q) => this.prepared.has(q.id)).length;
     return { read, total: all.length, percent: pct(read, all.length) };
   }
 
@@ -354,10 +347,10 @@ export class Home implements OnInit {
         const last = JSON.parse(localStorage.getItem(`prep_last_${mode}`) || 'null');
         if (!last?.key) continue;
         const sep = last.key.indexOf('::');
-        const rawQ: string = last.key.slice(sep + 2);
-        const q = RENAMED_QUESTIONS[rawQ] ?? rawQ;
+        const id: string = last.key.slice(sep + 2);
         const cat = this.categories.find((c) => c.id === last.key.slice(0, sep));
-        if (cat?.questions.includes(q)) return { q, cat, topic: last.topic as string | null };
+        const question = cat?.questions.find((q) => q.id === id);
+        if (cat && question) return { question, cat, topic: last.topic as string | null };
       } catch {
         // ignore corrupt entries
       }
@@ -377,12 +370,12 @@ export class Home implements OnInit {
             label: 'Interview Q&A',
             icon: 'ti-list-check',
             accent: TRACK_ACCENT[trackOf(last.cat.id)],
-            title: last.q.replace(/`/g, ''),
+            title: last.question.text.replace(/`/g, ''),
             meta: last.cat.title,
             percent: 0,
             started: true,
             link: ['/questions'],
-            queryParams: { ...(last.topic ? { topic: last.topic } : {}), q: last.q },
+            queryParams: { ...(last.topic ? { topic: last.topic } : {}), q: last.question.id },
           }
         : {
             kind: 'qa',

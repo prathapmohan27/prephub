@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'Difference between Type and Interface': {
+  'type-vs-interface': {
     summary:
       'Both describe the shape of data. An interface describes object shapes and can be extended or re-opened (declaration merging). A type alias can name ANY type — unions, tuples, primitives, mapped and conditional types — but cannot be re-opened. Rule of thumb: use interface for public object/class contracts, type for unions and type-level logic.',
     details: [
@@ -172,7 +172,7 @@ declare global {
     ],
   },
 
-  'What are Generics in TypeScript?': {
+  generics: {
     summary:
       'Generics are type parameters — placeholders like <T> that let one function, class or interface work with many types while keeping full type safety. Instead of using `any` (which loses type information), the caller\'s actual type flows through, so `identity<string>("a")` returns a `string`, not `any`.',
     details: [
@@ -350,7 +350,7 @@ if (result.ok) result.data.map((u) => u.email); // data: User[]`,
     ],
   },
 
-  'What is the difference between `any`, `unknown`, and `never`?': {
+  'any-vs-unknown-vs-never': {
     summary:
       '`any` turns type checking off — anything goes in and anything comes out, so mistakes surface at runtime. `unknown` also accepts any value, but you must narrow it before using it, which makes it the safe type for untrusted data (JSON, localStorage, caught errors). `never` is the opposite end: a type with no values, used for functions that never return and for exhaustive checks that make the compiler flag a forgotten case.',
     details: [
@@ -515,20 +515,19 @@ if (isNodeError(err) && err.code === 'ENOENT') { /* file missing */ }`,
     ],
   },
 
-  'What are utility types (`Partial`, `Pick`, `Omit`, `Record`, `Readonly`) and where do you use them in Angular?':
-    {
-      summary:
-        'Utility types are built-in generic types that derive new types from existing ones, so you keep one source of truth. In Angular I use `Omit<Product, "id">` for create DTOs, `Partial<…>` for PATCH payloads, `Pick<…>` for the slice a card component needs, `Record<Status, string>` for label/icon maps that must cover every case, and `Readonly<…>` for state that should not be changed in place.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Without them you end up copying the `Product` interface into `CreateProductDto`, `UpdateProductDto` and `ProductCardData` — and the copies drift apart the first time someone adds a field. With utility types, a change to `Product` flows through to all of them automatically.',
-        },
-        { type: 'heading3', text: 'DTOs in a typed HttpClient service' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export interface Product {
+  'utility-types-and-where-to-use-them': {
+    summary:
+      'Utility types are built-in generic types that derive new types from existing ones, so you keep one source of truth. In Angular I use `Omit<Product, "id">` for create DTOs, `Partial<…>` for PATCH payloads, `Pick<…>` for the slice a card component needs, `Record<Status, string>` for label/icon maps that must cover every case, and `Readonly<…>` for state that should not be changed in place.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Without them you end up copying the `Product` interface into `CreateProductDto`, `UpdateProductDto` and `ProductCardData` — and the copies drift apart the first time someone adds a field. With utility types, a change to `Product` flows through to all of them automatically.',
+      },
+      { type: 'heading3', text: 'DTOs in a typed HttpClient service' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export interface Product {
   id: number;
   name: string;
   price: number;
@@ -557,12 +556,12 @@ export class ProductService {
 productService.update(1, { price: 19.99 }); // ✅ only what changed
 productService.create({ name: 'Pen', price: 2, stock: 10, category: 'toys', id: 5 });
 // ❌ error: Object literal may only specify known properties, and 'id' does not exist in type 'CreateProductDto'`,
-        },
-        { type: 'heading3', text: 'Record and Readonly for UI state' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `type Category = Product['category'];
+      },
+      { type: 'heading3', text: 'Record and Readonly for UI state' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `type Category = Product['category'];
 
 // Every category MUST have a label — add 'garden' to the union and this errors
 const categoryLabels: Record<Category, string> = {
@@ -581,34 +580,34 @@ initialState.coupon = 'SAVE10';  // ❌ error: Cannot assign to 'coupon' because
 initialState.items.push(item);   // ✅ compiles — Readonly is shallow!
 
 cart = signal<Readonly<CartState>>(initialState); // nudges everyone to use update() with new objects`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Also worth knowing: `Required<T>`, `NonNullable<T>`, `Exclude`/`Extract` for unions, `ReturnType<typeof fn>`, `Parameters<typeof fn>`, and `Awaited<T>` to unwrap a Promise.',
-            'They compose: `Partial<Omit<Product, "id">>` reads as "any editable field".',
-            '`Record<string, T>` is a loose dictionary; `Record<Union, T>` is an exhaustive map — prefer the second whenever the keys are known.',
-            'They are all shallow and type-only: nothing is removed or frozen at runtime (`Readonly` is not `Object.freeze`).',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: anchor each utility type to a real job — create DTO (`Omit`), PATCH body (`Partial`), card input (`Pick`), status label map (`Record`), store state (`Readonly`). Mentioning that `Readonly` is shallow shows you have actually hit its limits.',
-        },
-        { type: 'divider' },
-        {
-          type: 'heading3',
-          text: 'Follow-up: What are TypeScript utility types? (Partial, Pick, Omit, Record, Readonly)',
-        },
-        {
-          type: 'paragraph',
-          text: 'Utility types are built-in generic types that transform existing types so you do not have to redeclare them. `Partial<T>` makes all properties optional, `Pick<T, K>` keeps only the listed keys, `Omit<T, K>` removes the listed keys, `Record<K, V>` builds an object type with keys `K` and values `V`, and `Readonly<T>` makes all properties read-only. They keep DTOs and models in sync with a single source of truth.',
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `interface User {
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Also worth knowing: `Required<T>`, `NonNullable<T>`, `Exclude`/`Extract` for unions, `ReturnType<typeof fn>`, `Parameters<typeof fn>`, and `Awaited<T>` to unwrap a Promise.',
+          'They compose: `Partial<Omit<Product, "id">>` reads as "any editable field".',
+          '`Record<string, T>` is a loose dictionary; `Record<Union, T>` is an exhaustive map — prefer the second whenever the keys are known.',
+          'They are all shallow and type-only: nothing is removed or frozen at runtime (`Readonly` is not `Object.freeze`).',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: anchor each utility type to a real job — create DTO (`Omit`), PATCH body (`Partial`), card input (`Pick`), status label map (`Record`), store state (`Readonly`). Mentioning that `Readonly` is shallow shows you have actually hit its limits.',
+      },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: What are TypeScript utility types? (Partial, Pick, Omit, Record, Readonly)',
+      },
+      {
+        type: 'paragraph',
+        text: 'Utility types are built-in generic types that transform existing types so you do not have to redeclare them. `Partial<T>` makes all properties optional, `Pick<T, K>` keeps only the listed keys, `Omit<T, K>` removes the listed keys, `Record<K, V>` builds an object type with keys `K` and values `V`, and `Readonly<T>` makes all properties read-only. They keep DTOs and models in sync with a single source of truth.',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `interface User {
   id: string;
   email: string;
   name: string;
@@ -640,51 +639,50 @@ const permissions: Record<Role, string[]> = {
 // Readonly — immutable config
 const config: Readonly<{ port: number; dbUrl: string }> = { port: 3000, dbUrl: '...' };
 config.port = 4000; // ❌ Cannot assign to 'port' because it is a read-only property`,
-        },
-        { type: 'heading3', text: 'In a service layer' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `async function updateUser(id: string, patch: UpdateUserDto): Promise<PublicUser> {
+      },
+      { type: 'heading3', text: 'In a service layer' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `async function updateUser(id: string, patch: UpdateUserDto): Promise<PublicUser> {
   const user = await repo.update(id, patch);
   const { passwordHash, ...publicUser } = user; // strip sensitive field
   return publicUser;
 }`,
-        },
-        { type: 'heading3', text: 'Other utilities worth knowing' },
-        {
-          type: 'bullets',
-          items: [
-            '`Required<T>` — opposite of Partial.',
-            '`ReturnType<typeof fn>` / `Parameters<typeof fn>` — derive types from functions.',
-            '`Awaited<T>` — unwrap a Promise type: `Awaited<ReturnType<typeof getUser>>`.',
-            '`Exclude<U, X>` / `Extract<U, X>` / `NonNullable<T>` — work on unions.',
-            'All are **shallow**: `Readonly<T>` and `Partial<T>` affect only top-level properties.',
-            'They are implemented with mapped and conditional types, e.g. `type Partial<T> = { [P in keyof T]?: T[P] }`.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: show them on a realistic model — create/update DTOs and a public projection that omits secrets. Mentioning that `Readonly` and `Partial` are shallow is a nice senior-level detail.',
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'Other utilities worth knowing' },
+      {
+        type: 'bullets',
+        items: [
+          '`Required<T>` — opposite of Partial.',
+          '`ReturnType<typeof fn>` / `Parameters<typeof fn>` — derive types from functions.',
+          '`Awaited<T>` — unwrap a Promise type: `Awaited<ReturnType<typeof getUser>>`.',
+          '`Exclude<U, X>` / `Extract<U, X>` / `NonNullable<T>` — work on unions.',
+          'All are **shallow**: `Readonly<T>` and `Partial<T>` affect only top-level properties.',
+          'They are implemented with mapped and conditional types, e.g. `type Partial<T> = { [P in keyof T]?: T[P] }`.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: show them on a realistic model — create/update DTOs and a public projection that omits secrets. Mentioning that `Readonly` and `Partial` are shallow is a nice senior-level detail.',
+      },
+    ],
+  },
 
-  'What are type guards and type narrowing? Explain `typeof`, `instanceof`, `in`, and custom `is` predicates.':
-    {
-      summary:
-        'Narrowing is TypeScript following your runtime checks to work out a more specific type inside a branch. A type guard is the check that does it: `typeof` for primitives, `instanceof` for classes like `HttpErrorResponse`, `in` to tell object shapes apart by a property, and a custom function returning `value is T` when the check is more complex — for example validating JSON before you trust it.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'TypeScript does control-flow analysis: after `if (typeof x === "string")` it knows `x` is a string in that block and the remaining union members in the `else`. Equality checks, truthiness checks, `return`/`throw` and `switch` statements all narrow too.',
-        },
-        { type: 'heading3', text: 'typeof and instanceof' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `function formatPrice(value: string | number): string {
+  'type-guards-and-narrowing': {
+    summary:
+      'Narrowing is TypeScript following your runtime checks to work out a more specific type inside a branch. A type guard is the check that does it: `typeof` for primitives, `instanceof` for classes like `HttpErrorResponse`, `in` to tell object shapes apart by a property, and a custom function returning `value is T` when the check is more complex — for example validating JSON before you trust it.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'TypeScript does control-flow analysis: after `if (typeof x === "string")` it knows `x` is a string in that block and the remaining union members in the `else`. Equality checks, truthiness checks, `return`/`throw` and `switch` statements all narrow too.',
+      },
+      { type: 'heading3', text: 'typeof and instanceof' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `function formatPrice(value: string | number): string {
   if (typeof value === 'number') {
     return value.toFixed(2);       // value: number
   }
@@ -701,12 +699,12 @@ function toMessage(err: unknown): string {
   }
   return 'Something went wrong';
 }`,
-        },
-        { type: 'heading3', text: 'in — tell interfaces apart' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `interface CardPayment { cardNumber: string; expiry: string }
+      },
+      { type: 'heading3', text: 'in — tell interfaces apart' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `interface CardPayment { cardNumber: string; expiry: string }
 interface UpiPayment { upiId: string }
 
 function describe(payment: CardPayment | UpiPayment): string {
@@ -715,16 +713,16 @@ function describe(payment: CardPayment | UpiPayment): string {
   }
   return \`Card ending \${payment.cardNumber.slice(-4)}\`;  // CardPayment
 }`,
-        },
-        {
-          type: 'paragraph',
-          text: '`instanceof` only works for classes — interfaces do not exist at runtime, so `x instanceof Product` is impossible when `Product` is an interface. That is exactly when you reach for `in` or a custom predicate.',
-        },
-        { type: 'heading3', text: 'Custom predicates: value is T' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `function isProduct(value: unknown): value is Product {
+      },
+      {
+        type: 'paragraph',
+        text: '`instanceof` only works for classes — interfaces do not exist at runtime, so `x instanceof Product` is impossible when `Product` is an interface. That is exactly when you reach for `in` or a custom predicate.',
+      },
+      { type: 'heading3', text: 'Custom predicates: value is T' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `function isProduct(value: unknown): value is Product {
   return (
     typeof value === 'object' &&
     value !== null &&
@@ -747,44 +745,43 @@ const products = maybeProducts.filter((p): p is Product => p !== null); // Produ
 function assertIsProduct(value: unknown): asserts value is Product {
   if (!isProduct(value)) throw new Error('Invalid product');
 }`,
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'A custom predicate is a promise you make to the compiler — it is not checked. If `isProduct` forgets a field, TypeScript still trusts it. Keep guards small and unit-tested, or generate them from a schema.',
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: name all four guards with a one-line use case each, then stress the key difference — `instanceof` needs a class at runtime, so for interfaces and API data you use `in` or a `value is T` predicate.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'A custom predicate is a promise you make to the compiler — it is not checked. If `isProduct` forgets a field, TypeScript still trusts it. Keep guards small and unit-tested, or generate them from a schema.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: name all four guards with a one-line use case each, then stress the key difference — `instanceof` needs a class at runtime, so for interfaces and API data you use `in` or a `value is T` predicate.',
+      },
+    ],
+  },
 
-  'What are discriminated unions, and how do they help model UI state like loading, success, and error?':
-    {
-      summary:
-        'A discriminated union is a union of object types that all share a literal property — the discriminant, like `status`. Checking that property narrows to exactly one member, so `data` is only reachable when `status` is "success" and `error` only when it is "error". For UI state this makes impossible combinations (loading with an error and stale data) unrepresentable, and `@switch` in the template plus a `never` check keep every state handled.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'The usual alternative is a bag of flags: `loading: boolean; error?: string; data?: User[]`. It allows nonsense states — `loading: true` together with an `error` — and forces `data!` or `?.` everywhere. A discriminated union describes only the states that can actually exist.',
-        },
-        { type: 'heading3', text: 'Model the state' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export type LoadState<T> =
+  'discriminated-unions-for-ui-state': {
+    summary:
+      'A discriminated union is a union of object types that all share a literal property — the discriminant, like `status`. Checking that property narrows to exactly one member, so `data` is only reachable when `status` is "success" and `error` only when it is "error". For UI state this makes impossible combinations (loading with an error and stale data) unrepresentable, and `@switch` in the template plus a `never` check keep every state handled.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'The usual alternative is a bag of flags: `loading: boolean; error?: string; data?: User[]`. It allows nonsense states — `loading: true` together with an `error` — and forces `data!` or `?.` everywhere. A discriminated union describes only the states that can actually exist.',
+      },
+      { type: 'heading3', text: 'Model the state' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export type LoadState<T> =
   | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'success'; data: T }
   | { status: 'error'; error: string };`,
-        },
-        { type: 'heading3', text: 'Use it in a component' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+      },
+      { type: 'heading3', text: 'Use it in a component' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-users',
   templateUrl: './users.html',
 })
@@ -809,12 +806,12 @@ export class UsersComponent {
 // Mistakes are compile errors:
 // s.data                                    ❌ Property 'data' does not exist on type '{ status: "idle"; }'
 // state.set({ status: 'loading', data: [] }) ❌ 'data' does not exist in type '{ status: "loading"; }'`,
-        },
-        { type: 'heading3', text: 'Render it with @switch' },
-        {
-          type: 'code',
-          lang: 'html',
-          code: `@let s = state();
+      },
+      { type: 'heading3', text: 'Render it with @switch' },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `@let s = state();
 @switch (s.status) {
   @case ('loading') { <app-spinner /> }
   @case ('error') { <p class="error">{{ s.error }}</p> }
@@ -826,29 +823,29 @@ export class UsersComponent {
     }
   }
 }`,
-        },
-        {
-          type: 'callout',
-          variant: 'important',
-          text: 'Narrowing in templates needs a stable reference. With `strictTemplates`, switching on `s.status` (a `@let` variable) narrows `s` inside each `@case`. Writing `state().error` instead does NOT narrow, because each `state()` call is a separate expression — you get "Property \'error\' does not exist on type LoadState<User[]>".',
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Pair it with `Record<LoadState<unknown>["status"], string>` for labels, or an `assertNever` default in TypeScript switches, so adding a new status breaks the build until every place handles it.',
-            'The same pattern models form submission (`idle | submitting | submitted | failed`), wizard steps, WebSocket connection state and NgRx action payloads.',
-            "Angular's `resource()` / `httpResource()` expose a similar idea through `status()`, `value()` and `error()`.",
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: start with the "bag of booleans" problem, then show the union and say "make impossible states impossible". Showing that `s.data` is a compile error outside the success branch is the moment it clicks for interviewers.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Narrowing in templates needs a stable reference. With `strictTemplates`, switching on `s.status` (a `@let` variable) narrows `s` inside each `@case`. Writing `state().error` instead does NOT narrow, because each `state()` call is a separate expression — you get "Property \'error\' does not exist on type LoadState<User[]>".',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Pair it with `Record<LoadState<unknown>["status"], string>` for labels, or an `assertNever` default in TypeScript switches, so adding a new status breaks the build until every place handles it.',
+          'The same pattern models form submission (`idle | submitting | submitted | failed`), wizard steps, WebSocket connection state and NgRx action payloads.',
+          "Angular's `resource()` / `httpResource()` expose a similar idea through `status()`, `value()` and `error()`.",
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: start with the "bag of booleans" problem, then show the union and say "make impossible states impossible". Showing that `s.data` is a compile error outside the success branch is the moment it clicks for interviewers.',
+      },
+    ],
+  },
 
-  'Should you use enums or string literal union types? Explain the trade-offs.': {
+  'enums-vs-string-literal-unions': {
     summary:
       'For most Angular code I prefer string literal unions: they cost nothing at runtime, accept plain strings straight from the API, work directly in templates, and still give autocomplete and exhaustiveness checks. Enums create a real runtime object and are nominal — a string enum will not accept the plain string "admin" — which adds casts at API boundaries. When I want named constants too, I use an `as const` object and derive the union from it.',
     details: [
@@ -919,7 +916,7 @@ export function isRole(value: string): value is Role {
     ],
   },
 
-  'What do `keyof` and `typeof` do when used in a type position?': {
+  'keyof-and-typeof-in-type-position': {
     summary:
       'In a type position, `typeof value` gives you the TypeScript type of an existing variable — handy for config objects and functions you do not want to describe twice. `keyof Type` gives the union of that type\'s property names, e.g. `keyof Product` is `"id" | "name" | "price"`. Combined as `keyof typeof obj`, they turn a runtime object into a union of its keys, which is perfect for typed table columns, sort keys and feature flags.',
     details: [
@@ -1007,7 +1004,7 @@ type AppPath = (typeof PATHS)[number];             // '' | 'products' | 'cart'`,
     ],
   },
 
-  'What are mapped types and conditional types? Give a practical example.': {
+  'mapped-and-conditional-types': {
     summary:
       'A mapped type loops over the keys of a type and builds a new one — `{ [K in keyof T]: … }` — which is how `Partial` and `Readonly` are implemented and how you can turn a model into a typed form-controls object. A conditional type is an if/else for types — `T extends U ? X : Y` — often with `infer` to pull a type out, like unwrapping the value type of an `Observable<T>` or `Signal<T>`.',
     details: [
@@ -1093,16 +1090,15 @@ type CartActions = MethodKeys<CartStore>; // 'reset' | 'load'`,
     ],
   },
 
-  'What does the `satisfies` operator do, and how is it different from a type annotation or `as`?':
-    {
-      summary:
-        '`satisfies` (TypeScript 4.9+) checks that a value matches a type without changing the type that gets inferred. A type annotation also checks, but it widens the variable to the annotated type, so you lose specific keys and literal values. `as` is an assertion — it does not check that the value is complete, it just tells the compiler to trust you. Use `satisfies` for config objects, label maps, themes and route tables where you want both validation and precise types.',
-      details: [
-        { type: 'heading3', text: 'Annotation vs as vs satisfies' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `type ThemeColors = Record<'primary' | 'surface' | 'danger', string>;
+  'satisfies-vs-annotation-vs-as': {
+    summary:
+      '`satisfies` (TypeScript 4.9+) checks that a value matches a type without changing the type that gets inferred. A type annotation also checks, but it widens the variable to the annotated type, so you lose specific keys and literal values. `as` is an assertion — it does not check that the value is complete, it just tells the compiler to trust you. Use `satisfies` for config objects, label maps, themes and route tables where you want both validation and precise types.',
+    details: [
+      { type: 'heading3', text: 'Annotation vs as vs satisfies' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `type ThemeColors = Record<'primary' | 'surface' | 'danger', string>;
 
 // 1. Annotation — checked, but the variable's type IS ThemeColors from now on
 const theme1: ThemeColors = { primary: '#185FA5', surface: '#fff', danger: '#d33' };
@@ -1119,12 +1115,12 @@ const theme4 = { primary: '#185FA5', surface: '#fff' } satisfies ThemeColors;
 
 const theme5 = { primary: '#185FA5', surface: '#fff', danger: '#d33', dangr: '#f00' } satisfies ThemeColors;
 // ❌ error: Object literal may only specify known properties ... Did you mean to write 'danger'?`,
-        },
-        { type: 'heading3', text: 'Why keeping the inferred type matters' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `type Status = 'idle' | 'loading' | 'success' | 'error';
+      },
+      { type: 'heading3', text: 'Why keeping the inferred type matters' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `type Status = 'idle' | 'loading' | 'success' | 'error';
 type StatusView = { label: string; icon: string; spin?: boolean; retry?: boolean };
 
 const statusConfig = {
@@ -1140,12 +1136,12 @@ statusConfig.eror;         // ❌ error: Property 'eror' does not exist ... Did 
 // With a wide annotation the same typo would compile:
 const loose: Record<string, StatusView> = statusConfig;
 loose['eror'];             // compiles — undefined at runtime`,
-        },
-        { type: 'heading3', text: 'as const satisfies — literal types plus a check' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export const ROUTE_PATHS = {
+      },
+      { type: 'heading3', text: 'as const satisfies — literal types plus a check' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export const ROUTE_PATHS = {
   home: '',
   products: 'products',
   productDetail: 'products/:id',
@@ -1160,37 +1156,36 @@ export const routes = [
   { path: '**', redirectTo: '' },
 ] satisfies Routes;
 // a typo such as pathMatch: 'ful' → ❌ Type '"ful"' is not assignable to type '"prefix" | "full" | undefined'`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '`satisfies` is purely compile-time — it emits nothing.',
-            'Use an annotation when you WANT the wider type (a variable that will be reassigned, a public API return type).',
-            "Reserve `as` for cases where you genuinely know more than the compiler (e.g. `document.getElementById('x') as HTMLInputElement`), and treat `as unknown as T` as a code smell.",
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: the one-liner is "annotation checks and widens, `as` trusts and does not check, `satisfies` checks and keeps the inferred type". Then show a `Record<Status, …>` map — a missing key is an error, yet you still get exact keys and autocomplete.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          '`satisfies` is purely compile-time — it emits nothing.',
+          'Use an annotation when you WANT the wider type (a variable that will be reassigned, a public API return type).',
+          "Reserve `as` for cases where you genuinely know more than the compiler (e.g. `document.getElementById('x') as HTMLInputElement`), and treat `as unknown as T` as a code smell.",
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: the one-liner is "annotation checks and widens, `as` trusts and does not check, `satisfies` checks and keeps the inferred type". Then show a `Record<Status, …>` map — a missing key is an error, yet you still get exact keys and autocomplete.',
+      },
+    ],
+  },
 
-  'What does `strict` mode enable in `tsconfig.json`, and what does Angular add with `strictTemplates`?':
-    {
-      summary:
-        "`strict` is an umbrella flag that turns on the strict family of checks: `strictNullChecks`, `noImplicitAny`, `strictPropertyInitialization`, `strictFunctionTypes`, `strictBindCallApply`, `noImplicitThis`, `useUnknownInCatchVariables` and `strictBuiltinIteratorReturn` (plus `alwaysStrict` historically). `strictTemplates` is the Angular compiler's equivalent for templates: it type-checks input bindings (including null/undefined), outputs and `$event`, local references and control-flow blocks with full types instead of `any`.",
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Each sub-flag can be switched off individually (`"strict": true, "strictPropertyInitialization": false`), and new strict checks added in later TypeScript versions join the family automatically — which is why upgrades can surface new errors in strict projects.',
-        },
-        { type: 'heading3', text: 'What the main strict flags catch' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// strictNullChecks
+  'strict-mode-and-stricttemplates': {
+    summary:
+      "`strict` is an umbrella flag that turns on the strict family of checks: `strictNullChecks`, `noImplicitAny`, `strictPropertyInitialization`, `strictFunctionTypes`, `strictBindCallApply`, `noImplicitThis`, `useUnknownInCatchVariables` and `strictBuiltinIteratorReturn` (plus `alwaysStrict` historically). `strictTemplates` is the Angular compiler's equivalent for templates: it type-checks input bindings (including null/undefined), outputs and `$event`, local references and control-flow blocks with full types instead of `any`.",
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Each sub-flag can be switched off individually (`"strict": true, "strictPropertyInitialization": false`), and new strict checks added in later TypeScript versions join the family automatically — which is why upgrades can surface new errors in strict projects.',
+      },
+      { type: 'heading3', text: 'What the main strict flags catch' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// strictNullChecks
 const admin = users.find((u) => u.id === 1);  // User | undefined
 admin.name;                                   // ❌ error: 'admin' is possibly 'undefined'
 
@@ -1211,12 +1206,12 @@ try { JSON.parse(raw); } catch (e) {
 type Handler = (u: User | null) => void;
 const h: Handler = (u: User) => console.log(u.name);
 // ❌ error: Type 'User | null' is not assignable to type 'User'`,
-        },
-        { type: 'heading3', text: "Angular's template strictness" },
-        {
-          type: 'code',
-          lang: 'json',
-          code: `{
+      },
+      { type: 'heading3', text: "Angular's template strictness" },
+      {
+        type: 'code',
+        lang: 'json',
+        code: `{
   "compilerOptions": {
     "strict": true,
     "noImplicitOverride": true,
@@ -1234,70 +1229,69 @@ const h: Handler = (u: User) => console.log(u.name);
     }
   }
 }`,
-        },
-        {
-          type: 'code',
-          lang: 'html',
-          code: `<!-- selected = signal<Product | undefined>(undefined); product = input.required<Product>() -->
+      },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<!-- selected = signal<Product | undefined>(undefined); product = input.required<Product>() -->
 <app-product-card [product]="selected()" />
 <!-- ❌ error: Type 'Product | undefined' is not assignable to type 'Product'. -->
 
 <app-product-card [product]="'pen'" />
 <!-- ❌ error: Type 'string' is not assignable to type 'Product'. -->`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '`strictTemplates` turns on the template sub-checks: `strictInputTypes`, `strictNullInputTypes`, `strictAttributeTypes`, `strictOutputEventTypes`, `strictDomEventTypes`, `strictSafeNavigationTypes`, `strictDomLocalRefTypes`, `strictContextGenerics` and `strictLiteralTypes`. Each can be relaxed on its own.',
-            '`strictInjectionParameters`: error when a constructor parameter cannot be resolved for DI instead of silently failing at runtime.',
-            '`strictInputAccessModifiers`: respects `private`/`protected`/`readonly` when binding to inputs.',
-            '`extendedDiagnostics` (requires `strictTemplates`): extra template lint checks such as `invalidBananaInBox`, `nullishCoalescingNotNullable`, `optionalChainNotNullable`, `interpolatedSignalNotInvoked` and `missingControlFlowDirective`.',
-            '`alwaysStrict` (emit "use strict") used to be listed under `strict`; in TypeScript 6.0 it is always on and setting it to `false` is deprecated.',
-            'Newer defaults: from TypeScript 6.0 `strict` is on unless you set it to `false`, and recent Angular compilers (e.g. v22) treat `strictTemplates` as on unless set to `false` — new CLI projects only write these flags out when you opt out.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Turning strict on in a legacy app produces a wall of errors. Enable it per flag (start with `strictNullChecks` and `strictTemplates`), fix module by module, and avoid "fixing" errors by sprinkling `!` and `as any`.',
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: list four or five strict flags with the bug each prevents, then explain that TypeScript strictness stops at the `.ts` file — without `strictTemplates`, a wrong input binding in HTML would still compile.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          '`strictTemplates` turns on the template sub-checks: `strictInputTypes`, `strictNullInputTypes`, `strictAttributeTypes`, `strictOutputEventTypes`, `strictDomEventTypes`, `strictSafeNavigationTypes`, `strictDomLocalRefTypes`, `strictContextGenerics` and `strictLiteralTypes`. Each can be relaxed on its own.',
+          '`strictInjectionParameters`: error when a constructor parameter cannot be resolved for DI instead of silently failing at runtime.',
+          '`strictInputAccessModifiers`: respects `private`/`protected`/`readonly` when binding to inputs.',
+          '`extendedDiagnostics` (requires `strictTemplates`): extra template lint checks such as `invalidBananaInBox`, `nullishCoalescingNotNullable`, `optionalChainNotNullable`, `interpolatedSignalNotInvoked` and `missingControlFlowDirective`.',
+          '`alwaysStrict` (emit "use strict") used to be listed under `strict`; in TypeScript 6.0 it is always on and setting it to `false` is deprecated.',
+          'Newer defaults: from TypeScript 6.0 `strict` is on unless you set it to `false`, and recent Angular compilers (e.g. v22) treat `strictTemplates` as on unless set to `false` — new CLI projects only write these flags out when you opt out.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Turning strict on in a legacy app produces a wall of errors. Enable it per flag (start with `strictNullChecks` and `strictTemplates`), fix module by module, and avoid "fixing" errors by sprinkling `!` and `as any`.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: list four or five strict flags with the bug each prevents, then explain that TypeScript strictness stops at the `.ts` file — without `strictTemplates`, a wrong input binding in HTML would still compile.',
+      },
+    ],
+  },
 
-  'When should you use optional chaining (`?.`), nullish coalescing (`??`), and the non-null assertion (`!`)?':
-    {
-      summary:
-        'Use `?.` when a value can legitimately be null or undefined and "nothing" is an acceptable result — it short-circuits instead of throwing. Use `??` to supply a default only for null/undefined, unlike `||` which also replaces 0, "" and false. Use `!` rarely: it only silences the compiler and does nothing at runtime, so prefer narrowing, a thrown error, or APIs like `viewChild.required()` that are typed as non-null.',
-      details: [
-        { type: 'heading3', text: 'Optional chaining ?.' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `const city = user?.address?.city;         // string | undefined — stops at the first null/undefined
+  'optional-chaining-nullish-non-null': {
+    summary:
+      'Use `?.` when a value can legitimately be null or undefined and "nothing" is an acceptable result — it short-circuits instead of throwing. Use `??` to supply a default only for null/undefined, unlike `||` which also replaces 0, "" and false. Use `!` rarely: it only silences the compiler and does nothing at runtime, so prefer narrowing, a thrown error, or APIs like `viewChild.required()` that are typed as non-null.',
+    details: [
+      { type: 'heading3', text: 'Optional chaining ?.' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `const city = user?.address?.city;         // string | undefined — stops at the first null/undefined
 const initial = user?.name.toUpperCase(); // name is required on User, so one ?. is enough
 config.onSave?.();                        // optional call — only if the callback exists
 const firstTag = product?.tags?.[0];      // optional element access`,
-        },
-        { type: 'heading3', text: 'Nullish coalescing ?? vs ||' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `const pageSize = settings?.pageSize ?? 20;      // 0 stays 0 ✅
+      },
+      { type: 'heading3', text: 'Nullish coalescing ?? vs ||' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `const pageSize = settings?.pageSize ?? 20;      // 0 stays 0 ✅
 const buggy = settings?.pageSize || 20;         // 0 becomes 20 ❌ bug
 const nickname = user?.nickname ?? user?.name ?? 'Guest'; // '' stays ''
 
 cache ??= new Map<number, User>();              // assign only if null/undefined`,
-        },
-        { type: 'heading3', text: 'Avoiding the non-null assertion' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({ selector: 'app-product-detail', template: '<input #search />' })
+      },
+      { type: 'heading3', text: 'Avoiding the non-null assertion' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({ selector: 'app-product-detail', template: '<input #search />' })
 export class ProductDetailComponent {
   private route = inject(ActivatedRoute);
 
@@ -1315,34 +1309,33 @@ const u1 = users.find((u) => u.id === 1)!;  // User — crashes later if not fou
 const u2 = users.find((u) => u.id === 1);
 if (!u2) throw new Error('User 1 not found');
 u2.name;                                    // narrowed — safe and self-documenting`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            "In templates `?.` is the safe navigation operator: `{{ user()?.address?.city }}`. With `strictTemplates`, Angular's extended diagnostics warn when you use `?.` or `??` on something that can never be null (`optionalChainNotNullable`, `nullishCoalescingNotNullable`).",
-            'Do not chain `?.` everywhere "just in case" — it hides bugs where a value should always exist. Fix the type instead.',
-            '`!` is acceptable when you truly know more than the compiler (a value set in `ngOnInit` by framework guarantee, test setup), ideally with a comment.',
-            'Prefer `input.required()`, `viewChild.required()` and `inject()` over `!:` fields — they are non-null by type.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: the `||` vs `??` difference with `0` or an empty string is the classic follow-up — have that example ready. And describe `!` as "a promise to the compiler, not a runtime check".',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          "In templates `?.` is the safe navigation operator: `{{ user()?.address?.city }}`. With `strictTemplates`, Angular's extended diagnostics warn when you use `?.` or `??` on something that can never be null (`optionalChainNotNullable`, `nullishCoalescingNotNullable`).",
+          'Do not chain `?.` everywhere "just in case" — it hides bugs where a value should always exist. Fix the type instead.',
+          '`!` is acceptable when you truly know more than the compiler (a value set in `ngOnInit` by framework guarantee, test setup), ideally with a comment.',
+          'Prefer `input.required()`, `viewChild.required()` and `inject()` over `!:` fields — they are non-null by type.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: the `||` vs `??` difference with `0` or an empty string is the classic follow-up — have that example ready. And describe `!` as "a promise to the compiler, not a runtime check".',
+      },
+    ],
+  },
 
-  'How do you type HTTP responses with `HttpClient.get<T>()`, and why is that not runtime validation?':
-    {
-      summary:
-        '`http.get<User[]>(url)` tells TypeScript what the JSON will look like, and you get an `Observable<User[]>` with full autocomplete. But generics are erased at compile time — Angular just parses JSON and hands it to you, so if the backend changes a field, the app still believes the old type and fails later in a confusing place. For data you do not fully control, type the response as a DTO (or `unknown`), validate it with a type guard or a schema library, and map it into your own domain model inside the service.',
-      details: [
-        { type: 'heading3', text: 'The generic is an assertion, not a check' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Injectable({ providedIn: 'root' })
+  'typing-httpclient-get-t-responses': {
+    summary:
+      '`http.get<User[]>(url)` tells TypeScript what the JSON will look like, and you get an `Observable<User[]>` with full autocomplete. But generics are erased at compile time — Angular just parses JSON and hands it to you, so if the backend changes a field, the app still believes the old type and fails later in a confusing place. For data you do not fully control, type the response as a DTO (or `unknown`), validate it with a type guard or a schema library, and map it into your own domain model inside the service.',
+    details: [
+      { type: 'heading3', text: 'The generic is an assertion, not a check' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Injectable({ providedIn: 'root' })
 export class ProductApi {
   private http = inject(HttpClient);
 
@@ -1354,12 +1347,12 @@ export class ProductApi {
 // Backend now sends { "id": "42", "title": "Pen", "price": "19.99" }
 // Still typed as Product → product.price.toFixed(2) compiles,
 // then throws "toFixed is not a function" at runtime.`,
-        },
-        { type: 'heading3', text: 'Separate the DTO from the domain model' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// What the API sends
+      },
+      { type: 'heading3', text: 'Separate the DTO from the domain model' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// What the API sends
 interface ProductDto {
   product_id: number;
   title: string;
@@ -1387,12 +1380,12 @@ function toProduct(dto: ProductDto): Product {
     createdAt: new Date(dto.created_at),
   };
 }`,
-        },
-        { type: 'heading3', text: 'Option 1: a hand-written type guard' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `function isProductDto(value: unknown): value is ProductDto {
+      },
+      { type: 'heading3', text: 'Option 1: a hand-written type guard' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `function isProductDto(value: unknown): value is ProductDto {
   if (typeof value !== 'object' || value === null) return false;
   const v = value as Record<string, unknown>;
   return (
@@ -1412,12 +1405,12 @@ getProduct(id: number): Observable<Product> {
     }),
   );
 }`,
-        },
-        { type: 'heading3', text: 'Option 2: a schema library (e.g. Zod)' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `import { z } from 'zod';
+      },
+      { type: 'heading3', text: 'Option 2: a schema library (e.g. Zod)' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `import { z } from 'zod';
 
 const ProductDtoSchema = z.object({
   product_id: z.number(),
@@ -1438,35 +1431,35 @@ list(): Observable<Product[]> {
 product = httpResource(() => \`/api/products/\${this.productId()}\`, {
   parse: (raw) => toProduct(ProductDtoSchema.parse(raw)),
 }); // product.value(): Product | undefined, product.error() set if parsing throws`,
-        },
-        {
-          type: 'flow',
-          title: 'Where types become trustworthy',
-          code: `flowchart LR
+      },
+      {
+        type: 'flow',
+        title: 'Where types become trustworthy',
+        code: `flowchart LR
   API["Backend JSON"]:::external --> HC["HttpClient.get, typed as unknown<br/>(no runtime check)"]:::network
   HC --> V{"Validate<br/>guard or schema"}:::security
   V -->|valid| M["Map DTO → domain model"]:::server
   V -->|invalid| E["Throw / log error<br/>show error state"]:::highlight
   M --> C["Components & signals<br/>(fully typed)"]:::client`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Angular does not ship a schema validator — Zod, Valibot or a generated client from an OpenAPI spec are common choices.',
-            'Validation has a cost; many teams validate at the boundary in development and for third-party APIs, and rely on generated types for their own backend.',
-            'Keep components unaware of the wire format: only the service knows about snake_case fields, cents and ISO strings.',
-            'Interceptors work on `HttpEvent<unknown>` — they are a good place for generic concerns (auth, errors), not per-endpoint typing.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: say clearly that `get<T>` is "a cast with nicer syntax" because types are erased at runtime. Then describe the boundary pattern — DTO in, validate, map to a domain model — and name a guard or schema library as the runtime check.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Angular does not ship a schema validator — Zod, Valibot or a generated client from an OpenAPI spec are common choices.',
+          'Validation has a cost; many teams validate at the boundary in development and for third-party APIs, and rely on generated types for their own backend.',
+          'Keep components unaware of the wire format: only the service knows about snake_case fields, cents and ISO strings.',
+          'Interceptors work on `HttpEvent<unknown>` — they are a good place for generic concerns (auth, errors), not per-endpoint typing.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: say clearly that `get<T>` is "a cast with nicer syntax" because types are erased at runtime. Then describe the boundary pattern — DTO in, validate, map to a domain model — and name a guard or schema library as the runtime check.',
+      },
+    ],
+  },
 
-  'How do you type async functions and Promises in TypeScript?': {
+  'typing-async-functions-and-promises': {
     summary:
       'An `async` function always returns a Promise, so its return type is `Promise<T>` where `T` is what you `return` — e.g. `async function getUser(id: string): Promise<User | null>`. `await` unwraps `Promise<T>` to `T`. Use `Awaited<T>` to unwrap types, type `new Promise<T>` explicitly, and treat rejections as `unknown` because TypeScript does not type what a promise rejects with.',
     details: [
@@ -1560,7 +1553,7 @@ async function chargeCard(amount: number): Promise<Result<string, 'DECLINED' | '
     ],
   },
 
-  'What are TypeScript decorators and how are they used?': {
+  decorators: {
     summary:
       'Decorators are functions applied with `@name` to classes, methods, accessors, fields (and, in the legacy implementation, parameters) to add metadata or wrap behaviour declaratively. Node frameworks like **NestJS**, TypeORM and class-validator rely on them (`@Controller`, `@Get`, `@Injectable`, `@Entity`, `@IsEmail`). TypeScript 5.0+ supports standard (TC39) decorators by default; many frameworks still use the older `experimentalDecorators` mode together with `emitDecoratorMetadata`.',
     details: [

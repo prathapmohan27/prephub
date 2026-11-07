@@ -1,5 +1,6 @@
 // Self-ratings ("how well did I know it?"), shared by Mock Me and the question reader.
 // Mock Me uses the last rating per question to bring weak questions back sooner.
+// Keyed by stable question id.
 
 export type ReviewRating = 'nailed' | 'shaky' | 'blanked';
 
@@ -28,8 +29,8 @@ export function readReviews(): Record<string, Review> {
 }
 
 /** Saves one rating and returns the updated map. */
-export function recordReview(question: string, rating: ReviewRating): Record<string, Review> {
-  const all = { ...readReviews(), [question]: { r: rating, t: Date.now() } };
+export function recordReview(questionId: string, rating: ReviewRating): Record<string, Review> {
+  const all = { ...readReviews(), [questionId]: { r: rating, t: Date.now() } };
   try {
     localStorage.setItem(REVIEWS_KEY, JSON.stringify(all));
   } catch {

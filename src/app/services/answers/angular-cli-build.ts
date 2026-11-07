@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What happens when we run `ng serve`?': {
+  'what-happens-on-ng-serve': {
     summary:
       "`ng serve` reads `angular.json` to find the project's `serve` target and its build options, compiles TypeScript and templates with the Angular compiler, bundles them with esbuild (the modern `application` builder), keeps the output in memory, and starts a Vite-based dev server on localhost:4200. It then watches files: on save it rebuilds only what changed and live-reloads the browser (or hot-replaces styles/templates where supported).",
     details: [
@@ -314,7 +314,7 @@ npm run build                 # → ng build → static files in dist/`,
     ],
   },
 
-  'How does the browser load an Angular application?': {
+  'how-the-browser-loads-an-angular-app': {
     summary:
       'The server returns `index.html`, which contains the root selector (e.g. `<app-root>`) and script/style tags injected by the build. The browser downloads `styles.css`, `polyfills.js` (if any) and `main.js`. `main.js` runs `bootstrapApplication(App, appConfig)`, which creates the platform and root environment injector from the providers, finds the `<app-root>` element, creates the root component, renders its template, and then the router loads the component (and lazy chunks) for the current URL.',
     details: [
@@ -532,7 +532,7 @@ Legacy NgModule app with an empty bootstrap array and no ngDoBootstrap():
     ],
   },
 
-  'What changed in recent Angular releases (v19–v21)?': {
+  'recent-angular-releases-v19-v21': {
     summary:
       'Angular 21 (released November 2025) continued the move to a signal-first, zoneless framework. Headline changes: new projects are **zoneless by default** (no zone.js), **Vitest** replaces Karma as the default unit-test runner, experimental **Signal Forms** (a signal-based forms API), **Angular Aria** in developer preview (headless, accessible UI primitives), and expanded AI tooling through the Angular CLI **MCP server**. Always confirm details against the official release notes for your exact version.',
     details: [

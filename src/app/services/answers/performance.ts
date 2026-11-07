@@ -1,32 +1,31 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'How do you optimize an Angular application? Consider lazy loading, OnPush change detection, trackBy, and caching.':
-    {
-      summary:
-        "**Lazy loading** splits features into chunks loaded on demand (`loadComponent`/`loadChildren`, `@defer`). **OnPush** makes Angular skip components whose inputs didn't change. **trackBy** (now `track` in `@for`) lets Angular reuse DOM rows instead of recreating them when a list updates. **Caching** avoids repeating identical HTTP calls — in a service, with `shareReplay`, or with an HTTP interceptor — plus browser/CDN caching of assets.",
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Each technique targets a different cost: lazy loading reduces JavaScript downloaded, OnPush reduces change-detection work, trackBy reduces DOM work, caching reduces network work. Together they cover most real-world issues.',
-        },
-        { type: 'heading3', text: '1. Lazy loading' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export const routes: Routes = [
+  'optimizing-an-angular-app': {
+    summary:
+      "**Lazy loading** splits features into chunks loaded on demand (`loadComponent`/`loadChildren`, `@defer`). **OnPush** makes Angular skip components whose inputs didn't change. **trackBy** (now `track` in `@for`) lets Angular reuse DOM rows instead of recreating them when a list updates. **Caching** avoids repeating identical HTTP calls — in a service, with `shareReplay`, or with an HTTP interceptor — plus browser/CDN caching of assets.",
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Each technique targets a different cost: lazy loading reduces JavaScript downloaded, OnPush reduces change-detection work, trackBy reduces DOM work, caching reduces network work. Together they cover most real-world issues.',
+      },
+      { type: 'heading3', text: '1. Lazy loading' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'reports', loadComponent: () => import('./reports/reports.component').then(m => m.ReportsComponent) },
   { path: 'admin', canMatch: [isAdmin], loadChildren: () => import('./admin/routes').then(m => m.ADMIN_ROUTES) },
 ];
 // Legacy: loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule)
 // canMatch prevents even downloading the chunk for non-admins.`,
-        },
-        { type: 'heading3', text: '2. OnPush' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+      },
+      { type: 'heading3', text: '2. OnPush' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-product-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: \`{{ product().name }} — {{ product().price | currency }}\`,
@@ -36,12 +35,12 @@ export class ProductCardComponent {
 }
 // 500 cards on the page: a click elsewhere no longer re-checks all 500.
 // Requirement: parent updates with new references (immutable), or signals.`,
-        },
-        { type: 'heading3', text: '3. trackBy / track' },
-        {
-          type: 'code',
-          lang: 'html',
-          code: `<!-- Modern control flow: track is REQUIRED -->
+      },
+      { type: 'heading3', text: '3. trackBy / track' },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<!-- Modern control flow: track is REQUIRED -->
 @for (p of products(); track p.id) {
   <app-product-card [product]="p" />
 }
@@ -52,12 +51,12 @@ export class ProductCardComponent {
 
 <!-- Without tracking by id, refreshing the list from the API (new object references)
      destroys and recreates every card and its DOM. With it, only changed rows are touched. -->`,
-        },
-        { type: 'heading3', text: '4. Caching' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// a) Service-level cache with shareReplay — one request, shared by all subscribers
+      },
+      { type: 'heading3', text: '4. Caching' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// a) Service-level cache with shareReplay — one request, shared by all subscribers
 @Injectable({ providedIn: 'root' })
 export class CountryService {
   private http = inject(HttpClient);
@@ -77,43 +76,43 @@ export const cacheInterceptor: HttpInterceptorFn = (req, next) => {
 
 // c) SSR: provideClientHydration(withHttpTransferCacheOptions({...})) reuses server responses on the client
 // d) Static assets: hashed filenames from ng build → long-lived Cache-Control on the CDN`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Lazy loading → smaller initial bundle, faster LCP/TTI.',
-            'OnPush → fewer components checked per cycle, faster interactions.',
-            'track → fewer DOM creations, preserves focus/scroll/component state inside rows.',
-            'Caching → fewer network round-trips; remember invalidation (TTL, clear on mutation, per-user keys).',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Pitfalls: `track $index` on lists that get reordered/filtered gives little benefit; OnPush with mutated arrays shows stale UI; caching user-specific responses in a shared interceptor cache can leak data between users after logout — clear it on logout.',
-        },
-        { type: 'divider' },
-        { type: 'heading3', text: 'Follow-up: What are ways to optimize an Angular application?' },
-        {
-          type: 'paragraph',
-          text: 'Work on three fronts. **Load less**: lazy-loaded routes, `@defer` blocks, tree-shakable standalone code, optimized images (`NgOptimizedImage`), budgets. **Render less**: OnPush + signals (or zoneless), `track` in `@for`, pure pipes/computed instead of template method calls, virtual scrolling. **Fetch smarter**: caching, pagination, SSR/hydration for first paint. Always measure first (Lighthouse, Angular DevTools profiler).',
-        },
-        { type: 'heading3', text: 'Initial load' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Lazy routes — code for /admin is downloaded only when visited
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Lazy loading → smaller initial bundle, faster LCP/TTI.',
+          'OnPush → fewer components checked per cycle, faster interactions.',
+          'track → fewer DOM creations, preserves focus/scroll/component state inside rows.',
+          'Caching → fewer network round-trips; remember invalidation (TTL, clear on mutation, per-user keys).',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Pitfalls: `track $index` on lists that get reordered/filtered gives little benefit; OnPush with mutated arrays shows stale UI; caching user-specific responses in a shared interceptor cache can leak data between users after logout — clear it on logout.',
+      },
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: What are ways to optimize an Angular application?' },
+      {
+        type: 'paragraph',
+        text: 'Work on three fronts. **Load less**: lazy-loaded routes, `@defer` blocks, tree-shakable standalone code, optimized images (`NgOptimizedImage`), budgets. **Render less**: OnPush + signals (or zoneless), `track` in `@for`, pure pipes/computed instead of template method calls, virtual scrolling. **Fetch smarter**: caching, pagination, SSR/hydration for first paint. Always measure first (Lighthouse, Angular DevTools profiler).',
+      },
+      { type: 'heading3', text: 'Initial load' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Lazy routes — code for /admin is downloaded only when visited
 export const routes: Routes = [
   { path: 'admin', loadChildren: () => import('./admin/admin.routes').then(m => m.ADMIN_ROUTES) },
 ];
 
 // Preload lazy chunks in the background after the app is idle
 provideRouter(routes, withPreloading(PreloadAllModules));`,
-        },
-        {
-          type: 'code',
-          lang: 'html',
-          code: `<!-- @defer: split a heavy component into its own chunk, load when visible -->
+      },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<!-- @defer: split a heavy component into its own chunk, load when visible -->
 @defer (on viewport) {
   <app-comments [postId]="id()" />
 } @placeholder {
@@ -122,12 +121,12 @@ provideRouter(routes, withPreloading(PreloadAllModules));`,
 
 <!-- NgOptimizedImage: lazy loading, srcset, priority hints, warnings for oversized images -->
 <img ngSrc="/hero.jpg" width="1200" height="600" priority />`,
-        },
-        { type: 'heading3', text: 'Runtime rendering' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+      },
+      { type: 'heading3', text: 'Runtime rendering' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-orders',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: \`
@@ -143,34 +142,34 @@ export class OrdersComponent {
   visibleOrders = computed(() => this.orders().filter(o => o.ref.includes(this.filter())));
   total = computed(() => this.visibleOrders().reduce((s, o) => s + o.amount, 0));
 }`,
-        },
-        { type: 'heading3', text: 'Checklist' },
-        {
-          type: 'bullets',
-          items: [
-            '**Bundle**: production build, budgets in `angular.json`, analyze with `source-map-explorer`/esbuild metafile, remove heavy libraries (moment → date-fns/Intl), import only what you use.',
-            '**Change detection**: OnPush everywhere, signals, `runOutsideAngular` for noisy listeners, consider zoneless.',
-            '**Lists**: `track` by id, virtual scroll (`cdk-virtual-scroll-viewport`), pagination.',
-            '**Templates**: no expensive method calls; pure pipes or `computed`.',
-            '**Data**: HTTP caching (interceptor/`shareReplay`/service cache), avoid duplicate requests, debounce search, `switchMap` to cancel stale calls.',
-            '**Memory**: unsubscribe (`takeUntilDestroyed`, `async` pipe), remove listeners and timers.',
-            '**First paint**: SSR/SSG with hydration (incremental hydration with `@defer` triggers), critical CSS inlining, font/image optimization.',
-            '**Tooling**: Lighthouse/Core Web Vitals, Chrome Performance panel, Angular DevTools profiler.',
-          ],
-        },
-        {
-          type: 'flow',
-          title: 'Where to look first',
-          code: `flowchart TD
+      },
+      { type: 'heading3', text: 'Checklist' },
+      {
+        type: 'bullets',
+        items: [
+          '**Bundle**: production build, budgets in `angular.json`, analyze with `source-map-explorer`/esbuild metafile, remove heavy libraries (moment → date-fns/Intl), import only what you use.',
+          '**Change detection**: OnPush everywhere, signals, `runOutsideAngular` for noisy listeners, consider zoneless.',
+          '**Lists**: `track` by id, virtual scroll (`cdk-virtual-scroll-viewport`), pagination.',
+          '**Templates**: no expensive method calls; pure pipes or `computed`.',
+          '**Data**: HTTP caching (interceptor/`shareReplay`/service cache), avoid duplicate requests, debounce search, `switchMap` to cancel stale calls.',
+          '**Memory**: unsubscribe (`takeUntilDestroyed`, `async` pipe), remove listeners and timers.',
+          '**First paint**: SSR/SSG with hydration (incremental hydration with `@defer` triggers), critical CSS inlining, font/image optimization.',
+          '**Tooling**: Lighthouse/Core Web Vitals, Chrome Performance panel, Angular DevTools profiler.',
+        ],
+      },
+      {
+        type: 'flow',
+        title: 'Where to look first',
+        code: `flowchart TD
   M["Measure: Lighthouse,<br/>DevTools profiler"]:::highlight --> Q{Slow load or slow interaction?}
   Q -->|"Load / LCP"| L["Lazy routes, @defer,<br/>bundle analysis, images, SSR"]:::network
   Q -->|"Interaction / INP"| R["OnPush + signals, track,<br/>virtual scroll, fewer CD runs"]:::server
   Q -->|"Waiting on data"| D["Caching, pagination,<br/>parallel requests"]:::db`,
-        },
-      ],
-    },
+      },
+    ],
+  },
 
-  'Handle bulk records using virtual scrolling and pagination, and limit API result per page': {
+  'virtual-scrolling-and-pagination': {
     summary:
       'Never load or render everything. On the API, paginate (`?page=2&size=50` or cursor-based `?after=<id>&limit=50`) with a server-enforced max page size. In the UI, either show pages (paginator, or infinite scroll that fetches the next page near the end) and/or render only visible rows with CDK virtual scrolling (`cdk-virtual-scroll-viewport` + `*cdkVirtualFor`), so 100k records cost the same DOM as ~20.',
     details: [
@@ -296,7 +295,7 @@ export class LogViewerComponent {
     ],
   },
 
-  'What is Server-Side Rendering (SSR) and Client-Side Rendering (CSR)?': {
+  'ssr-vs-csr': {
     summary:
       'With **CSR**, the server sends a nearly empty HTML shell plus JavaScript; the browser downloads and runs the app to build the page. With **SSR**, the server runs the Angular app per request and sends fully rendered HTML, so content appears fast and is crawlable; the browser then **hydrates** it (reuses the DOM and attaches event listeners). Angular supports SSR, prerendering (SSG) and per-route render modes via `@angular/ssr`.',
     details: [
@@ -387,20 +386,19 @@ export const serverRoutes: ServerRoute[] = [
       },
     ],
   },
-  'How do you analyse and reduce an Angular bundle (build stats, lazy routes, `@defer`, tree-shaking pitfalls)?':
-    {
-      summary:
-        'I start from the build output: `ng build` prints initial vs lazy chunks with estimated transfer sizes, and `ng build --stats-json` gives a metafile I load into the esbuild bundle analyzer to see which packages sit in the initial chunk and why. Then I move code out of the initial chunk (lazy routes with `loadComponent`/`loadChildren`, `@defer` for heavy below-the-fold UI), fix tree-shaking blockers (CommonJS deps, side-effectful barrels, whole-library imports) and lock the result in with `budgets` in `angular.json`.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'The first-load measurement story (LCP, RUM, Lighthouse) is covered in the "slow on first load" debugging answer. This one goes deeper on the bundle itself: how to read it, what typically bloats it in Angular apps, and how to stop it regressing.',
-        },
-        { type: 'heading3', text: '1. Read the build output' },
-        {
-          type: 'code',
-          lang: 'bash',
-          code: `ng build --stats-json
+  'analysing-and-reducing-the-bundle': {
+    summary:
+      'I start from the build output: `ng build` prints initial vs lazy chunks with estimated transfer sizes, and `ng build --stats-json` gives a metafile I load into the esbuild bundle analyzer to see which packages sit in the initial chunk and why. Then I move code out of the initial chunk (lazy routes with `loadComponent`/`loadChildren`, `@defer` for heavy below-the-fold UI), fix tree-shaking blockers (CommonJS deps, side-effectful barrels, whole-library imports) and lock the result in with `budgets` in `angular.json`.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'The first-load measurement story (LCP, RUM, Lighthouse) is covered in the "slow on first load" debugging answer. This one goes deeper on the bundle itself: how to read it, what typically bloats it in Angular apps, and how to stop it regressing.',
+      },
+      { type: 'heading3', text: '1. Read the build output' },
+      {
+        type: 'code',
+        lang: 'bash',
+        code: `ng build --stats-json
 # Initial chunk files | Names    | Raw size | Estimated transfer size
 # main-XYZ.js         | main     | 612 kB   | 158 kB
 # Lazy chunk files    | Names    | Raw size | Estimated transfer size
@@ -409,81 +407,81 @@ export const serverRoutes: ServerRoute[] = [
 # dist/<app>/browser/stats.json -> drop it into https://esbuild.github.io/analyze/
 # Alternative: enable sourceMap in the production config, then
 npx source-map-explorer dist/<app>/browser/main-*.js`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '**Initial chunks** (`main`, `polyfills`, `styles` and shared chunks they import) block first render. That is where every kilobyte matters.',
-            '**Lazy chunks** load on navigation or a `@defer` trigger. Big lazy chunks are acceptable; big initial chunks are not.',
-            'In the analyzer, use the "why is this file included" import chain to find the one eager import that dragged a library into `main`.',
-          ],
-        },
-        { type: 'heading3', text: '2. Move code out of the initial chunk' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export const routes: Routes = [
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**Initial chunks** (`main`, `polyfills`, `styles` and shared chunks they import) block first render. That is where every kilobyte matters.',
+          '**Lazy chunks** load on navigation or a `@defer` trigger. Big lazy chunks are acceptable; big initial chunks are not.',
+          'In the analyzer, use the "why is this file included" import chain to find the one eager import that dragged a library into `main`.',
+        ],
+      },
+      { type: 'heading3', text: '2. Move code out of the initial chunk' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export const routes: Routes = [
   { path: '', loadComponent: () => import('./home/home.component').then((m) => m.HomeComponent) },
   { path: 'admin', canMatch: [isAdmin], loadChildren: () => import('./admin/admin.routes') },
 ];
 // loadChildren can import a default export directly (export default [...] as Routes).`,
-        },
-        {
-          type: 'code',
-          lang: 'html',
-          code: `<!-- The chart library is only referenced inside the defer block, so it gets its own chunk -->
+      },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<!-- The chart library is only referenced inside the defer block, so it gets its own chunk -->
 @defer (on viewport; prefetch on idle) {
   <app-revenue-chart [data]="revenue()" />
 } @placeholder {
   <div class="chart-skeleton" style="height: 320px"></div>
 }`,
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'A deferred component is only split out if nothing else imports it eagerly. If the same component (or its library) is also used outside the `@defer` block, or exported through a barrel the root imports, it stays in the initial chunk and `@defer` only delays rendering.',
-        },
-        { type: 'heading3', text: '3. Tree-shaking pitfalls' },
-        {
-          type: 'bullets',
-          items: [
-            '**CommonJS dependencies** cannot be tree-shaken well. The CLI warns ("module ... is not ESM"); prefer an ESM alternative (`lodash-es` per-function imports over `lodash`). `allowedCommonJsDependencies` only silences the warning, it does not fix the size.',
-            '**Barrel files with side effects**: an `index.ts` that re-exports everything is fine when modules are pure, but top-level code (registering things, global config) in any re-exported file keeps it in the bundle.',
-            '**Locale and data bloat**: `moment` pulls in every locale. Use native `Intl`/`date-fns` and import only the Angular locale data you register.',
-            '**Whole-library imports**: `import * as icons from ...` or registering a full icon set ships every icon. Import individual icons or use an SVG sprite.',
-            "**Providers**: services with `@Injectable({ providedIn: 'root' })` are tree-shakable (dropped if never injected); services listed in a `providers` array always ship.",
-            '**Replace heavy deps**: a rich text editor or chart library for one screen belongs behind a lazy route or `@defer`, or should be swapped for something smaller.',
-          ],
-        },
-        { type: 'heading3', text: '4. Stop regressions with budgets' },
-        {
-          type: 'code',
-          lang: 'json',
-          code: `// angular.json -> projects.<app>.architect.build.configurations.production
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'A deferred component is only split out if nothing else imports it eagerly. If the same component (or its library) is also used outside the `@defer` block, or exported through a barrel the root imports, it stays in the initial chunk and `@defer` only delays rendering.',
+      },
+      { type: 'heading3', text: '3. Tree-shaking pitfalls' },
+      {
+        type: 'bullets',
+        items: [
+          '**CommonJS dependencies** cannot be tree-shaken well. The CLI warns ("module ... is not ESM"); prefer an ESM alternative (`lodash-es` per-function imports over `lodash`). `allowedCommonJsDependencies` only silences the warning, it does not fix the size.',
+          '**Barrel files with side effects**: an `index.ts` that re-exports everything is fine when modules are pure, but top-level code (registering things, global config) in any re-exported file keeps it in the bundle.',
+          '**Locale and data bloat**: `moment` pulls in every locale. Use native `Intl`/`date-fns` and import only the Angular locale data you register.',
+          '**Whole-library imports**: `import * as icons from ...` or registering a full icon set ships every icon. Import individual icons or use an SVG sprite.',
+          "**Providers**: services with `@Injectable({ providedIn: 'root' })` are tree-shakable (dropped if never injected); services listed in a `providers` array always ship.",
+          '**Replace heavy deps**: a rich text editor or chart library for one screen belongs behind a lazy route or `@defer`, or should be swapped for something smaller.',
+        ],
+      },
+      { type: 'heading3', text: '4. Stop regressions with budgets' },
+      {
+        type: 'code',
+        lang: 'json',
+        code: `// angular.json -> projects.<app>.architect.build.configurations.production
 "budgets": [
   { "type": "initial", "maximumWarning": "450kB", "maximumError": "600kB" },
   { "type": "anyComponentStyle", "maximumWarning": "4kB", "maximumError": "8kB" },
   { "type": "bundle", "name": "polyfills", "maximumError": "60kB" }
 ]`,
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: walk through one concrete find, for example "the analyzer showed `moment` with all locales in `main` because a shared date pipe was imported by the root; switching to `Intl.DateTimeFormat` cut 70 kB gzipped and a budget now fails CI if it creeps back."',
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'Why does a component used inside `@defer` sometimes still end up in `main`?',
-            'What is the difference between raw size and estimated transfer size, and which one do budgets check?',
-            'When would you use a preloading strategy instead of pure lazy loading?',
-          ],
-        },
-      ],
-    },
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: walk through one concrete find, for example "the analyzer showed `moment` with all locales in `main` because a shared date pipe was imported by the root; switching to `Intl.DateTimeFormat` cut 70 kB gzipped and a budget now fails CI if it creeps back."',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'Why does a component used inside `@defer` sometimes still end up in `main`?',
+          'What is the difference between raw size and estimated transfer size, and which one do budgets check?',
+          'When would you use a preloading strategy instead of pure lazy loading?',
+        ],
+      },
+    ],
+  },
 
-  'How do `@defer` and incremental hydration improve Core Web Vitals in an Angular app?': {
+  'defer-and-incremental-hydration-for-cwv': {
     summary:
       "Both reduce the JavaScript that must download, parse and execute before the page is usable. `@defer` splits non-critical UI into lazy chunks, so the main thread is free sooner (better LCP render delay, Total Blocking Time and INP). Incremental hydration (`hydrate on ...` triggers) goes further with SSR: the server renders the full HTML, but each block's code is only fetched and hydrated when its trigger fires. The rules are: never defer the LCP element, and give placeholders a reserved size so they do not cause CLS.",
     details: [
@@ -583,7 +581,7 @@ providers: [
     ],
   },
 
-  'How does `NgOptimizedImage` improve LCP and CLS?': {
+  'how-ngoptimizedimage-helps-lcp-and-cls': {
     summary:
       '`NgOptimizedImage` (the `ngSrc` directive) enforces image best practices. For **CLS** it requires `width`/`height` (or `fill`), so the browser reserves space before the image loads. For **LCP** the `priority` attribute marks the hero image as high priority (`fetchpriority="high"`, eager loading, and a preload hint when rendered with SSR), while every other image is lazy-loaded by default. With an image loader it also generates a responsive `srcset`, so the browser downloads the right size, and in dev mode it warns about common mistakes.',
     details: [
@@ -667,39 +665,38 @@ providers: [provideImgixLoader('https://my-shop.imgix.net/')]
     ],
   },
 
-  'How do you find and fix slow change detection with Angular DevTools and the Chrome Performance panel?':
-    {
-      summary:
-        'I record the slow interaction in the Angular DevTools **Profiler**, which shows each change-detection cycle as a bar and which components took the time and what triggered it. Then I confirm in the Chrome **Performance** panel, where Angular adds its own track so long tasks can be traced to component templates. The usual culprits are function calls or impure pipes in templates, big `@for` lists with a bad `track`, and noisy zone triggers like `mousemove` or `setInterval`; the fixes are OnPush, signals with `computed()`, pure pipes, a stable `track`, and keeping noisy events outside Angular or going zoneless.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'How change detection and OnPush work is explained in the Change Detection topic; this answer is the profiling workflow. Always profile a production-like build: dev mode runs an extra checking pass, so absolute timings are inflated.',
-        },
-        { type: 'heading3', text: '1. Angular DevTools profiler' },
-        {
-          type: 'numbered',
-          items: [
-            'Open the **Angular** tab in Chrome DevTools, go to **Profiler**, press record, perform the slow interaction (typing in a filter, scrolling, clicking a tab), stop.',
-            'The bar chart shows one bar per change-detection cycle. Tall bars are expensive cycles; many bars for one keystroke means too many triggers.',
-            'Select a bar to see the flame graph or tree map: each component with its time, and the source that triggered the cycle (an event listener, a timer, an HTTP response).',
-            'Look for components that appear in every cycle although nothing they show changed. These are OnPush candidates.',
-          ],
-        },
-        { type: 'heading3', text: '2. Chrome Performance panel' },
-        {
-          type: 'bullets',
-          items: [
-            'Record the same interaction with CPU throttling. Long tasks (over 50 ms, red corner) hurt INP.',
-            'In recent Angular versions, run `ng.enableProfiling()` in the console (dev mode) before recording: an Angular custom track then shows bootstrap, change detection and component template execution in the timeline, next to the normal JS flame chart.',
-            'In the bottom-up view, frequently called template functions and pipe `transform` methods show up as hot spots.',
-          ],
-        },
-        { type: 'heading3', text: '3. Common culprits and fixes' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// ❌ Runs on every CD cycle for every row
+  'finding-slow-change-detection': {
+    summary:
+      'I record the slow interaction in the Angular DevTools **Profiler**, which shows each change-detection cycle as a bar and which components took the time and what triggered it. Then I confirm in the Chrome **Performance** panel, where Angular adds its own track so long tasks can be traced to component templates. The usual culprits are function calls or impure pipes in templates, big `@for` lists with a bad `track`, and noisy zone triggers like `mousemove` or `setInterval`; the fixes are OnPush, signals with `computed()`, pure pipes, a stable `track`, and keeping noisy events outside Angular or going zoneless.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'How change detection and OnPush work is explained in the Change Detection topic; this answer is the profiling workflow. Always profile a production-like build: dev mode runs an extra checking pass, so absolute timings are inflated.',
+      },
+      { type: 'heading3', text: '1. Angular DevTools profiler' },
+      {
+        type: 'numbered',
+        items: [
+          'Open the **Angular** tab in Chrome DevTools, go to **Profiler**, press record, perform the slow interaction (typing in a filter, scrolling, clicking a tab), stop.',
+          'The bar chart shows one bar per change-detection cycle. Tall bars are expensive cycles; many bars for one keystroke means too many triggers.',
+          'Select a bar to see the flame graph or tree map: each component with its time, and the source that triggered the cycle (an event listener, a timer, an HTTP response).',
+          'Look for components that appear in every cycle although nothing they show changed. These are OnPush candidates.',
+        ],
+      },
+      { type: 'heading3', text: '2. Chrome Performance panel' },
+      {
+        type: 'bullets',
+        items: [
+          'Record the same interaction with CPU throttling. Long tasks (over 50 ms, red corner) hurt INP.',
+          'In recent Angular versions, run `ng.enableProfiling()` in the console (dev mode) before recording: an Angular custom track then shows bootstrap, change detection and component template execution in the timeline, next to the normal JS flame chart.',
+          'In the bottom-up view, frequently called template functions and pipe `transform` methods show up as hot spots.',
+        ],
+      },
+      { type: 'heading3', text: '3. Common culprits and fixes' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// ❌ Runs on every CD cycle for every row
 // <td>{{ formatTotal(order) }}</td>
 // <li *ngFor="let o of orders | filterBy: query">   (impure pipe)
 
@@ -719,21 +716,21 @@ export class OrdersComponent {
     this.orders().filter((o) => o.customer.includes(this.query())),
   );
 }`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '**Template function calls / getters** doing real work: move them into `computed()` or a pure pipe, which re-run only when inputs change.',
-            '**Impure pipes** (`pure: false`) run every cycle; make them pure and pass new references.',
-            '**`@for` with `track $index` or a new object identity** on refresh: rows are destroyed and recreated; track a stable id.',
-            '**`ChangeDetectionStrategy.Default` everywhere**: one event re-checks the whole tree. Adopt OnPush (or signals) from leaf components upward.',
-            '**Noisy zone triggers**: `setInterval`, `scroll`, `mousemove`, `resize` and third-party libraries each trigger app-wide CD in a Zone.js app.',
-          ],
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Zone.js app: keep high-frequency events out of Angular, re-enter only when state changes
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**Template function calls / getters** doing real work: move them into `computed()` or a pure pipe, which re-run only when inputs change.',
+          '**Impure pipes** (`pure: false`) run every cycle; make them pure and pass new references.',
+          '**`@for` with `track $index` or a new object identity** on refresh: rows are destroyed and recreated; track a stable id.',
+          '**`ChangeDetectionStrategy.Default` everywhere**: one event re-checks the whole tree. Adopt OnPush (or signals) from leaf components upward.',
+          '**Noisy zone triggers**: `setInterval`, `scroll`, `mousemove`, `resize` and third-party libraries each trigger app-wide CD in a Zone.js app.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Zone.js app: keep high-frequency events out of Angular, re-enter only when state changes
 private zone = inject(NgZone);
 constructor() {
   afterNextRender(() => {
@@ -749,30 +746,30 @@ constructor() {
 // Coalesce multiple events in one turn into a single CD (Zone.js apps)
 provideZoneChangeDetection({ eventCoalescing: true });
 // Or go zoneless (provideZonelessChangeDetection()): CD runs only on signal/markForCheck/input changes.`,
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Do not "fix" slow CD with `ChangeDetectorRef.detach()` or `setTimeout` hacks: they hide bugs and leave stale views. And if the profiler shows a cheap CD but a slow frame, the cost is DOM/layout (too many rows), which needs virtual scrolling, not CD tuning.',
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: describe the loop "record, find the hottest component, fix one cause, record again" with numbers, for example "typing in the search box went from 45 ms to 6 ms per keystroke after replacing a template method with `computed()` and making the row component OnPush".',
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'Why are timings in dev mode higher than in production?',
-            'How does zoneless change detection change what you see in the profiler?',
-            'When is a slow page a DOM problem rather than a change-detection problem?',
-          ],
-        },
-      ],
-    },
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Do not "fix" slow CD with `ChangeDetectorRef.detach()` or `setTimeout` hacks: they hide bugs and leave stale views. And if the profiler shows a cheap CD but a slow frame, the cost is DOM/layout (too many rows), which needs virtual scrolling, not CD tuning.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: describe the loop "record, find the hottest component, fix one cause, record again" with numbers, for example "typing in the search box went from 45 ms to 6 ms per keystroke after replacing a template method with `computed()` and making the row component OnPush".',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'Why are timings in dev mode higher than in production?',
+          'How does zoneless change detection change what you see in the profiler?',
+          'When is a slow page a DOM problem rather than a change-detection problem?',
+        ],
+      },
+    ],
+  },
 
-  'When should you move work to a web worker in an Angular app, and how?': {
+  'moving-work-to-a-web-worker': {
     summary:
       "Move work to a web worker when it is CPU-heavy and long enough to block the main thread (parsing a large CSV/JSON, sorting or filtering tens of thousands of rows, image processing, crypto, diffing), because a long task freezes input and hurts INP. Do not use one for DOM work (workers have no DOM) or small tasks, where `postMessage` serialisation costs more than it saves. In Angular, `ng generate web-worker` sets up the build, you create it with `new Worker(new URL('./x.worker', import.meta.url), { type: 'module' })`, and wrap it in a service that exposes a signal or Observable.",
     details: [

@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What are HTTP status codes? Explain 2xx, 3xx, 4xx, 5xx ranges.': {
+  'http-status-code-ranges': {
     summary:
       'Status codes are three-digit numbers in every HTTP response that tell the client the outcome. **2xx** = success (200 OK, 201 Created, 204 No Content), **3xx** = redirection or "use your cache" (301, 302, 304, 307, 308), **4xx** = the client made an error (400, 401, 403, 404, 409, 422, 429), **5xx** = the server failed (500, 502, 503, 504). 1xx are informational (e.g. 101 Switching Protocols).',
     details: [
@@ -100,7 +100,7 @@ app.delete('/users/:id', async (req, res) => {
     ],
   },
 
-  'What is the difference between HTTP/1.1, HTTP/2, and HTTP/3?': {
+  'http-1-1-vs-http-2-vs-http-3': {
     summary:
       '**HTTP/1.1** is text-based over TCP: one request at a time per connection, so browsers open ~6 connections and suffer head-of-line blocking. **HTTP/2** is binary over a single TCP connection with **multiplexed streams**, HPACK header compression and prioritisation — but a lost TCP packet still stalls every stream. **HTTP/3** runs over **QUIC** (on UDP), with streams independent at the transport level, TLS 1.3 built in, faster 0-/1-RTT handshakes and connection migration across networks.',
     details: [
@@ -187,7 +187,7 @@ server.listen(8443);
     ],
   },
 
-  'What is Keep-Alive in HTTP connections?': {
+  'http-keep-alive': {
     summary:
       "Keep-Alive (persistent connections) means reusing one TCP (and TLS) connection for multiple HTTP requests instead of opening a new one each time, saving the TCP handshake, TLS handshake and slow-start costs. It is the default in HTTP/1.1. In Node you tune it on the server (`keepAliveTimeout`, `headersTimeout`) and — very important for outbound calls — on the client with a keep-alive `Agent` or undici's pooled dispatcher.",
     details: [
@@ -271,7 +271,7 @@ setGlobalDispatcher(new Agent({ connections: 100, keepAliveTimeout: 30_000 }));`
     ],
   },
 
-  'What is TLS/SSL and how do you enable HTTPS in Node.js?': {
+  'tls-and-https-in-node-js': {
     summary:
       "TLS (the successor to SSL, which is deprecated and insecure) encrypts traffic between client and server, authenticates the server with an X.509 certificate signed by a trusted CA, and guarantees integrity. HTTPS is HTTP over TLS. In Node you can use `https.createServer({ key, cert }, app)`, but in production TLS is usually terminated at a load balancer, reverse proxy or CDN (with automatic certificates, e.g. Let's Encrypt or ACM) and Node serves plain HTTP behind it.",
     details: [
@@ -366,7 +366,7 @@ app.use(helmet.hsts({ maxAge: 31536000, includeSubDomains: true }));`,
     ],
   },
 
-  'How do you implement request timeouts in Node.js HTTP servers?': {
+  'request-timeouts-in-http-servers': {
     summary:
       "Use the built-in server limits — `server.requestTimeout` (whole request received, default 300s), `server.headersTimeout` (headers received, default 60s), `server.timeout` (socket inactivity, default disabled) and `server.keepAliveTimeout` — plus an **application-level** deadline per request (middleware that responds 503/504 after N ms and aborts downstream work via `AbortSignal`). For outbound calls, always set timeouts with `AbortSignal.timeout()` or the client's timeout option.",
     details: [
@@ -473,7 +473,7 @@ export class TimeoutInterceptor implements NestInterceptor {
     ],
   },
 
-  'What is the difference between REST, GraphQL, and gRPC?': {
+  'rest-vs-graphql-vs-grpc': {
     summary:
       '**REST** models resources as URLs and uses HTTP methods and status codes, usually with JSON — simple, cacheable, universal. **GraphQL** exposes one endpoint and a typed schema where the client asks for exactly the fields it needs — great for varied frontends, but caching, N+1 queries and cost control are harder. **gRPC** is contract-first RPC with Protocol Buffers over HTTP/2 — compact, fast, strongly typed, with streaming — ideal for service-to-service, less so for browsers.',
     details: [
@@ -636,7 +636,7 @@ client.GetStock({ sku: 'sku-123' }, { deadline: Date.now() + 1000 }, (err, reply
     ],
   },
 
-  'What are WebSockets and how do you implement them in Node.js?': {
+  'websockets-in-node-js': {
     summary:
       'WebSocket is a protocol for a persistent, **full-duplex** connection between client and server over a single TCP connection. It starts as an HTTP request with `Upgrade: websocket` (101 Switching Protocols), after which both sides can send messages at any time with low overhead. In Node you typically use the `ws` library (low-level) or Socket.IO (rooms, reconnection, fallbacks); to scale across instances you need a shared pub/sub such as Redis.',
     details: [
@@ -750,7 +750,7 @@ io.on('connection', (socket) => {
     ],
   },
 
-  'What is Server-Sent Events (SSE) and when should you use it over WebSockets?': {
+  'sse-vs-websockets': {
     summary:
       'SSE is a standard for the server to push a stream of text events to the browser over a normal long-lived HTTP response (`Content-Type: text/event-stream`), consumed with the built-in `EventSource` API, which reconnects automatically and resumes using `Last-Event-ID`. Use SSE when data flows **one way, server → client** (notifications, live feeds, progress updates, streaming LLM tokens); use WebSockets when you need low-latency **bidirectional** messaging or binary data.',
     details: [

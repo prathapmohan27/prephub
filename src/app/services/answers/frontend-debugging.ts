@@ -1,51 +1,50 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'Memory keeps growing the longer a user keeps the Angular app open. How do you find and fix the leak?':
-    {
-      summary:
-        'First prove it is a real leak and find the action that causes it: repeat one user flow (open and close a page, a dialog, a route) several times and watch whether the JS heap and DOM node count return to baseline after a forced GC. Then take heap snapshots before and after the repetitions and use the Comparison view to see which objects keep piling up and what retains them. In Angular it is almost always something long-lived holding a reference to a destroyed component: an unfinished subscription, a global event listener, a timer or an ever-growing cache.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Interviewers want a method, not a list of guesses. Memory growing on its own is not a leak. The heap grows and shrinks with GC. A leak is memory that **stays** after the feature that used it is gone, and it gets worse each time the flow is repeated.',
-        },
-        { type: 'heading3', text: '1. Reproduce and narrow down' },
-        {
-          type: 'numbered',
-          items: [
-            'Ask which screens users keep open (dashboards with polling, chat, long sessions) and check RUM data if you collect `performance.memory` or crash reports for "Aw, Snap" out-of-memory tabs.',
-            'Pick one flow, for example open a route and navigate away. Do it once to warm up caches, then force GC (trash icon in the Memory panel) and take **snapshot 1**.',
-            'Repeat the flow 10 times, force GC, take **snapshot 2**. If a component leaks, you should now see about 10 extra instances of it.',
-            'Watch the Performance monitor (JS heap size, DOM nodes, JS event listeners). A sawtooth that keeps rising is the signal you want.',
-          ],
-        },
-        { type: 'heading3', text: '2. Read the evidence in Chrome DevTools' },
-        {
-          type: 'bullets',
-          items: [
-            '**Comparison view** between snapshots, sorted by `# Delta`: look for your component class names (`OrderDetailComponent`), `Detached HTMLDivElement` entries, `Subscriber`/`SafeSubscriber` objects and closures.',
-            '**Retainers** pane: follow the chain from a leaked component up to a GC root. It usually ends in a singleton service, a `Subject` inside a store, `window`, or a timer.',
-            '**Allocation instrumentation on timeline**: blue bars that stay blue after the flow are allocations that were never freed, and you can click them to get the stack trace.',
-            'The **Detached elements** view (or filtering a snapshot for "Detached") shows DOM trees removed from the page but still referenced from JS.',
-          ],
-        },
-        { type: 'heading3', text: '3. Likely causes, most common first' },
-        {
-          type: 'numbered',
-          items: [
-            'Subscriptions to long-lived observables that never complete, such as store selectors, `router.events`, `interval`, a `Subject` in a root service, or `fromEvent(window, ...)`. `HttpClient` calls complete on their own and are not the usual culprit.',
-            'Manual `addEventListener` on `window`/`document`, `setInterval`, `ResizeObserver`/`IntersectionObserver` that are never removed or disconnected.',
-            'Third-party widgets (charts, maps, editors) created in `ngAfterViewInit` without calling their `destroy()`.',
-            'Unbounded caches in root services (a `Map` keyed by id that only grows), or `shareReplay(1)` without `refCount` keeping a source alive.',
-            'Closures or arrays in a singleton that hold component instances or DOM nodes.',
-          ],
-        },
-        { type: 'heading3', text: '4. Fix with modern Angular' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({ selector: 'app-live-orders', templateUrl: './live-orders.html' })
+  'memory-grows-the-longer-the-app-is-open': {
+    summary:
+      'First prove it is a real leak and find the action that causes it: repeat one user flow (open and close a page, a dialog, a route) several times and watch whether the JS heap and DOM node count return to baseline after a forced GC. Then take heap snapshots before and after the repetitions and use the Comparison view to see which objects keep piling up and what retains them. In Angular it is almost always something long-lived holding a reference to a destroyed component: an unfinished subscription, a global event listener, a timer or an ever-growing cache.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Interviewers want a method, not a list of guesses. Memory growing on its own is not a leak. The heap grows and shrinks with GC. A leak is memory that **stays** after the feature that used it is gone, and it gets worse each time the flow is repeated.',
+      },
+      { type: 'heading3', text: '1. Reproduce and narrow down' },
+      {
+        type: 'numbered',
+        items: [
+          'Ask which screens users keep open (dashboards with polling, chat, long sessions) and check RUM data if you collect `performance.memory` or crash reports for "Aw, Snap" out-of-memory tabs.',
+          'Pick one flow, for example open a route and navigate away. Do it once to warm up caches, then force GC (trash icon in the Memory panel) and take **snapshot 1**.',
+          'Repeat the flow 10 times, force GC, take **snapshot 2**. If a component leaks, you should now see about 10 extra instances of it.',
+          'Watch the Performance monitor (JS heap size, DOM nodes, JS event listeners). A sawtooth that keeps rising is the signal you want.',
+        ],
+      },
+      { type: 'heading3', text: '2. Read the evidence in Chrome DevTools' },
+      {
+        type: 'bullets',
+        items: [
+          '**Comparison view** between snapshots, sorted by `# Delta`: look for your component class names (`OrderDetailComponent`), `Detached HTMLDivElement` entries, `Subscriber`/`SafeSubscriber` objects and closures.',
+          '**Retainers** pane: follow the chain from a leaked component up to a GC root. It usually ends in a singleton service, a `Subject` inside a store, `window`, or a timer.',
+          '**Allocation instrumentation on timeline**: blue bars that stay blue after the flow are allocations that were never freed, and you can click them to get the stack trace.',
+          'The **Detached elements** view (or filtering a snapshot for "Detached") shows DOM trees removed from the page but still referenced from JS.',
+        ],
+      },
+      { type: 'heading3', text: '3. Likely causes, most common first' },
+      {
+        type: 'numbered',
+        items: [
+          'Subscriptions to long-lived observables that never complete, such as store selectors, `router.events`, `interval`, a `Subject` in a root service, or `fromEvent(window, ...)`. `HttpClient` calls complete on their own and are not the usual culprit.',
+          'Manual `addEventListener` on `window`/`document`, `setInterval`, `ResizeObserver`/`IntersectionObserver` that are never removed or disconnected.',
+          'Third-party widgets (charts, maps, editors) created in `ngAfterViewInit` without calling their `destroy()`.',
+          'Unbounded caches in root services (a `Map` keyed by id that only grows), or `shareReplay(1)` without `refCount` keeping a source alive.',
+          'Closures or arrays in a singleton that hold component instances or DOM nodes.',
+        ],
+      },
+      { type: 'heading3', text: '4. Fix with modern Angular' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({ selector: 'app-live-orders', templateUrl: './live-orders.html' })
 export class LiveOrdersComponent {
   private store = inject(OrderStore);
   private destroyRef = inject(DestroyRef);
@@ -65,75 +64,74 @@ export class LiveOrdersComponent {
     this.destroyRef.onDestroy(() => window.removeEventListener('resize', onResize));
   }
 }`,
-        },
-        {
-          type: 'paragraph',
-          text: '`takeUntilDestroyed()` without arguments must run in an injection context (constructor or field initializer). Outside it, pass `takeUntilDestroyed(this.destroyRef)`. For shared streams use `shareReplay({ bufferSize: 1, refCount: true })`, and give caches a size limit or eviction.',
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Tempting wrong fix: "just reload the app every hour" or adding `unsubscribe()` calls randomly everywhere. Find the retainer chain first. Otherwise you change a lot of code and may miss the one listener on `window` that actually holds everything. Also keep DevTools console logs in mind: logged objects stay retained while DevTools is open, which can mislead you during the investigation.',
-        },
-        { type: 'heading3', text: 'Prevent it next time' },
-        {
-          type: 'bullets',
-          items: [
-            'Prefer `async` pipe / `toSignal` over manual `subscribe`, and enforce it with lint rules such as `rxjs-x/no-ignored-subscription` or a team rule that every `subscribe` in a component has `takeUntilDestroyed`.',
-            'Add a repeatable memory check for key flows, for example a Playwright script that repeats navigation and compares `performance.memory` or uses Chrome DevTools Protocol heap usage, run nightly.',
-            'Track memory and long-session crash rates in RUM so a regression shows up after a release, not from user complaints.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: say the three words "snapshot, compare, retainers". Describe the leaked object you found, the retainer chain (for example "a root `NotificationService` Subject held 40 detached `ChatComponent`s"), and the one-line fix. That sounds like real experience.',
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'Why does `HttpClient` usually not need unsubscribing, and when does it still matter? (Cancelling in-flight requests on navigation.)',
-            'How is `takeUntilDestroyed` different from the old `takeUntil(this.destroy$)` pattern?',
-            'How would you find a leak that only happens in production after hours of use?',
-          ],
-        },
-      ],
-    },
+      },
+      {
+        type: 'paragraph',
+        text: '`takeUntilDestroyed()` without arguments must run in an injection context (constructor or field initializer). Outside it, pass `takeUntilDestroyed(this.destroyRef)`. For shared streams use `shareReplay({ bufferSize: 1, refCount: true })`, and give caches a size limit or eviction.',
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Tempting wrong fix: "just reload the app every hour" or adding `unsubscribe()` calls randomly everywhere. Find the retainer chain first. Otherwise you change a lot of code and may miss the one listener on `window` that actually holds everything. Also keep DevTools console logs in mind: logged objects stay retained while DevTools is open, which can mislead you during the investigation.',
+      },
+      { type: 'heading3', text: 'Prevent it next time' },
+      {
+        type: 'bullets',
+        items: [
+          'Prefer `async` pipe / `toSignal` over manual `subscribe`, and enforce it with lint rules such as `rxjs-x/no-ignored-subscription` or a team rule that every `subscribe` in a component has `takeUntilDestroyed`.',
+          'Add a repeatable memory check for key flows, for example a Playwright script that repeats navigation and compares `performance.memory` or uses Chrome DevTools Protocol heap usage, run nightly.',
+          'Track memory and long-session crash rates in RUM so a regression shows up after a release, not from user complaints.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: say the three words "snapshot, compare, retainers". Describe the leaked object you found, the retainer chain (for example "a root `NotificationService` Subject held 40 detached `ChatComponent`s"), and the one-line fix. That sounds like real experience.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'Why does `HttpClient` usually not need unsubscribing, and when does it still matter? (Cancelling in-flight requests on navigation.)',
+          'How is `takeUntilDestroyed` different from the old `takeUntil(this.destroy$)` pattern?',
+          'How would you find a leak that only happens in production after hours of use?',
+        ],
+      },
+    ],
+  },
 
-  'You get `ExpressionChangedAfterItHasBeenCheckedError`. What causes it, and how do you fix it properly?':
-    {
-      summary:
-        'In development mode Angular runs a second, verification pass after change detection. If a binding now has a different value than the one just rendered, it throws this error. It means the data flow is not unidirectional: something changed state that was already checked, usually a child or a lifecycle hook updating parent state during the same cycle. I find which binding changed (the error names the old and new values) and move the state change to where it belongs, instead of hiding it.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'The error exists only in dev mode, because the extra check (`checkNoChanges`) is skipped in production builds. That does **not** mean production is fine. In production the same code silently shows a stale value until the next change detection cycle. The error is a warning about a real bug.',
-        },
-        { type: 'heading3', text: '1. Reproduce and narrow down' },
-        {
-          type: 'bullets',
-          items: [
-            "Read the message: it shows the previous and current value, for example `Previous value: 'false'. Current value: 'true'`, and the stack trace points to the template of the component whose binding failed.",
-            'Search for who writes that value. Typical writers are `ngAfterViewInit`, `ngAfterContentInit`, a child component calling a parent service in its `ngOnInit`, or a directive setting a host property.',
-            'Use Angular DevTools to inspect the component tree and see which component owns the state that changed.',
-          ],
-        },
-        { type: 'heading3', text: '2. Typical causes' },
-        {
-          type: 'numbered',
-          items: [
-            'A child changes state that the parent already rendered, for example a child sets `layout.showSidebar = true` in `ngOnInit` while the parent template binds `showSidebar`. The parent was checked first, so its view is now out of date.',
-            'A value is set in `ngAfterViewInit` based on a `@ViewChild` or measurement, but it is bound in the same template.',
-            'A getter or template function returns a new primitive every time, such as `Date.now()` or `Math.random()`.',
-            'An `@Output` emitted synchronously during the child initialization that updates parent bindings.',
-          ],
-        },
-        { type: 'heading3', text: '3. Fix the data flow' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Before: child mutates parent-rendered state while the parent is being checked
+  expressionchangedafterithasbeenchecked: {
+    summary:
+      'In development mode Angular runs a second, verification pass after change detection. If a binding now has a different value than the one just rendered, it throws this error. It means the data flow is not unidirectional: something changed state that was already checked, usually a child or a lifecycle hook updating parent state during the same cycle. I find which binding changed (the error names the old and new values) and move the state change to where it belongs, instead of hiding it.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'The error exists only in dev mode, because the extra check (`checkNoChanges`) is skipped in production builds. That does **not** mean production is fine. In production the same code silently shows a stale value until the next change detection cycle. The error is a warning about a real bug.',
+      },
+      { type: 'heading3', text: '1. Reproduce and narrow down' },
+      {
+        type: 'bullets',
+        items: [
+          "Read the message: it shows the previous and current value, for example `Previous value: 'false'. Current value: 'true'`, and the stack trace points to the template of the component whose binding failed.",
+          'Search for who writes that value. Typical writers are `ngAfterViewInit`, `ngAfterContentInit`, a child component calling a parent service in its `ngOnInit`, or a directive setting a host property.',
+          'Use Angular DevTools to inspect the component tree and see which component owns the state that changed.',
+        ],
+      },
+      { type: 'heading3', text: '2. Typical causes' },
+      {
+        type: 'numbered',
+        items: [
+          'A child changes state that the parent already rendered, for example a child sets `layout.showSidebar = true` in `ngOnInit` while the parent template binds `showSidebar`. The parent was checked first, so its view is now out of date.',
+          'A value is set in `ngAfterViewInit` based on a `@ViewChild` or measurement, but it is bound in the same template.',
+          'A getter or template function returns a new primitive every time, such as `Date.now()` or `Math.random()`.',
+          'An `@Output` emitted synchronously during the child initialization that updates parent bindings.',
+        ],
+      },
+      { type: 'heading3', text: '3. Fix the data flow' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Before: child mutates parent-rendered state while the parent is being checked
 export class FilterPanelComponent implements OnInit {
   private layout = inject(LayoutService);
   ngOnInit() { this.layout.showSidebar = true; } // parent already rendered "false"
@@ -148,49 +146,49 @@ export class LayoutService {
 
 // The decision is made by whoever owns it (route data, a resolver, or the parent),
 // not as a side effect of a child rendering.`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Derive instead of push: use `computed()` signals or compute the value in the parent before its template renders.',
-            'If the value comes from a `@ViewChild` that is not inside `@if`/`@for`, use `viewChild.required()` signal queries, or `{ static: true }` with the decorator, so it is available earlier.',
-            'Move work from `ngAfterViewInit` to `ngOnInit` or the constructor when it does not actually need the rendered view.',
-            'For values that change every check (timestamps), store them in a field or signal updated by a timer instead of calling a function in the template.',
-            'If a value truly depends on rendered layout (measured width), consider CSS (container queries) or `afterNextRender` to perform DOM work, and keep it out of bindings that were already checked.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Tempting wrong fix: wrapping the update in `setTimeout`, `Promise.resolve().then(...)` or calling `cdRef.detectChanges()` inside `ngAfterViewInit`. The error disappears, but you have only scheduled a second render cycle, made the order of updates harder to reason about, and possibly introduced a visual flicker. Fix who owns the state instead.',
-        },
-        { type: 'heading3', text: 'Prevent it next time' },
-        {
-          type: 'bullets',
-          items: [
-            'Run unit and e2e tests against a dev build so the check runs in CI. Component tests with `fixture.detectChanges()` will throw on the same error.',
-            'Follow one rule: parents pass data down via inputs, children send events up via outputs, and shared state lives in a service with signals that derive values rather than being set as side effects of rendering.',
-            'Treat any `setTimeout` added "to fix change detection" as a code review red flag.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: mention explicitly that the check is dev-only and that in production the bug becomes a stale UI. It shows you understand why the error exists, not just how to make it go away.',
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'Why does Angular check parent before child, and how does that relate to this error?',
-            'How do signals and OnPush change how you structure shared state?',
-            'When is `detectChanges()` a legitimate tool rather than a workaround?',
-          ],
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Derive instead of push: use `computed()` signals or compute the value in the parent before its template renders.',
+          'If the value comes from a `@ViewChild` that is not inside `@if`/`@for`, use `viewChild.required()` signal queries, or `{ static: true }` with the decorator, so it is available earlier.',
+          'Move work from `ngAfterViewInit` to `ngOnInit` or the constructor when it does not actually need the rendered view.',
+          'For values that change every check (timestamps), store them in a field or signal updated by a timer instead of calling a function in the template.',
+          'If a value truly depends on rendered layout (measured width), consider CSS (container queries) or `afterNextRender` to perform DOM work, and keep it out of bindings that were already checked.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Tempting wrong fix: wrapping the update in `setTimeout`, `Promise.resolve().then(...)` or calling `cdRef.detectChanges()` inside `ngAfterViewInit`. The error disappears, but you have only scheduled a second render cycle, made the order of updates harder to reason about, and possibly introduced a visual flicker. Fix who owns the state instead.',
+      },
+      { type: 'heading3', text: 'Prevent it next time' },
+      {
+        type: 'bullets',
+        items: [
+          'Run unit and e2e tests against a dev build so the check runs in CI. Component tests with `fixture.detectChanges()` will throw on the same error.',
+          'Follow one rule: parents pass data down via inputs, children send events up via outputs, and shared state lives in a service with signals that derive values rather than being set as side effects of rendering.',
+          'Treat any `setTimeout` added "to fix change detection" as a code review red flag.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: mention explicitly that the check is dev-only and that in production the bug becomes a stale UI. It shows you understand why the error exists, not just how to make it go away.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'Why does Angular check parent before child, and how does that relate to this error?',
+          'How do signals and OnPush change how you structure shared state?',
+          'When is `detectChanges()` a legitimate tool rather than a workaround?',
+        ],
+      },
+    ],
+  },
 
-  'A table with 10,000 rows freezes the page. How do you diagnose and fix it?': {
+  'table-of-10000-rows-freezes': {
     summary:
       'First I measure where the freeze comes from with the Performance panel and the Angular DevTools profiler: is it the initial render of tens of thousands of DOM nodes, change detection re-checking every row on each event, or expensive work in the template such as function calls, sorting and impure pipes? The usual fix combines rendering only what is visible (CDK virtual scroll or pagination), stable `track` keys, OnPush/signals so rows are not re-checked, and moving heavy computation out of the template.',
     details: [
@@ -300,7 +298,7 @@ export class OrdersTableComponent {
     ],
   },
 
-  'A bug happens only in production, never locally. How do you investigate it?': {
+  'bug-only-in-production': {
     summary:
       'I start by collecting real evidence from production rather than guessing: the exact error and stack trace from Sentry or RUM with source maps, the affected browsers, users, release and time it started. Then I list what is different between local and production (build optimizations, environment config, real data, CDN/caching, CSP, auth, browser and network) and try to reproduce by running the production build locally against production-like config and data. Once reproduced, I bisect and fix, and add a test or monitor so it cannot come back silently.',
     details: [
@@ -398,45 +396,44 @@ bootstrapApplication(AppComponent, {
     ],
   },
 
-  'After a deployment, some users see a blank page or a `ChunkLoadError`. Why, and how do you prevent it?':
-    {
-      summary:
-        'Angular builds produce hashed file names, so every deploy creates new chunk files and, if old ones are deleted, users who still run the previous version (an open tab, or a cached `index.html`) try to lazy load a chunk that no longer exists. That fails as a `ChunkLoadError` or "Failed to fetch dynamically imported module", and if the main bundle itself fails, the page stays blank. I confirm it with the Network panel (404 or HTML returned for a `.js` file), then fix the deploy: keep old assets for a while, set correct cache headers, handle service worker updates, and add a reload fallback.',
-      details: [
-        { type: 'heading3', text: '1. Reproduce and narrow down' },
-        {
-          type: 'numbered',
-          items: [
-            'Check that error spikes in Sentry line up with deploy times and come from users whose session started before the deploy.',
-            'Reproduce: open the app, deploy a new version, then navigate to a lazy route in the old tab. The Network panel shows the request for `chunk-ABC123.js` returning 404, or 200 with `text/html` because the server falls back to `index.html` for unknown paths, giving a MIME type or syntax error.',
-            'For blank pages on first load, check whether `index.html` was served from a cache (CDN, browser, service worker) and references a `main-*.js` that is already gone.',
-          ],
-        },
-        { type: 'heading3', text: '2. Causes' },
-        {
-          type: 'bullets',
-          items: [
-            'Deploy replaces the whole folder, deleting the previous hashed files while old clients still reference them.',
-            '`index.html` cached by the CDN or browser for a long time, so new visitors get the old HTML pointing to deleted files.',
-            'The SPA fallback rewrites missing `.js` requests to `index.html`, which hides the 404 and turns it into a confusing parse error.',
-            'With `@angular/service-worker`, the cached version references files that were removed from the server and the worker cannot recover, which it reports through `SwUpdate.unrecoverable`.',
-          ],
-        },
-        { type: 'heading3', text: '3. Fixes' },
-        {
-          type: 'numbered',
-          items: [
-            '**Keep previous build assets** for some days (upload new files next to old ones in S3/CDN instead of deleting, and clean up old hashes later).',
-            '**Cache headers**: `index.html` (and `ngsw.json` if used) with `Cache-Control: no-cache`, hashed assets with `Cache-Control: public, max-age=31536000, immutable`.',
-            '**Do not fall back to `index.html` for asset requests**: only route navigation requests to it, so a missing chunk returns a real 404.',
-            '**Handle service worker updates** and unrecoverable states.',
-            '**Reload fallback** when a lazy chunk fails, guarded against loops.',
-          ],
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Service worker: offer the new version, recover from broken caches
+  'blank-page-or-chunkloaderror-after-deploy': {
+    summary:
+      'Angular builds produce hashed file names, so every deploy creates new chunk files and, if old ones are deleted, users who still run the previous version (an open tab, or a cached `index.html`) try to lazy load a chunk that no longer exists. That fails as a `ChunkLoadError` or "Failed to fetch dynamically imported module", and if the main bundle itself fails, the page stays blank. I confirm it with the Network panel (404 or HTML returned for a `.js` file), then fix the deploy: keep old assets for a while, set correct cache headers, handle service worker updates, and add a reload fallback.',
+    details: [
+      { type: 'heading3', text: '1. Reproduce and narrow down' },
+      {
+        type: 'numbered',
+        items: [
+          'Check that error spikes in Sentry line up with deploy times and come from users whose session started before the deploy.',
+          'Reproduce: open the app, deploy a new version, then navigate to a lazy route in the old tab. The Network panel shows the request for `chunk-ABC123.js` returning 404, or 200 with `text/html` because the server falls back to `index.html` for unknown paths, giving a MIME type or syntax error.',
+          'For blank pages on first load, check whether `index.html` was served from a cache (CDN, browser, service worker) and references a `main-*.js` that is already gone.',
+        ],
+      },
+      { type: 'heading3', text: '2. Causes' },
+      {
+        type: 'bullets',
+        items: [
+          'Deploy replaces the whole folder, deleting the previous hashed files while old clients still reference them.',
+          '`index.html` cached by the CDN or browser for a long time, so new visitors get the old HTML pointing to deleted files.',
+          'The SPA fallback rewrites missing `.js` requests to `index.html`, which hides the 404 and turns it into a confusing parse error.',
+          'With `@angular/service-worker`, the cached version references files that were removed from the server and the worker cannot recover, which it reports through `SwUpdate.unrecoverable`.',
+        ],
+      },
+      { type: 'heading3', text: '3. Fixes' },
+      {
+        type: 'numbered',
+        items: [
+          '**Keep previous build assets** for some days (upload new files next to old ones in S3/CDN instead of deleting, and clean up old hashes later).',
+          '**Cache headers**: `index.html` (and `ngsw.json` if used) with `Cache-Control: no-cache`, hashed assets with `Cache-Control: public, max-age=31536000, immutable`.',
+          '**Do not fall back to `index.html` for asset requests**: only route navigation requests to it, so a missing chunk returns a real 404.',
+          '**Handle service worker updates** and unrecoverable states.',
+          '**Reload fallback** when a lazy chunk fails, guarded against loops.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Service worker: offer the new version, recover from broken caches
 @Injectable({ providedIn: 'root' })
 export class AppUpdateService {
   private swUpdate = inject(SwUpdate);
@@ -469,62 +466,61 @@ export class ChunkErrorHandler implements ErrorHandler {
     console.error(error);
   }
 }`,
-        },
-        {
-          type: 'paragraph',
-          text: 'The `sessionStorage` flag stops an infinite reload loop if the chunk is genuinely missing. Clear it once the app has bootstrapped successfully. You can also handle the error at navigation level with the router `withNavigationErrorHandler` feature.',
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Tempting wrong fix: disabling output hashing or setting `no-cache` on every file. Users then download everything again on each visit and can still mix old and new files during a deploy. The fix is immutable hashed assets plus a fresh `index.html` and keeping old files around.',
-        },
-        { type: 'heading3', text: 'Prevent it next time' },
-        {
-          type: 'bullets',
-          items: [
-            'Make the deploy pipeline upload assets first and switch `index.html` last, with old assets retained and cleaned up later.',
-            'Add a smoke test after deploy that loads a lazy route from a tab opened before the deploy.',
-            'Alert on a spike of chunk load errors per release in Sentry.',
-            "Document the cache header rules in infrastructure as code (CDN behaviours), not in someone's head.",
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: explain the mechanism in one sentence ("an old `index.html` or runtime asks for a hashed file we already deleted") before listing fixes. It proves you understand why only some users are affected.',
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'How do you tell users a new version is available without interrupting a form they are filling in?',
-            'Why should `index.html` be `no-cache` rather than `no-store`?',
-            'How does a blue-green or atomic deploy on a CDN help here?',
-          ],
-        },
-      ],
-    },
+      },
+      {
+        type: 'paragraph',
+        text: 'The `sessionStorage` flag stops an infinite reload loop if the chunk is genuinely missing. Clear it once the app has bootstrapped successfully. You can also handle the error at navigation level with the router `withNavigationErrorHandler` feature.',
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Tempting wrong fix: disabling output hashing or setting `no-cache` on every file. Users then download everything again on each visit and can still mix old and new files during a deploy. The fix is immutable hashed assets plus a fresh `index.html` and keeping old files around.',
+      },
+      { type: 'heading3', text: 'Prevent it next time' },
+      {
+        type: 'bullets',
+        items: [
+          'Make the deploy pipeline upload assets first and switch `index.html` last, with old assets retained and cleaned up later.',
+          'Add a smoke test after deploy that loads a lazy route from a tab opened before the deploy.',
+          'Alert on a spike of chunk load errors per release in Sentry.',
+          "Document the cache header rules in infrastructure as code (CDN behaviours), not in someone's head.",
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: explain the mechanism in one sentence ("an old `index.html` or runtime asks for a hashed file we already deleted") before listing fixes. It proves you understand why only some users are affected.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'How do you tell users a new version is available without interrupting a form they are filling in?',
+          'Why should `index.html` be `no-cache` rather than `no-store`?',
+          'How does a blue-green or atomic deploy on a CDN help here?',
+        ],
+      },
+    ],
+  },
 
-  'An API call works in Postman but fails from the browser with a CORS error in production. How do you debug it?':
-    {
-      summary:
-        'CORS is enforced by the browser, not the server, so Postman and curl never show it: the request may even reach the server, but the browser refuses to give the response to JavaScript unless the server sends the right headers. I open the Network panel, find the failing request and its preflight `OPTIONS` call, read the exact console message, and reproduce the preflight with curl. The fix is always on the server or proxy: correct allowed origin, methods, headers and credentials handling, or serve the API from the same origin.',
-      details: [
-        { type: 'heading3', text: '1. Reproduce and narrow down' },
-        {
-          type: 'numbered',
-          items: [
-            "Read the console message. Chrome says exactly what is missing, for example \"No 'Access-Control-Allow-Origin' header is present\", \"Response to preflight request doesn't pass access control check\", or \"The value of the 'Access-Control-Allow-Origin' header must not be the wildcard '*' when the request's credentials mode is 'include'\".",
-            'In the Network panel, check whether there is an `OPTIONS` preflight. Requests with an `Authorization` header, `Content-Type: application/json`, or methods like `PUT`/`DELETE` trigger one.',
-            'Look at the preflight status and response headers. A 401, 404, 405 or redirect on `OPTIONS` fails the whole call.',
-            'Ask why it worked locally. Usually `ng serve` used `proxy.conf.json`, so the browser only ever talked to the same origin and CORS never applied.',
-          ],
-        },
-        {
-          type: 'code',
-          lang: 'bash',
-          code: `# Simulate the browser's preflight from the command line
+  'works-in-postman-cors-error-in-browser': {
+    summary:
+      'CORS is enforced by the browser, not the server, so Postman and curl never show it: the request may even reach the server, but the browser refuses to give the response to JavaScript unless the server sends the right headers. I open the Network panel, find the failing request and its preflight `OPTIONS` call, read the exact console message, and reproduce the preflight with curl. The fix is always on the server or proxy: correct allowed origin, methods, headers and credentials handling, or serve the API from the same origin.',
+    details: [
+      { type: 'heading3', text: '1. Reproduce and narrow down' },
+      {
+        type: 'numbered',
+        items: [
+          "Read the console message. Chrome says exactly what is missing, for example \"No 'Access-Control-Allow-Origin' header is present\", \"Response to preflight request doesn't pass access control check\", or \"The value of the 'Access-Control-Allow-Origin' header must not be the wildcard '*' when the request's credentials mode is 'include'\".",
+          'In the Network panel, check whether there is an `OPTIONS` preflight. Requests with an `Authorization` header, `Content-Type: application/json`, or methods like `PUT`/`DELETE` trigger one.',
+          'Look at the preflight status and response headers. A 401, 404, 405 or redirect on `OPTIONS` fails the whole call.',
+          'Ask why it worked locally. Usually `ng serve` used `proxy.conf.json`, so the browser only ever talked to the same origin and CORS never applied.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'bash',
+        code: `# Simulate the browser's preflight from the command line
 curl -i -X OPTIONS https://api.example.com/orders \\
   -H "Origin: https://app.example.com" \\
   -H "Access-Control-Request-Method: POST" \\
@@ -537,24 +533,24 @@ curl -i -X OPTIONS https://api.example.com/orders \\
 # access-control-allow-headers: authorization,content-type
 # access-control-allow-credentials: true   (only if cookies are used)
 # vary: Origin`,
-        },
-        { type: 'heading3', text: '2. Likely causes in production' },
-        {
-          type: 'bullets',
-          items: [
-            'The allowlist contains `http://localhost:4200` but not the production origin, or it has `https://example.com` but users are on `https://www.example.com`. Origins must match scheme, host and port exactly.',
-            'The API gateway, load balancer or WAF does not forward `OPTIONS`, or the auth middleware runs before the CORS middleware and returns 401 to the preflight (which never carries credentials).',
-            'Credentials: the frontend sends `withCredentials: true` (cookies), but the server replies with `Access-Control-Allow-Origin: *` or omits `Access-Control-Allow-Credentials: true`.',
-            'Error responses have no CORS headers. A 500 or a 502 from the proxy then appears in the browser as a CORS error, hiding the real failure.',
-            'A redirect (HTTP to HTTPS, trailing slash) on the preflight.',
-            'A CDN caches a response for one origin without `Vary: Origin` and serves it to another.',
-          ],
-        },
-        { type: 'heading3', text: '3. Fix on the server or proxy' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Express example: explicit allowlist, preflight handled before auth
+      },
+      { type: 'heading3', text: '2. Likely causes in production' },
+      {
+        type: 'bullets',
+        items: [
+          'The allowlist contains `http://localhost:4200` but not the production origin, or it has `https://example.com` but users are on `https://www.example.com`. Origins must match scheme, host and port exactly.',
+          'The API gateway, load balancer or WAF does not forward `OPTIONS`, or the auth middleware runs before the CORS middleware and returns 401 to the preflight (which never carries credentials).',
+          'Credentials: the frontend sends `withCredentials: true` (cookies), but the server replies with `Access-Control-Allow-Origin: *` or omits `Access-Control-Allow-Credentials: true`.',
+          'Error responses have no CORS headers. A 500 or a 502 from the proxy then appears in the browser as a CORS error, hiding the real failure.',
+          'A redirect (HTTP to HTTPS, trailing slash) on the preflight.',
+          'A CDN caches a response for one origin without `Vary: Origin` and serves it to another.',
+        ],
+      },
+      { type: 'heading3', text: '3. Fix on the server or proxy' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Express example: explicit allowlist, preflight handled before auth
 import cors from 'cors';
 
 const allowed = new Set(['https://app.example.com', 'https://www.example.com']);
@@ -568,44 +564,44 @@ app.use(cors({
 }));
 
 app.use(authMiddleware); // after CORS, so OPTIONS is not rejected`,
-        },
-        {
-          type: 'paragraph',
-          text: 'Often the cleanest fix is to avoid cross-origin calls entirely: serve the API under the same origin (`https://app.example.com/api`) through a reverse proxy or CDN path rule. No CORS, no preflight latency, and simpler cookie handling.',
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: "Tempting wrong fixes: `mode: 'no-cors'` in fetch (you get an opaque response you cannot read), a browser extension that disables CORS, `Access-Control-Allow-Origin: *` with credentials (the browser rejects it), or reflecting any incoming `Origin` with credentials enabled, which lets any website make authenticated calls on behalf of your users.",
-        },
-        { type: 'heading3', text: 'Prevent it next time' },
-        {
-          type: 'bullets',
-          items: [
-            'Keep allowed origins in per-environment config, reviewed with each new domain.',
-            'Add a post-deploy smoke test that runs the curl preflight against each environment.',
-            'Make sure error handlers and the gateway add CORS headers to error responses too, so real errors are visible.',
-            'Test the frontend in staging on its real domain, not only through the dev proxy.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: start with "CORS is a browser policy, so Postman proving the API works tells us nothing about CORS". Then walk through the preflight. That one sentence separates candidates who understand CORS from those who just add headers until it works.',
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'What is a "simple request" and why does it skip the preflight?',
-            "Does CORS protect the server from attacks? (No, it protects users' data in the browser; it is not authentication and does not stop CSRF on its own.)",
-            'How do `SameSite` cookies interact with cross-origin API calls?',
-          ],
-        },
-      ],
-    },
+      },
+      {
+        type: 'paragraph',
+        text: 'Often the cleanest fix is to avoid cross-origin calls entirely: serve the API under the same origin (`https://app.example.com/api`) through a reverse proxy or CDN path rule. No CORS, no preflight latency, and simpler cookie handling.',
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: "Tempting wrong fixes: `mode: 'no-cors'` in fetch (you get an opaque response you cannot read), a browser extension that disables CORS, `Access-Control-Allow-Origin: *` with credentials (the browser rejects it), or reflecting any incoming `Origin` with credentials enabled, which lets any website make authenticated calls on behalf of your users.",
+      },
+      { type: 'heading3', text: 'Prevent it next time' },
+      {
+        type: 'bullets',
+        items: [
+          'Keep allowed origins in per-environment config, reviewed with each new domain.',
+          'Add a post-deploy smoke test that runs the curl preflight against each environment.',
+          'Make sure error handlers and the gateway add CORS headers to error responses too, so real errors are visible.',
+          'Test the frontend in staging on its real domain, not only through the dev proxy.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: start with "CORS is a browser policy, so Postman proving the API works tells us nothing about CORS". Then walk through the preflight. That one sentence separates candidates who understand CORS from those who just add headers until it works.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'What is a "simple request" and why does it skip the preflight?',
+          "Does CORS protect the server from attacks? (No, it protects users' data in the browser; it is not authentication and does not stop CSRF on its own.)",
+          'How do `SameSite` cookies interact with cross-origin API calls?',
+        ],
+      },
+    ],
+  },
 
-  'The app is slow on first load. How do you measure and improve LCP and bundle size?': {
+  'slow-first-load-lcp-and-bundle-size': {
     summary:
       'I measure with field data first (RUM via the `web-vitals` library or CrUX) to know how slow it is for real users, then use Lighthouse and the Performance panel to break LCP into its parts: server response time, resource load delay, load duration and render delay. For bundle size I run `ng build --stats-json` and inspect the output with the esbuild bundle analyzer or source-map-explorer. Fixes are usually lazy-loading routes and heavy widgets with `@defer`, prioritising the LCP image with `NgOptimizedImage`, removing large dependencies, and SSR or prerendering for content pages, protected by budgets in `angular.json`.',
     details: [
@@ -722,7 +718,7 @@ bootstrapApplication(AppComponent, {
     ],
   },
 
-  "A component's view does not update even though the data changed. What are the likely causes?": {
+  'view-doesn-t-update-after-data-changes': {
     summary:
       'Angular only re-renders a component when change detection runs for it and sees a new value, so I check two things: did Angular get notified, and is the binding actually reading the changed value. The common causes are mutating objects or arrays with OnPush, mutating a signal value in place, code running outside the Angular zone, manual subscriptions in OnPush components without marking for check, the component using a different service instance, and unstable `track` keys. I confirm with Angular DevTools before changing anything.',
     details: [
@@ -811,46 +807,45 @@ user = toSignal(inject(UserApi).getUser());
     ],
   },
 
-  'Users report that a button sometimes does nothing when clicked. How do you reproduce and track it down?':
-    {
-      summary:
-        '"Sometimes" means timing or state, so I first gather context: which button, which browser and device, what the user did before, and whether a request was sent at all. Session replay, Sentry breadcrumbs and network logs usually show whether the click reached the handler. Then I check the usual suspects in order: the button was disabled by stale state, an overlay intercepted the click, an `exhaustMap` or guard ignored it, or an earlier error killed the observable chain or was swallowed. The fix is explicit loading/disabled state, correct error handling, and a proper double-submit guard.',
-      details: [
-        { type: 'heading3', text: '1. Reproduce and narrow down' },
-        {
-          type: 'numbered',
-          items: [
-            'Collect context: browser, device (touch vs mouse), network speed, and the steps before the click. Session replay or Sentry breadcrumbs ("ui.click" followed by no XHR) are very valuable here.',
-            'Decide which of three cases it is: the click never reached the element, the handler ran but returned early, or the request was sent but the UI did not show the result.',
-            'Reproduce with network throttling (Slow 3G), CPU throttling, and fast double clicks. Also try clicking right after the page loads or right after a previous action.',
-          ],
-        },
-        { type: 'heading3', text: '2. Tools and evidence' },
-        {
-          type: 'bullets',
-          items: [
-            'In the console, run `document.elementFromPoint(x, y)` at the button position, or use the Elements panel to inspect what is on top. A transparent overlay, a toast container, or a closing dialog backdrop often sits above the button.',
-            'Event Listener Breakpoints (Mouse > click) in the Sources panel show whether any click handler runs at all.',
-            'Network panel with "Preserve log" shows whether a request left the browser and what came back.',
-            'Angular DevTools shows the current `saving`/`disabled` state of the component at the moment it fails.',
-          ],
-        },
-        { type: 'heading3', text: '3. Likely causes, ranked' },
-        {
-          type: 'numbered',
-          items: [
-            '**Disabled-state race**: `saving` is set to `true` but never reset when the request fails, so the button looks enabled briefly or stays disabled until refresh.',
-            '**Errors swallowed or killing the stream**: a `Subject` of clicks piped through `switchMap` without inner `catchError`; after one failed request the whole stream errors and later clicks do nothing. Or `subscribe()` with no error handler, so the failure is invisible.',
-            '**`exhaustMap` by design**: clicks are ignored while the previous request is in flight; on a slow network that feels like "nothing happens" without a loading indicator.',
-            '**Overlays or `pointer-events`** intercepting the click, or a layout shift moving the button between mousedown and mouseup (for example a validation message appearing on blur).',
-            '**Form semantics**: a `<button>` inside a `<form>` defaults to `type="submit"`, or the form is invalid and the submit handler returns early without showing errors.',
-          ],
-        },
-        { type: 'heading3', text: '4. Fix' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+  'button-sometimes-does-nothing': {
+    summary:
+      '"Sometimes" means timing or state, so I first gather context: which button, which browser and device, what the user did before, and whether a request was sent at all. Session replay, Sentry breadcrumbs and network logs usually show whether the click reached the handler. Then I check the usual suspects in order: the button was disabled by stale state, an overlay intercepted the click, an `exhaustMap` or guard ignored it, or an earlier error killed the observable chain or was swallowed. The fix is explicit loading/disabled state, correct error handling, and a proper double-submit guard.',
+    details: [
+      { type: 'heading3', text: '1. Reproduce and narrow down' },
+      {
+        type: 'numbered',
+        items: [
+          'Collect context: browser, device (touch vs mouse), network speed, and the steps before the click. Session replay or Sentry breadcrumbs ("ui.click" followed by no XHR) are very valuable here.',
+          'Decide which of three cases it is: the click never reached the element, the handler ran but returned early, or the request was sent but the UI did not show the result.',
+          'Reproduce with network throttling (Slow 3G), CPU throttling, and fast double clicks. Also try clicking right after the page loads or right after a previous action.',
+        ],
+      },
+      { type: 'heading3', text: '2. Tools and evidence' },
+      {
+        type: 'bullets',
+        items: [
+          'In the console, run `document.elementFromPoint(x, y)` at the button position, or use the Elements panel to inspect what is on top. A transparent overlay, a toast container, or a closing dialog backdrop often sits above the button.',
+          'Event Listener Breakpoints (Mouse > click) in the Sources panel show whether any click handler runs at all.',
+          'Network panel with "Preserve log" shows whether a request left the browser and what came back.',
+          'Angular DevTools shows the current `saving`/`disabled` state of the component at the moment it fails.',
+        ],
+      },
+      { type: 'heading3', text: '3. Likely causes, ranked' },
+      {
+        type: 'numbered',
+        items: [
+          '**Disabled-state race**: `saving` is set to `true` but never reset when the request fails, so the button looks enabled briefly or stays disabled until refresh.',
+          '**Errors swallowed or killing the stream**: a `Subject` of clicks piped through `switchMap` without inner `catchError`; after one failed request the whole stream errors and later clicks do nothing. Or `subscribe()` with no error handler, so the failure is invisible.',
+          '**`exhaustMap` by design**: clicks are ignored while the previous request is in flight; on a slow network that feels like "nothing happens" without a loading indicator.',
+          '**Overlays or `pointer-events`** intercepting the click, or a layout shift moving the button between mousedown and mouseup (for example a validation message appearing on blur).',
+          '**Form semantics**: a `<button>` inside a `<form>` defaults to `type="submit"`, or the form is invalid and the submit handler returns early without showing errors.',
+        ],
+      },
+      { type: 'heading3', text: '4. Fix' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-checkout',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './checkout.html',
@@ -885,47 +880,47 @@ export class CheckoutComponent {
 
   submit(draft: OrderDraft) { this.submit$.next(draft); }
 }`,
-        },
-        {
-          type: 'code',
-          lang: 'html',
-          code: `<button type="button" (click)="submit(form.value)" [disabled]="saving()" [attr.aria-busy]="saving()">
+      },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<button type="button" (click)="submit(form.value)" [disabled]="saving()" [attr.aria-busy]="saving()">
   @if (saving()) { Placing order... } @else { Place order }
 </button>`,
-        },
-        {
-          type: 'paragraph',
-          text: 'Visible loading state turns "nothing happens" into "it is working". For payments and other critical writes, also send an idempotency key so a retried or duplicated request cannot create two orders on the backend.',
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Tempting wrong fix: adding a `setTimeout` or a debounce on the click "to make it more reliable", or removing `[disabled]` entirely. Debounce delays every click and does not fix a dead stream or an overlay, and removing the guard brings back double submissions.',
-        },
-        { type: 'heading3', text: 'Prevent it next time' },
-        {
-          type: 'bullets',
-          items: [
-            'A shared pattern (or small helper) for submit actions: loading signal, inner `catchError`, `finalize`, user-visible error.',
-            'Global `ErrorHandler` and HTTP interceptor that report to Sentry, so swallowed errors become visible.',
-            'E2E tests that click while the API is slow or returns 500, then click again and assert it works.',
-            'Lint rule against empty `catchError(() => EMPTY)` without reporting, and review overlay z-index and `pointer-events` in shared layout components.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: mention that an error inside `switchMap` without an inner `catchError` terminates the outer stream. It is a very common real cause of "works once, then never again", and interviewers recognise it as hands-on RxJS experience.',
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'When would you choose `exhaustMap`, `concatMap` or `switchMap` for a button action?',
-            'How do you make the backend safe against duplicate submissions?',
-            'How would you track this with RUM if you cannot reproduce it at all?',
-          ],
-        },
-      ],
-    },
+      },
+      {
+        type: 'paragraph',
+        text: 'Visible loading state turns "nothing happens" into "it is working". For payments and other critical writes, also send an idempotency key so a retried or duplicated request cannot create two orders on the backend.',
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Tempting wrong fix: adding a `setTimeout` or a debounce on the click "to make it more reliable", or removing `[disabled]` entirely. Debounce delays every click and does not fix a dead stream or an overlay, and removing the guard brings back double submissions.',
+      },
+      { type: 'heading3', text: 'Prevent it next time' },
+      {
+        type: 'bullets',
+        items: [
+          'A shared pattern (or small helper) for submit actions: loading signal, inner `catchError`, `finalize`, user-visible error.',
+          'Global `ErrorHandler` and HTTP interceptor that report to Sentry, so swallowed errors become visible.',
+          'E2E tests that click while the API is slow or returns 500, then click again and assert it works.',
+          'Lint rule against empty `catchError(() => EMPTY)` without reporting, and review overlay z-index and `pointer-events` in shared layout components.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: mention that an error inside `switchMap` without an inner `catchError` terminates the outer stream. It is a very common real cause of "works once, then never again", and interviewers recognise it as hands-on RxJS experience.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'When would you choose `exhaustMap`, `concatMap` or `switchMap` for a button action?',
+          'How do you make the backend safe against duplicate submissions?',
+          'How would you track this with RUM if you cannot reproduce it at all?',
+        ],
+      },
+    ],
+  },
 };

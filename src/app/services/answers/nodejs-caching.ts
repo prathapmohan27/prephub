@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What are common caching strategies? (Cache-Aside, Write-Through, Write-Behind)': {
+  'caching-strategies': {
     summary:
       '**Cache-aside** (lazy loading): the app checks the cache, on a miss reads the DB and populates the cache — simple and the most common. **Write-through**: every write goes to the cache and the DB synchronously, so the cache is always fresh but writes are slower. **Write-behind** (write-back): writes go to the cache and are flushed to the DB asynchronously — very fast writes, but risk of data loss and eventual consistency. Read-through and refresh-ahead are related variants.',
     details: [
@@ -92,7 +92,7 @@ setInterval(async () => {                                // flush every 10 s
     ],
   },
 
-  'What is cache invalidation and what are the strategies?': {
+  'cache-invalidation-strategies': {
     summary:
       'Cache invalidation is removing or updating cached data when the source of truth changes so users do not see stale values. Main strategies: TTL/expiry (time-based), explicit delete-on-write (event-based), write-through updates, versioned/namespaced keys, tag- or pattern-based purges, and event-driven invalidation via pub/sub or change data capture across instances. In practice you combine an explicit invalidation with a TTL as a safety net.',
     details: [
@@ -173,7 +173,7 @@ sub.on('message', (_ch, msg) => local.delete(JSON.parse(msg).key));`,
     ],
   },
 
-  'What is Redis and what are its use cases in Node.js?': {
+  'redis-and-its-use-cases': {
     summary:
       'Redis is an in-memory data structure store — strings, hashes, lists, sets, sorted sets, streams, bitmaps, HyperLogLog, geospatial indexes — with sub-millisecond latency, optional persistence (RDB snapshots, AOF), replication and clustering. In Node.js it is used for caching, sessions, rate limiting, distributed locks, queues (BullMQ), pub/sub and real-time features, leaderboards and counters.',
     details: [
@@ -232,7 +232,7 @@ await redis.publish('chat:room1', JSON.stringify({ from: 'asha', text: 'hi' }));
     ],
   },
 
-  'How do you implement a Redis cache in a Node.js application?': {
+  'implement-a-redis-cache': {
     summary:
       'Create a shared Redis client (ioredis or node-redis), wrap DB reads in a cache-aside helper that does `GET` → on miss query the DB → `SET key value EX ttl`, invalidate keys on writes, and treat Redis as optional — if it is down, fall back to the DB. Add consistent key naming, serialization, TTL jitter and stampede protection for hot keys, and optionally HTTP-level middleware for whole responses.',
     details: [
@@ -329,7 +329,7 @@ app.get('/products/:id', async (req, res) => {
     ],
   },
 
-  'How do you implement rate limiting using Redis?': {
+  'rate-limiting-with-redis': {
     summary:
       'Store a per-client counter in Redis (keyed by user ID, API key or IP) and use atomic operations so every Node.js instance shares the same limit. Common algorithms: fixed window (`INCR` + `EXPIRE`), sliding window log (sorted set of timestamps), sliding window counter, and token bucket (usually a Lua script for atomicity). Return HTTP 429 with `Retry-After` and rate-limit headers when exceeded; in production, libraries like `rate-limiter-flexible` implement these correctly.',
     details: [
@@ -545,7 +545,7 @@ async function isAllowed(key, limit, windowSec) {
     ],
   },
 
-  'How do you implement distributed locks with Redis?': {
+  'distributed-locks-with-redis': {
     summary:
       "Acquire with `SET lock:<resource> <unique-token> NX PX <ttl>` — it succeeds only if the key does not exist, and the TTL guarantees release if the holder crashes. Release with a Lua script that deletes the key only if the stored token matches yours, so you never remove someone else's lock. For stronger guarantees use Redlock across independent Redis nodes and fencing tokens — or prefer a DB-level lock when correctness is critical.",
     details: [
@@ -628,7 +628,7 @@ await redlock.using(['order:9001'], 5000, async (signal) => {
     ],
   },
 
-  'What is the difference between Redis Pub/Sub and Redis Streams?': {
+  'redis-pub-sub-vs-streams': {
     summary:
       'Pub/Sub is fire-and-forget broadcasting: a message is pushed to whoever is subscribed at that moment and is not stored — offline subscribers miss it and there are no acknowledgements. Streams are an append-only, persisted log: messages get IDs, can be replayed from any point, and consumer groups distribute messages among workers with acknowledgements (`XACK`) and pending-message tracking for retries. Use Pub/Sub for ephemeral real-time notifications, Streams for durable event processing.',
     details: [
@@ -704,7 +704,7 @@ while (true) {
     ],
   },
 
-  'What is BullMQ and how does it use Redis for job queues?': {
+  'bullmq-job-queues-on-redis': {
     summary:
       'BullMQ is a Node.js library for durable background jobs built on Redis. A `Queue` adds jobs, `Worker` processes in any number of instances pull and run them with configurable concurrency, and it provides retries with backoff, delays, priorities, repeatable/cron jobs, rate limiting, parent-child flows and events. Internally it stores jobs as Redis hashes and keeps job IDs in lists/sorted sets per state (wait, active, delayed, completed, failed), moving them atomically with Lua scripts.',
     details: [

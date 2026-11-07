@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What are design patterns and which ones are commonly used in Node.js?': {
+  'common-design-patterns-in-node-js': {
     summary:
       'Design patterns are proven, reusable solutions to recurring design problems — a shared vocabulary rather than code to copy. In Node.js the most common are Module/Singleton (via the module cache), Factory, Observer (EventEmitter), Middleware/Chain of Responsibility (Express), Dependency Injection, Repository, Strategy, Adapter, Decorator, and Streams/Pipeline.',
     details: [
@@ -73,7 +73,7 @@ function authenticate(req, res, next) {
     ],
   },
 
-  'What is the Observer pattern and how is it implemented in Node.js?': {
+  'observer-pattern': {
     summary:
       'The Observer pattern lets a subject notify any number of subscribers when something happens, without knowing who they are. In Node.js it is built in as `EventEmitter`: objects `emit("event", data)` and listeners register with `on()` / `once()`. Streams, HTTP servers, `process` and sockets are all EventEmitters.',
     details: [
@@ -149,7 +149,7 @@ orders.on('error', (err) => logger.error(err));`,
     ],
   },
 
-  'What is Dependency Injection and how is it used in Node.js?': {
+  'dependency-injection': {
     summary:
       'Dependency Injection means a component receives its dependencies (DB repository, logger, HTTP client) from outside instead of creating or importing them itself. It decouples code from concrete implementations, making it easy to swap them and to test with fakes. In Node you can do it manually with constructor/function parameters and a composition root, or use a container such as NestJS, InversifyJS, tsyringe or Awilix.',
     details: [
@@ -224,7 +224,7 @@ export class UsersModule {}`,
     ],
   },
 
-  'What is the Repository Pattern?': {
+  'repository-pattern': {
     summary:
       'The Repository pattern puts a collection-like interface — `findById`, `findByEmail`, `save`, `delete` — between your business logic and the data store. Services talk to the repository in domain terms and never see SQL, ORM calls or database details, so storage can change and business logic can be tested with an in-memory fake.',
     details: [
@@ -318,7 +318,7 @@ class OrderService {
     ],
   },
 
-  'What is CQRS (Command Query Responsibility Segregation)?': {
+  cqrs: {
     summary:
       'CQRS separates the write side (commands that change state, like `PlaceOrder`) from the read side (queries that return data, like `GetOrderHistory`), often with different models and even different databases. Writes go through a model focused on business rules and consistency; reads come from denormalized views optimized for each screen. It helps when read and write workloads or shapes differ a lot, at the cost of complexity and eventual consistency.',
     details: [
@@ -397,7 +397,7 @@ class GetCustomerSummaryHandler {
     ],
   },
 
-  'What is Event Sourcing?': {
+  'event-sourcing': {
     summary:
       'Event Sourcing stores the full history of changes as an append-only sequence of immutable events (`AccountOpened`, `MoneyDeposited`, `MoneyWithdrawn`) instead of only the current state. Current state is derived by replaying events. You get a complete audit trail, the ability to rebuild state at any point in time and to create new read models later — at the cost of complexity around schema evolution, snapshots and eventual consistency.',
     details: [

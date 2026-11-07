@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'Different ways to share data between components': {
+  'ways-to-share-data-between-components': {
     summary:
       'By relationship: parent/child via inputs, outputs, `model()` and `viewChild`; siblings or unrelated components via a shared service (signals or `BehaviorSubject`); across routes via route/query params, resolvers or navigation state; feature- or app-wide via NgRx/Signal Store; and across reloads via browser storage.',
     details: [
@@ -373,20 +373,19 @@ Real-time      | WebSocket/SSE → store                | order status updates`,
     ],
   },
 
-  'Is passing state and parameters through Angular routing preferred over using a shared service? When should each be used?':
-    {
-      summary:
-        "Neither is universally preferred — they solve different problems. Use the **router** (path params, query params) for state that identifies what the page shows and must survive refresh, deep links, back/forward and sharing. Use a **shared service** for in-memory application state: large objects, data shared by components on the same screen, or state that shouldn't be in the URL.",
-      details: [
-        {
-          type: 'paragraph',
-          text: 'A good rule: if a user would expect to copy the URL and get the same screen, the state belongs in the URL. Typically you pass the **id** through the route and let a service/store fetch or cache the **entity**.',
-        },
-        { type: 'heading3', text: 'Router: ids, filters, pagination' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// /products?category=shoes&page=2&sort=price
+  'router-state-vs-a-shared-service': {
+    summary:
+      "Neither is universally preferred — they solve different problems. Use the **router** (path params, query params) for state that identifies what the page shows and must survive refresh, deep links, back/forward and sharing. Use a **shared service** for in-memory application state: large objects, data shared by components on the same screen, or state that shouldn't be in the URL.",
+    details: [
+      {
+        type: 'paragraph',
+        text: 'A good rule: if a user would expect to copy the URL and get the same screen, the state belongs in the URL. Typically you pass the **id** through the route and let a service/store fetch or cache the **entity**.',
+      },
+      { type: 'heading3', text: 'Router: ids, filters, pagination' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// /products?category=shoes&page=2&sort=price
 this.router.navigate([], {
   queryParams: { category: 'shoes', page: 2 },
   queryParamsHandling: 'merge',
@@ -401,12 +400,12 @@ export class ProductList {
     effect(() => this.store.load({ category: this.category(), page: this.page() }));
   }
 }`,
-        },
-        { type: 'heading3', text: 'Service: objects and cross-component state' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// List → detail: pass only the id in the route; the store may already have the entity
+      },
+      { type: 'heading3', text: 'Service: objects and cross-component state' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// List → detail: pass only the id in the route; the store may already have the entity
 this.router.navigate(['/products', product.id]);
 
 export class ProductDetail {
@@ -414,54 +413,54 @@ export class ProductDetail {
   private store = inject(ProductStore);
   product = computed(() => this.store.byId(this.id())); // cached, or loaded on demand
 }`,
-        },
-        { type: 'heading3', text: 'Navigation state (history.state)' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// OK for transient UI hints that can be lost safely
+      },
+      { type: 'heading3', text: 'Navigation state (history.state)' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// OK for transient UI hints that can be lost safely
 this.router.navigate(['/checkout/success'], { state: { orderNo: 'A-1001' } });
 // ⚠️ Lost on refresh / deep link — always have a fallback`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '**Router — use for**: ids, search/filter/sort, pagination, active tab; anything bookmarkable, shareable, refresh-safe.',
-            '**Router — avoid for**: large objects, sensitive data (URLs are logged and visible), frequently changing values.',
-            '**Service — use for**: entities and caches, data shared by several components on screen, user session, wizard drafts.',
-            '**Service — avoid for**: the only copy of "which item is shown" — a refresh loses it unless persisted.',
-            'Combine both: URL holds the key, service holds the data.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Pitfall: passing a whole object via `history.state` or a service and having the detail page break on refresh or when opened in a new tab. Always be able to rebuild the page from the URL alone.',
-        },
-        { type: 'divider' },
-        { type: 'heading3', text: 'Follow-up: How to set query parameters?' },
-        {
-          type: 'paragraph',
-          text: "In the template use `[queryParams]` on a `routerLink`; in code use `router.navigate([path], { queryParams: {...} })` or `router.navigateByUrl` with a `UrlTree` from `router.createUrlTree`. Add `queryParamsHandling: 'merge'` to keep existing params, and read them with `ActivatedRoute.queryParamMap` or, with `withComponentInputBinding()`, directly as component inputs.",
-        },
-        {
-          type: 'paragraph',
-          text: 'Query parameters (`/products?category=shoes&page=2`) are optional, shareable state: filters, sorting, pagination, search terms. Unlike path params they do not change which route matches.',
-        },
-        { type: 'heading3', text: 'Setting them' },
-        {
-          type: 'code',
-          lang: 'html',
-          code: `<!-- Template: /products?category=shoes&page=1 -->
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**Router — use for**: ids, search/filter/sort, pagination, active tab; anything bookmarkable, shareable, refresh-safe.',
+          '**Router — avoid for**: large objects, sensitive data (URLs are logged and visible), frequently changing values.',
+          '**Service — use for**: entities and caches, data shared by several components on screen, user session, wizard drafts.',
+          '**Service — avoid for**: the only copy of "which item is shown" — a refresh loses it unless persisted.',
+          'Combine both: URL holds the key, service holds the data.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Pitfall: passing a whole object via `history.state` or a service and having the detail page break on refresh or when opened in a new tab. Always be able to rebuild the page from the URL alone.',
+      },
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: How to set query parameters?' },
+      {
+        type: 'paragraph',
+        text: "In the template use `[queryParams]` on a `routerLink`; in code use `router.navigate([path], { queryParams: {...} })` or `router.navigateByUrl` with a `UrlTree` from `router.createUrlTree`. Add `queryParamsHandling: 'merge'` to keep existing params, and read them with `ActivatedRoute.queryParamMap` or, with `withComponentInputBinding()`, directly as component inputs.",
+      },
+      {
+        type: 'paragraph',
+        text: 'Query parameters (`/products?category=shoes&page=2`) are optional, shareable state: filters, sorting, pagination, search terms. Unlike path params they do not change which route matches.',
+      },
+      { type: 'heading3', text: 'Setting them' },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<!-- Template: /products?category=shoes&page=1 -->
 <a routerLink="/products" [queryParams]="{ category: 'shoes', page: 1 }">Shoes</a>
 
 <!-- Keep current params and only change page -->
 <a [routerLink]="[]" [queryParams]="{ page: 2 }" queryParamsHandling="merge">Next</a>`,
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `private router = inject(Router);
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `private router = inject(Router);
 private route = inject(ActivatedRoute);
 
 applyFilter(category: string) {
@@ -477,12 +476,12 @@ clearCategory() {
   // null removes a param when merging
   this.router.navigate([], { queryParams: { category: null }, queryParamsHandling: 'merge' });
 }`,
-        },
-        { type: 'heading3', text: 'Reading them' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Option A: ActivatedRoute (reacts to changes on the same component instance)
+      },
+      { type: 'heading3', text: 'Reading them' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Option A: ActivatedRoute (reacts to changes on the same component instance)
 category$ = inject(ActivatedRoute).queryParamMap.pipe(map(p => p.get('category') ?? 'all'));
 
 // Option B: component input binding — provideRouter(routes, withComponentInputBinding())
@@ -490,38 +489,37 @@ export class ProductListComponent {
   category = input<string>();               // filled from ?category=...
   page = input(1, { transform: numberAttribute });
 }`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Query param values are always strings in the URL — convert numbers/booleans yourself.',
-            "`queryParamsHandling`: `'merge'` (combine), `'preserve'` (keep current, ignore new), default replaces them all.",
-            "Arrays: `{ tag: ['a', 'b'] }` → `?tag=a&tag=b`; read with `paramMap.getAll('tag')`.",
-            'Use `snapshot.queryParamMap` only if the component is recreated on every navigation; otherwise subscribe or use inputs.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: mention keeping filter state in query params so the page is bookmarkable and survives refresh — and `replaceUrl: true` so the back button is not flooded with every keystroke.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Query param values are always strings in the URL — convert numbers/booleans yourself.',
+          "`queryParamsHandling`: `'merge'` (combine), `'preserve'` (keep current, ignore new), default replaces them all.",
+          "Arrays: `{ tag: ['a', 'b'] }` → `?tag=a&tag=b`; read with `paramMap.getAll('tag')`.",
+          'Use `snapshot.queryParamMap` only if the component is recreated on every navigation; otherwise subscribe or use inputs.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: mention keeping filter state in query params so the page is bookmarkable and survives refresh — and `replaceUrl: true` so the back button is not flooded with every keystroke.',
+      },
+    ],
+  },
 
-  'You have a value that has to be shared across all components. How do you implement this cleanly in Angular?':
-    {
-      summary:
-        "Create a root-provided service (`@Injectable({ providedIn: 'root' })`) that owns the value in a private writable `signal` and exposes it read-only (`asReadonly()` / `computed`) plus intent-revealing methods to change it. Any component injects it with `inject()`. If the value is static configuration rather than state, use an `InjectionToken` instead.",
-      details: [
-        {
-          type: 'paragraph',
-          text: '"Clean" means: a single source of truth, encapsulated writes, read-only access for consumers, reactive updates everywhere, and no globals. A root service is a singleton for the whole app, so every component sees the same value.',
-        },
-        { type: 'heading3', text: 'Mutable shared state: signal service' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Injectable({ providedIn: 'root' })
+  'value-shared-across-all-components': {
+    summary:
+      "Create a root-provided service (`@Injectable({ providedIn: 'root' })`) that owns the value in a private writable `signal` and exposes it read-only (`asReadonly()` / `computed`) plus intent-revealing methods to change it. Any component injects it with `inject()`. If the value is static configuration rather than state, use an `InjectionToken` instead.",
+    details: [
+      {
+        type: 'paragraph',
+        text: '"Clean" means: a single source of truth, encapsulated writes, read-only access for consumers, reactive updates everywhere, and no globals. A root service is a singleton for the whole app, so every component sees the same value.',
+      },
+      { type: 'heading3', text: 'Mutable shared state: signal service' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Injectable({ providedIn: 'root' })
 export class CurrencyService {
   private readonly _currency = signal<'INR' | 'USD' | 'EUR'>(
     (localStorage.getItem('currency') as 'INR' | 'USD' | 'EUR') ?? 'INR',
@@ -543,12 +541,12 @@ export class PriceTag {
   currency = inject(CurrencyService).currency;
 }
 // template: {{ amount() | currency: currency() }}  — updates everywhere instantly`,
-        },
-        { type: 'heading3', text: 'Static value: InjectionToken' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export interface AppConfig { apiUrl: string; featureFlags: Record<string, boolean> }
+      },
+      { type: 'heading3', text: 'Static value: InjectionToken' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export interface AppConfig { apiUrl: string; featureFlags: Record<string, boolean> }
 export const APP_CONFIG = new InjectionToken<AppConfig>('APP_CONFIG');
 
 // app.config.ts
@@ -556,39 +554,38 @@ providers: [{ provide: APP_CONFIG, useValue: { apiUrl: '/api', featureFlags: { b
 
 // consumer
 private config = inject(APP_CONFIG);`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Keep the writable signal/subject **private**; expose read-only views. Otherwise any component can set it and debugging becomes hard.',
-            'RxJS alternative: private `BehaviorSubject`, public `asObservable()` — same encapsulation idea.',
-            'Avoid: global variables, `window` properties, static class fields, or putting the value in `AppComponent` and passing it down through every input.',
-            "Avoid re-providing the service in a component's `providers` by accident — that creates a separate instance for that subtree.",
-            'For SSR, guard `localStorage` access (`isPlatformBrowser`) or use an abstraction.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: explicitly mention the **private writable / public read-only** pattern and the difference between state (service with signal) and configuration (InjectionToken). That is what "cleanly" is testing.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Keep the writable signal/subject **private**; expose read-only views. Otherwise any component can set it and debugging becomes hard.',
+          'RxJS alternative: private `BehaviorSubject`, public `asObservable()` — same encapsulation idea.',
+          'Avoid: global variables, `window` properties, static class fields, or putting the value in `AppComponent` and passing it down through every input.',
+          "Avoid re-providing the service in a component's `providers` by accident — that creates a separate instance for that subtree.",
+          'For SSR, guard `localStorage` access (`isPlatformBrowser`) or use an abstraction.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: explicitly mention the **private writable / public read-only** pattern and the difference between state (service with signal) and configuration (InjectionToken). That is what "cleanly" is testing.',
+      },
+    ],
+  },
 
-  'Write the TypeScript syntax and code to implement a shared state service (`using BehaviorSubject or Signals`) across all components.':
-    {
-      summary:
-        'A root-provided service holding state in a private `BehaviorSubject` (exposed with `asObservable()`) or a private `signal` (exposed with `asReadonly()`/`computed()`), with methods that update state immutably. Components inject it and read via the `async` pipe or by calling the signal.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Below is the same todo-style shared state written both ways, then a component that uses it. Both versions follow the same rules: one private writable source, read-only public API, immutable updates, derived values computed from state.',
-        },
-        { type: 'heading3', text: 'Version 1: Signals (recommended for new code)' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `import { Injectable, computed, signal } from '@angular/core';
+  'shared-state-service-with-behaviorsubject': {
+    summary:
+      'A root-provided service holding state in a private `BehaviorSubject` (exposed with `asObservable()`) or a private `signal` (exposed with `asReadonly()`/`computed()`), with methods that update state immutably. Components inject it and read via the `async` pipe or by calling the signal.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Below is the same todo-style shared state written both ways, then a component that uses it. Both versions follow the same rules: one private writable source, read-only public API, immutable updates, derived values computed from state.',
+      },
+      { type: 'heading3', text: 'Version 1: Signals (recommended for new code)' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `import { Injectable, computed, signal } from '@angular/core';
 
 export interface Task { id: number; title: string; done: boolean }
 interface TaskState { tasks: Task[]; filter: 'all' | 'open' | 'done' }
@@ -620,12 +617,12 @@ export class TaskStore {
     this.state.update((s) => ({ ...s, filter }));
   }
 }`,
-        },
-        { type: 'heading3', text: 'Version 2: BehaviorSubject' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `import { Injectable } from '@angular/core';
+      },
+      { type: 'heading3', text: 'Version 2: BehaviorSubject' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `import { Injectable } from '@angular/core';
 import { BehaviorSubject, map, distinctUntilChanged } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
@@ -646,12 +643,12 @@ export class TaskStoreRx {
     this.state$.next({ ...s, tasks: s.tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)) });
   }
 }`,
-        },
-        { type: 'heading3', text: 'Consuming it from any component' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+      },
+      { type: 'heading3', text: 'Consuming it from any component' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-task-list',
   imports: [AsyncPipe],
   template: \`
@@ -673,25 +670,25 @@ export class TaskList {
 // Another, unrelated component sees the same state:
 @Component({ selector: 'app-header', template: '<span class="badge">{{ store.remaining() }}</span>' })
 export class Header { protected store = inject(TaskStore); }`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '**Signals**: synchronous, no subscriptions, fine-grained change detection (works great zoneless/OnPush), `computed` is memoised.',
-            '**BehaviorSubject**: always has a current value, replays it to late subscribers; best when you need RxJS operators (debounce, switchMap, websockets).',
-            'Interop: `toSignal(obs$)` and `toObservable(signal)` from `@angular/core/rxjs-interop`.',
-            'Immutable updates matter: mutating the array in place (`tasks.push`) would not notify signal consumers because the reference is unchanged.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Pitfall: exposing the `BehaviorSubject` or `WritableSignal` publicly. Any component can then call `.next()`/`.set()` and you lose the single place where state changes — the whole point of the service.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**Signals**: synchronous, no subscriptions, fine-grained change detection (works great zoneless/OnPush), `computed` is memoised.',
+          '**BehaviorSubject**: always has a current value, replays it to late subscribers; best when you need RxJS operators (debounce, switchMap, websockets).',
+          'Interop: `toSignal(obs$)` and `toObservable(signal)` from `@angular/core/rxjs-interop`.',
+          'Immutable updates matter: mutating the array in place (`tasks.push`) would not notify signal consumers because the reference is unchanged.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Pitfall: exposing the `BehaviorSubject` or `WritableSignal` publicly. Any component can then call `.next()`/`.set()` and you lose the single place where state changes — the whole point of the service.',
+      },
+    ],
+  },
 
-  'If admin updates data and changes need to reflect in multiple components simultaneously, how?': {
+  'admin-update-reflected-everywhere-at-once': {
     summary:
       'Route all reads through a single shared store (signal service, BehaviorSubject service or NgRx). When the admin saves, the store updates its state (optimistically or from the API response), and every component bound to that state re-renders automatically. If other users/tabs must see it too, push the change from the server via WebSocket/SSE (or BroadcastChannel across tabs) into the same store.',
     details: [

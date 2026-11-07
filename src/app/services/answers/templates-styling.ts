@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'If I want to change CSS dynamically, how?': {
+  'changing-css-dynamically': {
     summary:
       'Bind classes or styles from the template: `[class.active]="isActive"`, `[class]="{...}"`, `[style.width.px]="w"`, `[style]="{...}"`, or `ngClass`/`ngStyle`. Prefer toggling classes over inline styles, use CSS custom properties for themeable values, and `host` bindings to style the component\'s own element. `Renderer2` is for imperative cases.',
     details: [
@@ -127,7 +127,7 @@ document.documentElement.setAttribute('data-theme', 'dark'); // CSS: [data-theme
     ],
   },
 
-  'What is ViewEncapsulation?': {
+  viewencapsulation: {
     summary:
       "ViewEncapsulation controls whether a component's styles stay scoped to that component. `Emulated` (default) rewrites the CSS with unique attributes so styles only match this component's template; `ShadowDom` uses the browser's native Shadow DOM; `None` makes the styles global. It is set per component with `encapsulation: ViewEncapsulation.X`.",
     details: [
@@ -341,27 +341,26 @@ app-article-body img { max-width: 100%; }`,
     ],
   },
 
-  'How can you apply global styles or pass specific parent component styles down to child components in Angular (`:host-context()`, CSS variables)?':
-    {
-      summary:
-        'Global styles go in `styles.css`/`styles.scss` (listed in `angular.json`) and apply everywhere. To influence a child from a parent, the cleanest tool is CSS custom properties — they inherit through encapsulation boundaries, so the parent sets `--x` and the child uses `var(--x)`. `:host-context(.theme-dark)` lets a child style itself based on an ancestor class; `::ng-deep` forces styles into children but is deprecated, so use it only as a last resort.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Emulated encapsulation blocks a parent\'s selectors from matching a child\'s internal elements. But inheritance still works: inherited properties (color, font) and CSS variables flow down the DOM tree regardless of `_ngcontent` attributes. That makes variables the "public styling API" of a component.',
-        },
-        { type: 'heading3', text: '1. Global stylesheet' },
-        {
-          type: 'code',
-          lang: 'json',
-          code: `// angular.json → projects.app.architect.build.options
+  'passing-styles-down-to-child-components': {
+    summary:
+      'Global styles go in `styles.css`/`styles.scss` (listed in `angular.json`) and apply everywhere. To influence a child from a parent, the cleanest tool is CSS custom properties — they inherit through encapsulation boundaries, so the parent sets `--x` and the child uses `var(--x)`. `:host-context(.theme-dark)` lets a child style itself based on an ancestor class; `::ng-deep` forces styles into children but is deprecated, so use it only as a last resort.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Emulated encapsulation blocks a parent\'s selectors from matching a child\'s internal elements. But inheritance still works: inherited properties (color, font) and CSS variables flow down the DOM tree regardless of `_ngcontent` attributes. That makes variables the "public styling API" of a component.',
+      },
+      { type: 'heading3', text: '1. Global stylesheet' },
+      {
+        type: 'code',
+        lang: 'json',
+        code: `// angular.json → projects.app.architect.build.options
 "styles": ["src/styles.scss", "node_modules/some-lib/theme.css"]`,
-        },
-        { type: 'heading3', text: '2. CSS variables — the recommended way' },
-        {
-          type: 'code',
-          lang: 'scss',
-          code: `/* child: button.component.scss — exposes knobs with defaults */
+      },
+      { type: 'heading3', text: '2. CSS variables — the recommended way' },
+      {
+        type: 'code',
+        lang: 'scss',
+        code: `/* child: button.component.scss — exposes knobs with defaults */
 :host { display: inline-block; }
 button {
   background: var(--btn-bg, #2563eb);
@@ -374,12 +373,12 @@ button {
   --btn-bg: #dc2626;
   --btn-radius: 0;
 }`,
-        },
-        { type: 'heading3', text: '3. :host-context() — react to an ancestor' },
-        {
-          type: 'code',
-          lang: 'scss',
-          code: `/* card.component.scss */
+      },
+      { type: 'heading3', text: '3. :host-context() — react to an ancestor' },
+      {
+        type: 'code',
+        lang: 'scss',
+        code: `/* card.component.scss */
 :host { background: white; color: #111; }
 
 /* If ANY ancestor (e.g. <body> or a wrapper) has .theme-dark */
@@ -387,55 +386,54 @@ button {
 
 /* Compiles to something like:
    .theme-dark[_nghost-ng-c1], .theme-dark [_nghost-ng-c1] { ... } */`,
-        },
-        { type: 'heading3', text: '4. ::ng-deep (last resort)' },
-        {
-          type: 'code',
-          lang: 'scss',
-          code: `/* parent.component.scss — reaches into a third-party child */
+      },
+      { type: 'heading3', text: '4. ::ng-deep (last resort)' },
+      {
+        type: 'code',
+        lang: 'scss',
+        code: `/* parent.component.scss — reaches into a third-party child */
 :host ::ng-deep .mat-mdc-form-field-subscript-wrapper { display: none; }
 /* Always prefix with :host so it doesn't become a global rule */`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'CSS variables: keep encapsulation, work with ShadowDom too, can be changed at runtime with `[style.--btn-bg]`.',
-            '`:host-context()` is good for theme/RTL classes on `<body>` or `<html>`; note it is not supported for native Shadow DOM in all browsers, but works fine with Emulated.',
-            '`::ng-deep` is deprecated (no removal date announced) because it breaks encapsulation — prefer variables or library theming APIs.',
-            'Inherited properties like `font-family` and `color` already flow from parent to child without any special syntax.',
-          ],
-        },
-        {
-          type: 'flow',
-          title: 'Choosing a technique',
-          code: `flowchart TD
+      },
+      {
+        type: 'bullets',
+        items: [
+          'CSS variables: keep encapsulation, work with ShadowDom too, can be changed at runtime with `[style.--btn-bg]`.',
+          '`:host-context()` is good for theme/RTL classes on `<body>` or `<html>`; note it is not supported for native Shadow DOM in all browsers, but works fine with Emulated.',
+          '`::ng-deep` is deprecated (no removal date announced) because it breaks encapsulation — prefer variables or library theming APIs.',
+          'Inherited properties like `font-family` and `color` already flow from parent to child without any special syntax.',
+        ],
+      },
+      {
+        type: 'flow',
+        title: 'Choosing a technique',
+        code: `flowchart TD
   Q{What do you need?} -->|"App-wide base styles"| G["styles.scss"]:::server
   Q -->|"Parent customizes child"| V["CSS custom properties"]:::highlight
   Q -->|"Child reacts to ancestor class"| H[":host-context()"]:::server
   Q -->|"Override 3rd-party internals"| D[":host ::ng-deep"]:::security`,
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: say "I design components with CSS variables as their styling API" — that is the modern answer, and it also explains how Angular Material\'s token-based theming works.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: say "I design components with CSS variables as their styling API" — that is the modern answer, and it also explains how Angular Material\'s token-based theming works.',
+      },
+    ],
+  },
 
-  'How can you dynamically apply different styles or themes to the same CSS class across multiple component instances in Angular?':
-    {
-      summary:
-        'Keep one CSS class whose rules read CSS custom properties, and give each instance different variable values — via an input bound to `[style.--var]` on the host, a modifier class/attribute on the host, or an ancestor theme class. The CSS is shared; only the variables differ per instance, so no duplicated stylesheets or inline style soup.',
-      details: [
-        {
-          type: 'paragraph',
-          text: "A component's styles are compiled once per component type, not per instance. To make instance #1 blue and instance #2 green, you vary data, not CSS: the class reads `var(--accent)`, and each instance supplies its own `--accent`.",
-        },
-        { type: 'heading3', text: 'Per-instance theme via input + host binding' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+  'theming-the-same-class-per-instance': {
+    summary:
+      'Keep one CSS class whose rules read CSS custom properties, and give each instance different variable values — via an input bound to `[style.--var]` on the host, a modifier class/attribute on the host, or an ancestor theme class. The CSS is shared; only the variables differ per instance, so no duplicated stylesheets or inline style soup.',
+    details: [
+      {
+        type: 'paragraph',
+        text: "A component's styles are compiled once per component type, not per instance. To make instance #1 blue and instance #2 green, you vary data, not CSS: the class reads `var(--accent)`, and each instance supplies its own `--accent`.",
+      },
+      { type: 'heading3', text: 'Per-instance theme via input + host binding' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-tile',
   template: \`<div class="tile"><ng-content /></div>\`,
   styles: \`
@@ -460,21 +458,21 @@ export class TileComponent {
 // <app-tile accent="#16a34a">Revenue</app-tile>
 // <app-tile accent="#dc2626" background="#fef2f2">Errors</app-tile>
 // Same .tile class, different look per instance.`,
-        },
-        { type: 'heading3', text: 'Named variants via host attribute/class' },
-        {
-          type: 'code',
-          lang: 'scss',
-          code: `:host([data-variant='compact']) { --tile-pad: 0.25rem; }
+      },
+      { type: 'heading3', text: 'Named variants via host attribute/class' },
+      {
+        type: 'code',
+        lang: 'scss',
+        code: `:host([data-variant='compact']) { --tile-pad: 0.25rem; }
 :host(.danger) { --tile-accent: #dc2626; }
 
 /* <app-tile variant="compact" class="danger">…</app-tile> */`,
-        },
-        { type: 'heading3', text: 'App-wide theme switching' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// styles.scss
+      },
+      { type: 'heading3', text: 'App-wide theme switching' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// styles.scss
 // :root            { --surface: #fff;    --text: #111; }
 // [data-theme=dark] { --surface: #111827; --text: #f9fafb; }
 
@@ -487,21 +485,21 @@ export class ThemeService {
   }
 }
 // Every component using var(--surface) updates instantly — no re-render needed.`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'CSS variables cascade, so a wrapper can theme a whole subtree: `<section style="--tile-accent: purple">`.',
-            'Changing a variable is a pure CSS update — very cheap compared to swapping classes on many elements.',
-            'For a small fixed set of themes, modifier classes (`.tile--warning`) are fine; for arbitrary values (user-chosen brand colors) use variables.',
-            'Avoid `ViewEncapsulation.None` + per-instance generated CSS — it leaks and grows.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: point out that styles are per component type, not per instance — so per-instance theming must come from bindings (variables/classes), which is exactly why CSS custom properties are the right tool.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          'CSS variables cascade, so a wrapper can theme a whole subtree: `<section style="--tile-accent: purple">`.',
+          'Changing a variable is a pure CSS update — very cheap compared to swapping classes on many elements.',
+          'For a small fixed set of themes, modifier classes (`.tile--warning`) are fine; for arbitrary values (user-chosen brand colors) use variables.',
+          'Avoid `ViewEncapsulation.None` + per-instance generated CSS — it leaks and grows.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: point out that styles are per component type, not per instance — so per-instance theming must come from bindings (variables/classes), which is exactly why CSS custom properties are the right tool.',
+      },
+    ],
+  },
 };

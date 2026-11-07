@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What is the CAP theorem, and what does PACELC add?': {
+  'cap-theorem-and-pacelc': {
     summary:
       'CAP says that when a network partition happens, a replicated system must choose between **consistency** (every read sees the latest write, i.e. linearizability) and **availability** (every non-failed node still answers). Partitions are not optional, so the real choice is CP or AP during a partition. PACELC adds the part that matters day to day: **else**, when there is no partition, you still trade **latency** against **consistency**, because waiting for replicas to agree costs round trips.',
     details: [
@@ -67,31 +67,30 @@ const stock = await ddb.send(
     ],
   },
 
-  'Strong vs eventual consistency: how do you design a feature that has to live with eventual consistency?':
-    {
-      summary:
-        'Strong consistency means every read reflects the latest committed write; eventual consistency means replicas or downstream views converge if writes stop, but a read may be stale for a while. To design for it, make the lag explicit in the product (pending states, optimistic UI), keep invariants that must never break inside one consistent boundary, make updates idempotent and order-tolerant, and add reconciliation for when events go missing.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Eventual consistency appears the moment you have read replicas, caches, search indexes or event-driven services. Take order placement: the Orders service commits the order and publishes `OrderPlaced`; Payments charges the card; Inventory reserves stock; Notifications sends an email; a search/read model updates the "My orders" page. For a few hundred milliseconds (or minutes during an incident) these views disagree. The design question is how the product and the code behave in that window.',
-        },
-        { type: 'heading3', text: 'Design techniques' },
-        {
-          type: 'numbered',
-          items: [
-            '**Keep hard invariants in one place.** "Never sell more than we have" lives in the Inventory service with a conditional update or DB constraint, not spread across services that each hold a copy.',
-            '**Model the in-between states.** An order is `PENDING` → `CONFIRMED` or `REJECTED`, not instantly "done". The UI shows "Processing your order" instead of pretending it is final.',
-            '**Read your own writes where users notice.** After a user edits their profile, read from the primary for that user for a few seconds, or return the new state in the write response and update the UI optimistically.',
-            '**Make consumers idempotent and order-tolerant.** Use event IDs for dedup and a version number so an older event cannot overwrite newer state.',
-            '**Reconcile.** A periodic job compares sources of truth (orders vs payments) and repairs or alerts on drift, because some event will eventually be lost or mishandled.',
-            '**Expose staleness.** Measure lag (replica lag, consumer lag) and alert on it; it is a key SLO for eventually consistent features.',
-          ],
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Read model update that tolerates duplicates and out-of-order delivery
+  'designing-for-eventual-consistency': {
+    summary:
+      'Strong consistency means every read reflects the latest committed write; eventual consistency means replicas or downstream views converge if writes stop, but a read may be stale for a while. To design for it, make the lag explicit in the product (pending states, optimistic UI), keep invariants that must never break inside one consistent boundary, make updates idempotent and order-tolerant, and add reconciliation for when events go missing.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Eventual consistency appears the moment you have read replicas, caches, search indexes or event-driven services. Take order placement: the Orders service commits the order and publishes `OrderPlaced`; Payments charges the card; Inventory reserves stock; Notifications sends an email; a search/read model updates the "My orders" page. For a few hundred milliseconds (or minutes during an incident) these views disagree. The design question is how the product and the code behave in that window.',
+      },
+      { type: 'heading3', text: 'Design techniques' },
+      {
+        type: 'numbered',
+        items: [
+          '**Keep hard invariants in one place.** "Never sell more than we have" lives in the Inventory service with a conditional update or DB constraint, not spread across services that each hold a copy.',
+          '**Model the in-between states.** An order is `PENDING` → `CONFIRMED` or `REJECTED`, not instantly "done". The UI shows "Processing your order" instead of pretending it is final.',
+          '**Read your own writes where users notice.** After a user edits their profile, read from the primary for that user for a few seconds, or return the new state in the write response and update the UI optimistically.',
+          '**Make consumers idempotent and order-tolerant.** Use event IDs for dedup and a version number so an older event cannot overwrite newer state.',
+          '**Reconcile.** A periodic job compares sources of truth (orders vs payments) and repairs or alerts on drift, because some event will eventually be lost or mishandled.',
+          '**Expose staleness.** Measure lag (replica lag, consumer lag) and alert on it; it is a key SLO for eventually consistent features.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Read model update that tolerates duplicates and out-of-order delivery
 async function onOrderStatusChanged(evt: { orderId: string; status: string; version: number }) {
   // Only apply if this event is newer than what we already have
   const res = await db.query(
@@ -109,39 +108,39 @@ async function onOrderStatusChanged(evt: { orderId: string; status: string; vers
     );
   }
 }`,
-        },
-        { type: 'heading3', text: 'Choosing per feature' },
-        {
-          type: 'bullets',
-          items: [
-            '**Needs strong consistency:** balances, stock reservation, uniqueness (usernames, seat booking), anything where a stale read causes money loss or a broken invariant.',
-            '**Fine with eventual consistency:** search results, analytics, counters ("1.2k likes"), recommendations, notification fan-out, audit/read models.',
-            'Ask the business: "what is the cost if this is 5 seconds stale?" If the answer is "a confused user", design the UX; if it is "we lose money", keep it strongly consistent.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Common mistake: redirecting the user to a page that reads from a replica or search index right after a write. They see the old data and click "submit" again. Return the written state, read from the primary, or show a pending state.',
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: a strong answer is product-aware. Mention pending states and optimistic UI, read-your-writes for the acting user, versioned idempotent consumers, and a reconciliation job. Cross-service workflows themselves (Saga with compensations) are covered under Microservices.',
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'How would you implement read-your-writes with read replicas behind a load balancer?',
-            'How do you detect and repair drift between two services?',
-            'What consistency guarantees does your cache give, and how do you invalidate it?',
-          ],
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'Choosing per feature' },
+      {
+        type: 'bullets',
+        items: [
+          '**Needs strong consistency:** balances, stock reservation, uniqueness (usernames, seat booking), anything where a stale read causes money loss or a broken invariant.',
+          '**Fine with eventual consistency:** search results, analytics, counters ("1.2k likes"), recommendations, notification fan-out, audit/read models.',
+          'Ask the business: "what is the cost if this is 5 seconds stale?" If the answer is "a confused user", design the UX; if it is "we lose money", keep it strongly consistent.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common mistake: redirecting the user to a page that reads from a replica or search index right after a write. They see the old data and click "submit" again. Return the written state, read from the primary, or show a pending state.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: a strong answer is product-aware. Mention pending states and optimistic UI, read-your-writes for the acting user, versioned idempotent consumers, and a reconciliation job. Cross-service workflows themselves (Saga with compensations) are covered under Microservices.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'How would you implement read-your-writes with read replicas behind a load balancer?',
+          'How do you detect and repair drift between two services?',
+          'What consistency guarantees does your cache give, and how do you invalidate it?',
+        ],
+      },
+    ],
+  },
 
-  'What is the transactional outbox pattern, and what problem does it solve?': {
+  'transactional-outbox-pattern': {
     summary:
       'It solves the **dual-write problem**: you cannot atomically commit a database change and publish a message to a broker, so a crash between the two leaves them inconsistent. With an outbox, the service writes the business row and an event row into an `outbox` table in the **same local transaction**; a separate relay then reads the outbox and publishes to the broker, marking rows as sent. This gives at-least-once publishing, so consumers must be idempotent.',
     details: [
@@ -247,7 +246,7 @@ async function placeOrder(input: PlaceOrderInput) {
     ],
   },
 
-  'Why is exactly-once delivery a myth, and how do you build idempotent consumers?': {
+  'exactly-once-myth-idempotent-consumers': {
     summary:
       'Over an unreliable network a sender cannot distinguish "the message was lost" from "the acknowledgement was lost", so it must either retry (risking duplicates, at-least-once) or not (risking loss, at-most-once). What you can build is **exactly-once processing effects**: at-least-once delivery plus an idempotent consumer that records which message IDs it has handled in the same transaction as its side effect. Kafka\'s "exactly-once semantics" is real but scoped to Kafka-to-Kafka read-process-write with transactions.',
     details: [
@@ -323,7 +322,7 @@ async function handlePaymentCaptured(msg: { eventId: string; orderId: string; am
     ],
   },
 
-  'How do you preserve message ordering in a queue or stream (Kafka partitions, SQS FIFO)?': {
+  'preserve-message-ordering': {
     summary:
       'Global ordering does not scale, so you order only what needs ordering: per entity. In Kafka, ordering is guaranteed **within a partition**, so you key messages by the entity ID (e.g. `orderId`) and all events for that order land in the same partition and are consumed by one consumer in sequence. In SQS FIFO, ordering is per **message group ID**. You must also keep ordering on the producer side (no parallel unordered sends) and the consumer side (no concurrent processing of the same key).',
     details: [
@@ -416,7 +415,7 @@ await sqs.send(
     ],
   },
 
-  'What is a dead-letter queue, and how do you handle poison messages?': {
+  'dead-letter-queues-and-poison-messages': {
     summary:
       'A **poison message** is one that fails every time it is processed (bad schema, a bug, missing reference data), so retrying it forever blocks the queue or burns capacity. A **dead-letter queue (DLQ)** is where such messages go after a bounded number of attempts, so healthy traffic keeps flowing. The real work is around it: classify errors as transient or permanent, alert on DLQ depth, keep enough context to debug, and have a safe redrive process once the fix ships.',
     details: [
@@ -505,7 +504,7 @@ async function eachMessage({ topic, partition, message }: EachMessagePayload) {
     ],
   },
 
-  'How do retries, timeouts and backoff interact, and how do you avoid retry storms?': {
+  'retries-timeouts-and-retry-storms': {
     summary:
       'Every remote call needs a **timeout**, retries should be limited to transient failures on **idempotent** operations, and spaced with **exponential backoff plus jitter** so clients do not retry in lockstep. Retry storms happen when every layer retries and a struggling dependency suddenly receives several times its normal load; you prevent them with a single retrying layer, a retry budget, deadline propagation, honouring `Retry-After`, and a circuit breaker.',
     details: [
@@ -597,7 +596,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));`,
     ],
   },
 
-  'What is the difference between Kafka and a traditional message queue such as RabbitMQ or SQS?': {
+  'kafka-vs-rabbitmq-or-sqs': {
     summary:
       'Kafka is a **distributed, partitioned log**: messages are appended and retained for a configured time regardless of consumption, and each consumer group tracks its own offset, so many independent consumers can read and **replay** the same data. RabbitMQ and SQS are **queues**: a message is delivered to one consumer and removed once acknowledged, with richer per-message features (routing, priorities, delays, per-message retry). Use Kafka for event streams, fan-out to many consumers and replay; use a queue for task distribution and work that is consumed once.',
     details: [
@@ -667,7 +666,7 @@ for (const m of Messages) {
     ],
   },
 
-  'How do you do leader election or distributed locking safely, and what can go wrong?': {
+  'leader-election-and-distributed-locks': {
     summary:
       'Use a system built for coordination (etcd, ZooKeeper, Consul, Kubernetes Lease objects, or a database lock) and always hold the lock as a **lease with a TTL**, so a crashed holder does not block forever. The hard part is that a lease can expire while the holder is still running (GC pause, network delay, clock jump), so two nodes believe they are leader. The safe fix is a **fencing token**: a monotonically increasing number issued with each lease that the protected resource checks, rejecting writes from older tokens.',
     details: [
@@ -759,7 +758,7 @@ if (res.rowCount === 0) throw new Error('stale lock holder, aborting');`,
     ],
   },
 
-  'How do you trace a single request across several services?': {
+  'trace-a-request-across-services': {
     summary:
       'Assign a **trace ID** at the edge and propagate it with every hop, using the W3C `traceparent` header for HTTP and message headers for queues; each service creates **spans** for its work under that trace and exports them to a backend (Jaeger, Tempo, Datadog, X-Ray). In Node.js, the OpenTelemetry SDK with auto-instrumentation handles HTTP, Express, Postgres and many clients, and `AsyncLocalStorage` carries the context through async code. Put the trace ID in every log line so logs and traces join up.',
     details: [

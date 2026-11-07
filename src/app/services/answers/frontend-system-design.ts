@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'How do you approach a frontend system design interview?': {
+  'approaching-frontend-system-design': {
     summary:
       'I use a repeatable structure so I never jump straight into code: clarify Requirements, sketch the component Architecture, define the Data model and client state, agree the Interface/API contract with the server, then spend the remaining time on Optimizations — performance, accessibility, offline, i18n and edge cases. I time-box each step, state my assumptions out loud, and keep checking with the interviewer which area they want me to go deep on.',
     details: [
@@ -88,7 +88,7 @@ interface ApiError {
     ],
   },
 
-  'How would you design an autocomplete (type-ahead) search component?': {
+  'design-an-autocomplete-component': {
     summary:
       'I build it as a reusable combobox: an input that emits debounced queries, a data source that fetches suggestions with cancellation of stale requests, an in-memory cache keyed by query, and an accessible listbox popup following the ARIA combobox pattern with full keyboard support. The key concerns are request efficiency (debounce, distinct, switchMap, caching), race conditions, and accessibility — not just the dropdown styling.',
     details: [
@@ -227,7 +227,7 @@ export class AutocompleteComponent {
     ],
   },
 
-  'How would you design an infinite-scrolling news feed?': {
+  'design-an-infinite-scrolling-feed': {
     summary:
       'A feed is a paginated, append-only list: I fetch pages with cursor-based pagination, trigger the next page with an IntersectionObserver sentinel near the bottom, store posts in a normalized client cache, and render with virtualization once the list gets long. I add optimistic interactions (like, comment), a "new posts" banner instead of jumping content, and make sure keyboard and screen-reader users can still reach the footer and navigate posts.',
     details: [
@@ -367,24 +367,23 @@ export class FeedStore {
     ],
   },
 
-  'How would you design a reusable component library or design system shared by several Angular apps?':
-    {
-      summary:
-        'I separate the design system into layers: design tokens (colors, spacing, typography as CSS custom properties), unstyled or lightly styled accessible primitives, and composed components with a small, stable public API. It ships as a versioned library (or a workspace library in a monorepo) with Storybook-style docs, visual and a11y tests, semantic versioning and a deprecation policy — so apps can theme it and upgrade safely without forking.',
-      details: [
-        { type: 'heading3', text: '1. Requirements' },
-        {
-          type: 'bullets',
-          items: [
-            '**Consumers**: how many apps, same Angular version or not, same repo or separate repos? Do non-Angular apps need the tokens too?',
-            '**Functional**: core set (button, input, select, dialog, tabs, table, toast), theming (brands, dark mode), density, RTL, i18n of built-in strings.',
-            '**Non-functional**: WCAG AA built in, tree-shakable (apps pay only for what they import), stable APIs, documented, versioned, fast to adopt.',
-          ],
-        },
-        {
-          type: 'flow',
-          title: 'Design system layers and consumers',
-          code: `flowchart TD
+  'design-a-shared-component-library': {
+    summary:
+      'I separate the design system into layers: design tokens (colors, spacing, typography as CSS custom properties), unstyled or lightly styled accessible primitives, and composed components with a small, stable public API. It ships as a versioned library (or a workspace library in a monorepo) with Storybook-style docs, visual and a11y tests, semantic versioning and a deprecation policy — so apps can theme it and upgrade safely without forking.',
+    details: [
+      { type: 'heading3', text: '1. Requirements' },
+      {
+        type: 'bullets',
+        items: [
+          '**Consumers**: how many apps, same Angular version or not, same repo or separate repos? Do non-Angular apps need the tokens too?',
+          '**Functional**: core set (button, input, select, dialog, tabs, table, toast), theming (brands, dark mode), density, RTL, i18n of built-in strings.',
+          '**Non-functional**: WCAG AA built in, tree-shakable (apps pay only for what they import), stable APIs, documented, versioned, fast to adopt.',
+        ],
+      },
+      {
+        type: 'flow',
+        title: 'Design system layers and consumers',
+        code: `flowchart TD
   FIG["Design tool<br/>source of truth"]:::external --> TK["Design tokens<br/>JSON to CSS vars"]:::highlight
   TK --> PR["Primitives<br/>a11y behaviour, focus, overlay"]:::client
   PR --> CMP["Components<br/>button, dialog, table"]:::client
@@ -393,12 +392,12 @@ export class FeedStore {
   PKG --> A1["App A"]:::client
   PKG --> A2["App B"]:::client
   TK --> NA["Non-Angular apps<br/>tokens only"]:::external`,
-        },
-        { type: 'heading3', text: '2. Tokens and theming' },
-        {
-          type: 'code',
-          lang: 'scss',
-          code: `/* tokens.css — generated from a tokens JSON file */
+      },
+      { type: 'heading3', text: '2. Tokens and theming' },
+      {
+        type: 'code',
+        lang: 'scss',
+        code: `/* tokens.css — generated from a tokens JSON file */
 :root {
   --ds-color-primary: #0e7490;
   --ds-color-on-primary: #ffffff;
@@ -411,12 +410,12 @@ export class FeedStore {
   --ds-color-on-primary: #082f49;
 }
 /* components only read semantic tokens, never raw hex values */`,
-        },
-        { type: 'heading3', text: '3. Component API design' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
+      },
+      { type: 'heading3', text: '3. Component API design' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
 
 @Component({
   selector: 'button[dsButton], a[dsButton]',   // extend native elements → free a11y
@@ -438,53 +437,53 @@ export class DsButton {
 }
 
 // Usage: <button dsButton variant="danger" (click)="delete()">Delete</button>`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Prefer attribute selectors on native elements (`button[dsButton]`) over wrapping — keeps native semantics, forms, and events.',
-            'Small surface: signal `input()`/`output()`/`model()` with union types; content projection and `ng-template` slots for flexibility instead of dozens of config inputs.',
-            'Form controls implement `ControlValueAccessor` so they work with Reactive Forms (and evaluate Signal Forms support as it matures).',
-            'Secondary entry points per component (`@acme/ds/button`) so imports are tree-shakable and the build stays fast.',
-          ],
-        },
-        { type: 'heading3', text: '4. Distribution and versioning' },
-        {
-          type: 'bullets',
-          items: [
-            '**Same monorepo**: consume as a workspace library — every app always uses the latest, breaking changes are fixed in the same PR.',
-            '**Many repos**: publish to a private npm registry with semver; changelog generated from conventional commits; deprecate for at least one major before removal; ship codemods/schematics for migrations where possible.',
-            'Pin a supported Angular version range in `peerDependencies` and upgrade the library first in each Angular major.',
-          ],
-        },
-        { type: 'heading3', text: '6–7. Quality, performance and accessibility' },
-        {
-          type: 'bullets',
-          items: [
-            "Every component has docs with live examples, do/don't guidance, and an a11y section (keyboard map, ARIA used).",
-            'Automated tests: unit tests, visual regression snapshots, and axe-based a11y checks in CI.',
-            'Reuse proven behaviour (CDK overlay, focus trap, a11y utilities, virtual scrolling) instead of hand-rolling it.',
-            'No global CSS leaks: component styles are encapsulated; only tokens and an optional reset are global.',
-          ],
-        },
-        { type: 'heading3', text: '8. Trade-offs and governance' },
-        {
-          type: 'bullets',
-          items: [
-            'Flexible vs consistent: too rigid and teams fork it; too flexible and the UI drifts. Expose slots and tokens, not arbitrary style inputs.',
-            'A small core team owns it, with a contribution model (RFC → review → release) so product teams can add components.',
-            'Track adoption (which apps use which version) and measure success by fewer custom components and faster feature delivery.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: talk about the library as a product — tokens, accessible primitives, stable API, docs, versioning and governance. Showing a `button[dsButton]` attribute selector and explaining why it preserves native semantics is a strong, concrete detail.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Prefer attribute selectors on native elements (`button[dsButton]`) over wrapping — keeps native semantics, forms, and events.',
+          'Small surface: signal `input()`/`output()`/`model()` with union types; content projection and `ng-template` slots for flexibility instead of dozens of config inputs.',
+          'Form controls implement `ControlValueAccessor` so they work with Reactive Forms (and evaluate Signal Forms support as it matures).',
+          'Secondary entry points per component (`@acme/ds/button`) so imports are tree-shakable and the build stays fast.',
+        ],
+      },
+      { type: 'heading3', text: '4. Distribution and versioning' },
+      {
+        type: 'bullets',
+        items: [
+          '**Same monorepo**: consume as a workspace library — every app always uses the latest, breaking changes are fixed in the same PR.',
+          '**Many repos**: publish to a private npm registry with semver; changelog generated from conventional commits; deprecate for at least one major before removal; ship codemods/schematics for migrations where possible.',
+          'Pin a supported Angular version range in `peerDependencies` and upgrade the library first in each Angular major.',
+        ],
+      },
+      { type: 'heading3', text: '6–7. Quality, performance and accessibility' },
+      {
+        type: 'bullets',
+        items: [
+          "Every component has docs with live examples, do/don't guidance, and an a11y section (keyboard map, ARIA used).",
+          'Automated tests: unit tests, visual regression snapshots, and axe-based a11y checks in CI.',
+          'Reuse proven behaviour (CDK overlay, focus trap, a11y utilities, virtual scrolling) instead of hand-rolling it.',
+          'No global CSS leaks: component styles are encapsulated; only tokens and an optional reset are global.',
+        ],
+      },
+      { type: 'heading3', text: '8. Trade-offs and governance' },
+      {
+        type: 'bullets',
+        items: [
+          'Flexible vs consistent: too rigid and teams fork it; too flexible and the UI drifts. Expose slots and tokens, not arbitrary style inputs.',
+          'A small core team owns it, with a contribution model (RFC → review → release) so product teams can add components.',
+          'Track adoption (which apps use which version) and measure success by fewer custom components and faster feature delivery.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: talk about the library as a product — tokens, accessible primitives, stable API, docs, versioning and governance. Showing a `button[dsButton]` attribute selector and explaining why it preserves native semantics is a strong, concrete detail.',
+      },
+    ],
+  },
 
-  'How would you design a real-time dashboard that shows live data?': {
+  'design-a-real-time-dashboard': {
     summary:
       'I load an initial snapshot over HTTP, then subscribe to a push channel (WebSocket for bidirectional or SSE for server-to-client) through a single connection service with reconnect and backoff. Incoming events are buffered and applied to signal-based stores in batches so the UI updates at a sane rate, widgets are lazy and independent, and changes are announced accessibly without flooding screen readers.',
     details: [
@@ -620,7 +619,7 @@ export class MetricStore {
     ],
   },
 
-  'How would you design an offline-first Angular application?': {
+  'design-an-offline-first-app': {
     summary:
       'Offline-first means the UI always reads from a local store (IndexedDB) and the network is a sync mechanism, not a dependency. A service worker caches the app shell and static assets, reads come from local data and refresh in the background, and writes go into a persistent outbox queue that syncs when connectivity returns, with a conflict-resolution strategy agreed with the backend.',
     details: [
@@ -768,7 +767,7 @@ export class SyncEngine {
     ],
   },
 
-  'How would you design a large multi-step form, such as a loan or insurance application?': {
+  'design-a-large-multi-step-form': {
     summary:
       'I model it as a wizard driven by a configuration of steps, with one form model split into per-step groups, each step a routed, lazily loaded component. State is the single source of truth in a service, saved as a server-side draft so users can resume, with per-step validation, conditional steps derived from earlier answers, and a final review step. Accessibility focuses on focus management between steps, clear error summaries and a progress indicator.',
     details: [
@@ -914,25 +913,24 @@ export const WIZARD_ROUTES: Routes = [{
     ],
   },
 
-  'How would you structure a large Angular codebase so that several teams can work on it independently?':
-    {
-      summary:
-        'I start with a monorepo of workspace libraries organized by domain and layer (feature, data-access, ui, util), enforce module boundaries with tags and lint rules, give each domain a clear owning team via CODEOWNERS, share one design system, and run CI only on affected projects. That gives team autonomy with a single version of Angular and dependencies; micro frontends only become worth it when teams truly need independent deployments or different release cadences.',
-      details: [
-        { type: 'heading3', text: '1. Requirements to clarify' },
-        {
-          type: 'bullets',
-          items: [
-            'How many teams and how are they aligned (by business domain, e.g. Orders, Catalog, Account)?',
-            'Do teams need to deploy independently, or is a shared release train acceptable?',
-            'One product or several apps (customer app, admin portal) sharing code?',
-            'Non-functional: build and test times, onboarding speed, consistency of UX, upgrade cost of Angular majors.',
-          ],
-        },
-        {
-          type: 'flow',
-          title: 'Monorepo with domain libraries and enforced boundaries',
-          code: `flowchart TD
+  'structuring-a-codebase-for-many-teams': {
+    summary:
+      'I start with a monorepo of workspace libraries organized by domain and layer (feature, data-access, ui, util), enforce module boundaries with tags and lint rules, give each domain a clear owning team via CODEOWNERS, share one design system, and run CI only on affected projects. That gives team autonomy with a single version of Angular and dependencies; micro frontends only become worth it when teams truly need independent deployments or different release cadences.',
+    details: [
+      { type: 'heading3', text: '1. Requirements to clarify' },
+      {
+        type: 'bullets',
+        items: [
+          'How many teams and how are they aligned (by business domain, e.g. Orders, Catalog, Account)?',
+          'Do teams need to deploy independently, or is a shared release train acceptable?',
+          'One product or several apps (customer app, admin portal) sharing code?',
+          'Non-functional: build and test times, onboarding speed, consistency of UX, upgrade cost of Angular majors.',
+        ],
+      },
+      {
+        type: 'flow',
+        title: 'Monorepo with domain libraries and enforced boundaries',
+        code: `flowchart TD
   APP1["apps/shop"]:::client --> FO["orders/feature-*"]:::highlight
   APP1 --> FC["catalog/feature-*"]:::highlight
   APP2["apps/admin"]:::client --> FO
@@ -944,12 +942,12 @@ export const WIZARD_ROUTES: Routes = [{
   DC --> UT
   FO -.->|"blocked by lint"| DC
   CI["CI: affected build/test"]:::queue -.-> APP1`,
-        },
-        { type: 'heading3', text: '2. Workspace layout' },
-        {
-          type: 'code',
-          lang: 'bash',
-          code: `apps/
+      },
+      { type: 'heading3', text: '2. Workspace layout' },
+      {
+        type: 'code',
+        lang: 'bash',
+        code: `apps/
   shop/                     # thin: routing, shell, config, providers
   admin/
 libs/
@@ -964,24 +962,24 @@ libs/
     ui/                     # design system (owned by platform team)
     data-access-auth/
     util-formatting/`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Apps are thin composition roots; almost all code lives in libraries.',
-            "Each library exposes a public API through an `index.ts` barrel; deep imports into another library's internals are forbidden.",
-            'Feature libraries expose routes (`export const ORDER_ROUTES: Routes`) that the app lazy-loads, so domains plug in without the shell knowing their internals.',
-          ],
-        },
-        { type: 'heading3', text: '3. Module boundaries as lint rules' },
-        {
-          type: 'paragraph',
-          text: 'Conventions are not enough with many teams — boundaries must fail the build. Monorepo tools such as Nx let you tag projects (e.g. `scope:orders`, `type:feature`) and enforce allowed dependencies with a lint rule; without such a tool you can approximate it with ESLint import restrictions and TypeScript path aliases. The intended rules look like this:',
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Conceptual dependency rules (expressed in your tool's lint config)
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Apps are thin composition roots; almost all code lives in libraries.',
+          "Each library exposes a public API through an `index.ts` barrel; deep imports into another library's internals are forbidden.",
+          'Feature libraries expose routes (`export const ORDER_ROUTES: Routes`) that the app lazy-loads, so domains plug in without the shell knowing their internals.',
+        ],
+      },
+      { type: 'heading3', text: '3. Module boundaries as lint rules' },
+      {
+        type: 'paragraph',
+        text: 'Conventions are not enough with many teams — boundaries must fail the build. Monorepo tools such as Nx let you tag projects (e.g. `scope:orders`, `type:feature`) and enforce allowed dependencies with a lint rule; without such a tool you can approximate it with ESLint import restrictions and TypeScript path aliases. The intended rules look like this:',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Conceptual dependency rules (expressed in your tool's lint config)
 const rules = [
   { source: 'type:app',         canDependOn: ['type:feature', 'type:data-access', 'type:ui', 'type:util'] },
   { source: 'type:feature',     canDependOn: ['type:data-access', 'type:ui', 'type:util'] },
@@ -992,49 +990,49 @@ const rules = [
   { source: 'scope:orders',     canDependOn: ['scope:orders', 'scope:shared'] },
 ];
 // Cross-domain needs go through shared contracts or events, not direct imports.`,
-        },
-        { type: 'heading3', text: '4. Ownership and collaboration' },
-        {
-          type: 'bullets',
-          items: [
-            '`CODEOWNERS` maps `libs/orders/**` to the Orders team — their review is required for changes there.',
-            'A platform team owns `shared/*`, the design system, build config, and Angular upgrades.',
-            "Cross-domain communication goes through explicit contracts: shared interfaces in a `shared/contracts` lib, router navigation, or a small event bus — never reaching into another domain's store.",
-            'Architecture decision records (ADRs) document conventions so new teams onboard quickly.',
-          ],
-        },
-        { type: 'heading3', text: '5–6. CI, performance and the build' },
-        {
-          type: 'bullets',
-          items: [
-            'Affected-only pipelines: compute which projects a change touches via the dependency graph and run lint/test/build only for those.',
-            'Local and remote computation caching so unchanged libraries are not rebuilt.',
-            "Lazy-loaded feature routes keep each team's code out of the initial bundle; enforce bundle budgets in `angular.json`.",
-            'Single version policy: one `package.json`, one Angular version — upgrades happen once, with automated migrations, for everyone.',
-          ],
-        },
-        { type: 'heading3', text: '7. Consistency and accessibility at scale' },
-        {
-          type: 'bullets',
-          items: [
-            'Teams build UI from the shared design system, so accessibility and visual consistency come by default.',
-            'Shared lint config (including template a11y rules), shared test setup, and generators/schematics for new libraries keep structure uniform.',
-          ],
-        },
-        { type: 'heading3', text: '8. When are micro frontends worth it?' },
-        {
-          type: 'bullets',
-          items: [
-            '**Worth it**: teams must deploy independently on different cadences, the org is very large, apps come from acquisitions/different frameworks, or a legacy app is being migrated incrementally.',
-            '**Costs**: runtime integration complexity, shared dependency version alignment, larger total payload, harder end-to-end testing and inconsistent UX risk.',
-            'A well-bounded monorepo is often the right first step — and it makes a later split into micro frontends easier because boundaries already exist.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: frame it as "autonomy with guardrails" — domain libraries, enforced boundaries, clear ownership, affected CI. Then show judgment by saying micro frontends solve a deployment/organisational problem, not a code-organisation problem, and you would reach for them only when independent releases are a real requirement.',
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: '4. Ownership and collaboration' },
+      {
+        type: 'bullets',
+        items: [
+          '`CODEOWNERS` maps `libs/orders/**` to the Orders team — their review is required for changes there.',
+          'A platform team owns `shared/*`, the design system, build config, and Angular upgrades.',
+          "Cross-domain communication goes through explicit contracts: shared interfaces in a `shared/contracts` lib, router navigation, or a small event bus — never reaching into another domain's store.",
+          'Architecture decision records (ADRs) document conventions so new teams onboard quickly.',
+        ],
+      },
+      { type: 'heading3', text: '5–6. CI, performance and the build' },
+      {
+        type: 'bullets',
+        items: [
+          'Affected-only pipelines: compute which projects a change touches via the dependency graph and run lint/test/build only for those.',
+          'Local and remote computation caching so unchanged libraries are not rebuilt.',
+          "Lazy-loaded feature routes keep each team's code out of the initial bundle; enforce bundle budgets in `angular.json`.",
+          'Single version policy: one `package.json`, one Angular version — upgrades happen once, with automated migrations, for everyone.',
+        ],
+      },
+      { type: 'heading3', text: '7. Consistency and accessibility at scale' },
+      {
+        type: 'bullets',
+        items: [
+          'Teams build UI from the shared design system, so accessibility and visual consistency come by default.',
+          'Shared lint config (including template a11y rules), shared test setup, and generators/schematics for new libraries keep structure uniform.',
+        ],
+      },
+      { type: 'heading3', text: '8. When are micro frontends worth it?' },
+      {
+        type: 'bullets',
+        items: [
+          '**Worth it**: teams must deploy independently on different cadences, the org is very large, apps come from acquisitions/different frameworks, or a legacy app is being migrated incrementally.',
+          '**Costs**: runtime integration complexity, shared dependency version alignment, larger total payload, harder end-to-end testing and inconsistent UX risk.',
+          'A well-bounded monorepo is often the right first step — and it makes a later split into micro frontends easier because boundaries already exist.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: frame it as "autonomy with guardrails" — domain libraries, enforced boundaries, clear ownership, affected CI. Then show judgment by saying micro frontends solve a deployment/organisational problem, not a code-organisation problem, and you would reach for them only when independent releases are a real requirement.',
+      },
+    ],
+  },
 };

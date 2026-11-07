@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'Sessions vs JWTs: what are the real trade-offs for a web app?': {
+  'sessions-vs-jwts': {
     summary:
       'A server-side session is an opaque random id in a cookie that points to state in a store such as Redis: it is tiny, instantly revocable, and needs a lookup on every request. A self-contained JWT carries signed claims, so any service can verify it without a lookup, but it is large and hard to revoke before it expires. For a same-site web app with its own backend I usually choose sessions in an HttpOnly cookie. I use JWTs for service-to-service calls and third-party API access.',
     details: [
@@ -71,7 +71,7 @@ req.session.regenerate(() => { req.session.userId = user.id; res.sendStatus(204)
     ],
   },
 
-  'How do access tokens and refresh tokens work together, and what is refresh token rotation?': {
+  'access-and-refresh-tokens-rotation': {
     summary:
       'The access token is short-lived (5–15 minutes) and sent to APIs. The refresh token is long-lived, sent only to the token endpoint, and used to get new access tokens. With rotation, every refresh returns a new refresh token and invalidates the old one. If an old token is ever presented again, that is treated as theft and the whole token family is revoked.',
     details: [
@@ -166,7 +166,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     ],
   },
 
-  'How do you revoke a JWT or log a user out before the token expires?': {
+  'revoke-a-jwt-before-it-expires': {
     summary:
       'You cannot change a signed token, so revocation means adding a check. The options are: very short expiry plus revocable refresh tokens; a denylist of `jti` values in Redis with a TTL equal to the remaining lifetime; a per-user `tokenVersion` claim compared with the database or cache; or opaque tokens with introspection. Every option except short expiry gives up some of the statelessness, and that trade-off is fine.',
     details: [
@@ -247,7 +247,7 @@ HTTP/1.1 200 OK
     ],
   },
 
-  'What is OpenID Connect, and how does it differ from OAuth 2.0?': {
+  'openid-connect-vs-oauth-2-0': {
     summary:
       'OAuth 2.0 is delegated authorization: it lets a client get an access token to call an API on a user’s behalf, and it says nothing about who the user is. OpenID Connect is an identity layer on top of OAuth that adds authentication: an **ID token** (a signed JWT about the login event), a **UserInfo** endpoint, standard scopes and claims, discovery, and a `nonce` to bind the token to the request. Use the ID token to log the user in, and the access token only to call APIs.',
     details: [
@@ -317,7 +317,7 @@ async function verifyIdToken(idToken: string, expectedNonce: string) {
     ],
   },
 
-  'What is PKCE, and why is it required for single-page and mobile apps?': {
+  'pkce-for-spas-and-mobile-apps': {
     summary:
       'PKCE (Proof Key for Code Exchange) binds an authorization code to the client that started the flow. The client makes a random `code_verifier`, sends its SHA-256 hash as the `code_challenge` in the authorization request, and must present the original verifier when it exchanges the code. An attacker who intercepts the code cannot use it. Public clients such as SPAs and mobile apps have no client secret, so PKCE is their protection, and current best practice (RFC 9700) recommends it for confidential clients too.',
     details: [
@@ -399,7 +399,7 @@ export async function createPkcePair() {
     ],
   },
 
-  'Where should an Angular SPA keep its tokens, and how does the BFF pattern help with auth?': {
+  'where-an-angular-spa-keeps-tokens': {
     summary:
       'Any token JavaScript can read, whether in `localStorage`, `sessionStorage` or memory, can be stolen or misused by an XSS payload. The most secure option for a browser app is a Backend-for-Frontend: a small server-side component does the OAuth flow as a confidential client, keeps the tokens on the server, and gives the browser only an HttpOnly, Secure, SameSite session cookie. Angular then calls the BFF on the same origin, and the BFF attaches the access token when it proxies to the APIs.',
     details: [
@@ -489,7 +489,7 @@ login() { location.href = '/bff/login?returnTo=' + encodeURIComponent(location.p
     ],
   },
 
-  'How does single sign-on work with SAML or OIDC in an enterprise app?': {
+  'enterprise-sso-with-saml-or-oidc': {
     summary:
       'With SSO, the customer’s identity provider (Okta, Entra ID, Google Workspace) authenticates the user, and your app, the service provider or relying party, trusts a signed statement from it. With SAML that statement is an XML assertion posted to your ACS URL; with OIDC it is an ID token from the code flow. Enterprise SaaS usually supports both, routes users to the right IdP by email domain, provisions accounts just in time or through SCIM, and accepts that single logout is unreliable.',
     details: [
@@ -565,7 +565,7 @@ async start(@Body() { email }: { email: string }) {
     ],
   },
 
-  'RBAC vs ABAC vs ReBAC: how do you model permissions?': {
+  'rbac-vs-abac-vs-rebac': {
     summary:
       'RBAC assigns permissions to roles and roles to users; it is simple and auditable but becomes role explosion once rules depend on context. ABAC evaluates policies over attributes of the user, resource, action and environment, which suits rules like "same department, during office hours". ReBAC derives access from relationships in a graph ("editor of the folder that contains this doc"), as in Google Zanzibar and OpenFGA. Most products combine roles for coarse access with object-level checks on the backend for every resource.',
     details: [
@@ -644,7 +644,7 @@ async approve(@Param('id') id: string, @CurrentUser() user: AuthUser) {
     ],
   },
 
-  'How do you enforce tenant isolation in a multi-tenant SaaS API?': {
+  'tenant-isolation-in-a-saas-api': {
     summary:
       'The tenant id must come from the verified identity (a token claim or the server session), never from the request body or a header the client controls. Isolation is then enforced as low as possible: in the data layer with Postgres Row-Level Security or repositories that always add the tenant filter. The tenant also has to be part of cache keys, queues, file paths, rate limits, logs and metrics, and automated tests should actively try cross-tenant access.',
     details: [
@@ -735,7 +735,7 @@ async withTenant<T>(fn: (tx: EntityManager) => Promise<T>): Promise<T> {
     ],
   },
 
-  'How do you add MFA and passkeys (WebAuthn) to a login flow?': {
+  'add-mfa-and-passkeys-to-login': {
     summary:
       'MFA combines factors from different categories: something you know, something you have, something you are. TOTP codes are a common second factor but can be phished, because a fake site can relay the code in real time. Passkeys (WebAuthn) are phishing-resistant: the browser binds each credential to the site’s origin and the private key never leaves the authenticator. Implement registration and authentication as challenge–response ceremonies verified on the server with a library such as `@simplewebauthn/server`, and plan recovery and step-up authentication from the start.',
     details: [

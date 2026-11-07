@@ -3,7 +3,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'How do you approach a low-level design interview, and what are interviewers looking for?': {
+  'approaching-a-low-level-design-interview': {
     summary:
       'I treat it as a structured conversation, not a race to code: I clarify requirements and scope, list the core entities and use cases, define interfaces before classes, then walk one real use case through the design and show how it extends. Interviewers are scoring how I model the domain, where I put responsibilities, whether the design survives a new requirement, and whether I think about concurrency, errors and testing, far more than how many classes I draw.',
     details: [
@@ -102,24 +102,23 @@ class HourlyPricing implements PricingPolicy { /* ... */ }`,
     ],
   },
 
-  'Explain SOLID with Node.js/TypeScript examples. Which principle do you see violated most often in real code?':
-    {
-      summary:
-        'SOLID is five guidelines for code that is easy to change: Single responsibility, Open/closed, Liskov substitution, Interface segregation and Dependency inversion. In Node services the one I see broken most is single responsibility: a `UserService` or route handler that validates input, runs SQL, sends email and formats responses, so every change touches it and nothing is testable in isolation. I apply SOLID where code actually changes, not as a checklist for every class.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'The Angular Architecture topic maps SOLID to components and services. Here the focus is backend code, where the same principles decide whether a service stays maintainable as it grows.',
-        },
-        { type: 'heading3', text: 'S — Single responsibility' },
-        {
-          type: 'paragraph',
-          text: 'A module should have one reason to change, meaning one actor or concern it answers to.',
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Before: one class answers to the API team, the DBA and marketing
+  'solid-with-typescript-examples': {
+    summary:
+      'SOLID is five guidelines for code that is easy to change: Single responsibility, Open/closed, Liskov substitution, Interface segregation and Dependency inversion. In Node services the one I see broken most is single responsibility: a `UserService` or route handler that validates input, runs SQL, sends email and formats responses, so every change touches it and nothing is testable in isolation. I apply SOLID where code actually changes, not as a checklist for every class.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'The Angular Architecture topic maps SOLID to components and services. Here the focus is backend code, where the same principles decide whether a service stays maintainable as it grows.',
+      },
+      { type: 'heading3', text: 'S — Single responsibility' },
+      {
+        type: 'paragraph',
+        text: 'A module should have one reason to change, meaning one actor or concern it answers to.',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Before: one class answers to the API team, the DBA and marketing
 class UserService {
   async register(body: any) {
     if (!body.email?.includes('@')) throw new Error('bad email');   // validation
@@ -146,16 +145,16 @@ class RegisterUser {
   }
 }
 // The welcome email is a subscriber to UserRegistered, owned by whoever owns the copy.`,
-        },
-        { type: 'heading3', text: 'O — Open/closed' },
-        {
-          type: 'paragraph',
-          text: 'Open for extension, closed for modification: adding a variant should mean adding code, not editing a growing `switch`.',
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Before: every new channel edits this function
+      },
+      { type: 'heading3', text: 'O — Open/closed' },
+      {
+        type: 'paragraph',
+        text: 'Open for extension, closed for modification: adding a variant should mean adding code, not editing a growing `switch`.',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Before: every new channel edits this function
 function notify(channel: string, msg: Message) {
   if (channel === 'email') { /* ... */ }
   else if (channel === 'sms') { /* ... */ }
@@ -176,16 +175,16 @@ class NotificationDispatcher {
     return notifier.send(msg);
   }
 }`,
-        },
-        { type: 'heading3', text: 'L — Liskov substitution' },
-        {
-          type: 'paragraph',
-          text: 'A subtype must be usable anywhere its base type is expected without surprising the caller: no stronger preconditions, no weaker guarantees, no "not supported" exceptions.',
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `interface FileStorage {
+      },
+      { type: 'heading3', text: 'L — Liskov substitution' },
+      {
+        type: 'paragraph',
+        text: 'A subtype must be usable anywhere its base type is expected without surprising the caller: no stronger preconditions, no weaker guarantees, no "not supported" exceptions.',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `interface FileStorage {
   read(key: string): Promise<Buffer>;
   write(key: string, data: Buffer): Promise<void>;
 }
@@ -199,74 +198,73 @@ class ReadOnlyCdnStorage implements FileStorage {
 // Fix: split the contract so the type tells the truth
 interface FileReader { read(key: string): Promise<Buffer>; }
 interface FileWriter { write(key: string, data: Buffer): Promise<void>; }`,
-        },
-        { type: 'heading3', text: 'I — Interface segregation' },
-        {
-          type: 'paragraph',
-          text: 'Clients should not depend on methods they do not use. The `FileReader`/`FileWriter` split above is also interface segregation: a thumbnail job that only reads does not need a fake `write` in its tests. In TypeScript, small role interfaces cost nothing because typing is structural, so a single class can satisfy several of them.',
-        },
-        { type: 'heading3', text: 'D — Dependency inversion' },
-        {
-          type: 'paragraph',
-          text: 'High-level policy (use cases) should depend on abstractions it owns, and low-level details (Postgres, S3, SendGrid) implement them. `RegisterUser` above depends on `UserRepository`, not on `pg`. The wiring happens in one composition root or a DI container such as NestJS (see the Design Patterns topic for DI mechanics).',
-        },
-        { type: 'heading3', text: 'When not to apply them' },
-        {
-          type: 'bullets',
-          items: [
-            'A 40-line script or a CRUD endpoint with no business rules does not need ports, adapters and five interfaces.',
-            'Do not add an interface with exactly one implementation "just in case" unless it is a seam you need for testing or a known variation point.',
-            'Open/closed is about the places that actually vary. Predicting variation everywhere produces speculative abstraction that is harder to change than the original `switch`.',
-          ],
-        },
-        { type: 'heading3', text: 'Follow-up questions interviewers ask' },
-        {
-          type: 'bullets',
-          items: [
-            'How do you decide a class has too many responsibilities? — Count reasons to change and actors it serves; watch for unrelated imports and huge test setup.',
-            'Give a real Liskov violation you have seen. — Subclasses throwing "not implemented", or overriding a method to silently do nothing.',
-            'Is dependency inversion the same as dependency injection? — No: inversion is about who owns the abstraction; injection is one way to supply the implementation.',
-            'How does SOLID apply to functions rather than classes? — Same ideas: small single-purpose functions, pass dependencies as parameters, depend on function types.',
-          ],
-        },
-        { type: 'heading3', text: 'Common mistakes' },
-        {
-          type: 'bullets',
-          items: [
-            'Reciting the acronym without a before/after example.',
-            'Confusing single responsibility with "one method per class".',
-            'Creating an `IUserService` interface for every class with one implementation and calling it dependency inversion.',
-            'Letting the abstraction leak details (`UserRepository.runSql()`), which defeats the inversion.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'important',
-          text: 'Senior signal: you show a concrete smell and the refactor that fixes it, name which principle you see broken most and why, and say clearly where you would not apply SOLID because the extra abstraction costs more than it saves.',
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'I — Interface segregation' },
+      {
+        type: 'paragraph',
+        text: 'Clients should not depend on methods they do not use. The `FileReader`/`FileWriter` split above is also interface segregation: a thumbnail job that only reads does not need a fake `write` in its tests. In TypeScript, small role interfaces cost nothing because typing is structural, so a single class can satisfy several of them.',
+      },
+      { type: 'heading3', text: 'D — Dependency inversion' },
+      {
+        type: 'paragraph',
+        text: 'High-level policy (use cases) should depend on abstractions it owns, and low-level details (Postgres, S3, SendGrid) implement them. `RegisterUser` above depends on `UserRepository`, not on `pg`. The wiring happens in one composition root or a DI container such as NestJS (see the Design Patterns topic for DI mechanics).',
+      },
+      { type: 'heading3', text: 'When not to apply them' },
+      {
+        type: 'bullets',
+        items: [
+          'A 40-line script or a CRUD endpoint with no business rules does not need ports, adapters and five interfaces.',
+          'Do not add an interface with exactly one implementation "just in case" unless it is a seam you need for testing or a known variation point.',
+          'Open/closed is about the places that actually vary. Predicting variation everywhere produces speculative abstraction that is harder to change than the original `switch`.',
+        ],
+      },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          'How do you decide a class has too many responsibilities? — Count reasons to change and actors it serves; watch for unrelated imports and huge test setup.',
+          'Give a real Liskov violation you have seen. — Subclasses throwing "not implemented", or overriding a method to silently do nothing.',
+          'Is dependency inversion the same as dependency injection? — No: inversion is about who owns the abstraction; injection is one way to supply the implementation.',
+          'How does SOLID apply to functions rather than classes? — Same ideas: small single-purpose functions, pass dependencies as parameters, depend on function types.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          'Reciting the acronym without a before/after example.',
+          'Confusing single responsibility with "one method per class".',
+          'Creating an `IUserService` interface for every class with one implementation and calling it dependency inversion.',
+          'Letting the abstraction leak details (`UserRepository.runSql()`), which defeats the inversion.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you show a concrete smell and the refactor that fixes it, name which principle you see broken most and why, and say clearly where you would not apply SOLID because the extra abstraction costs more than it saves.',
+      },
+    ],
+  },
 
-  'Composition vs inheritance: when is inheritance the right tool, and how do you refactor a deep class hierarchy?':
-    {
-      summary:
-        'I default to composition: an object gets behaviour by holding collaborators behind interfaces, which can be combined and swapped at runtime. Inheritance is right when there is a true, stable "is-a" relationship and the subclass honours the whole base contract, typically a small framework base class or a closed set of variants. To untangle a deep hierarchy I extract the varying behaviours into strategy objects, move shared code into helpers, and flatten the tree step by step behind tests.',
-      details: [
-        { type: 'heading3', text: 'Why deep hierarchies hurt' },
-        {
-          type: 'bullets',
-          items: [
-            '**Fragile base class:** a change in the base silently changes every subclass.',
-            '**Combinatorial explosion:** `EmailNotifier`, `RetryingEmailNotifier`, `LoggedRetryingEmailNotifier`... every new capability multiplies classes.',
-            '**Tight coupling to internals:** subclasses rely on protected fields and the order the base calls hooks.',
-            '**Single axis only:** a class can inherit from one parent, but real behaviour varies on several axes at once.',
-          ],
-        },
-        { type: 'heading3', text: 'Before: inheritance used for code reuse' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `class ReportExporter {
+  'composition-vs-inheritance': {
+    summary:
+      'I default to composition: an object gets behaviour by holding collaborators behind interfaces, which can be combined and swapped at runtime. Inheritance is right when there is a true, stable "is-a" relationship and the subclass honours the whole base contract, typically a small framework base class or a closed set of variants. To untangle a deep hierarchy I extract the varying behaviours into strategy objects, move shared code into helpers, and flatten the tree step by step behind tests.',
+    details: [
+      { type: 'heading3', text: 'Why deep hierarchies hurt' },
+      {
+        type: 'bullets',
+        items: [
+          '**Fragile base class:** a change in the base silently changes every subclass.',
+          '**Combinatorial explosion:** `EmailNotifier`, `RetryingEmailNotifier`, `LoggedRetryingEmailNotifier`... every new capability multiplies classes.',
+          '**Tight coupling to internals:** subclasses rely on protected fields and the order the base calls hooks.',
+          '**Single axis only:** a class can inherit from one parent, but real behaviour varies on several axes at once.',
+        ],
+      },
+      { type: 'heading3', text: 'Before: inheritance used for code reuse' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `class ReportExporter {
   export(data: Row[]) {
     const rows = this.filter(data);
     const content = this.format(rows);
@@ -281,12 +279,12 @@ class CsvExporter extends ReportExporter { /* format as CSV, deliver by email */
 class CsvS3Exporter extends CsvExporter { /* override deliver to upload to S3 */ }
 class FilteredCsvS3Exporter extends CsvS3Exporter { /* override filter */ }
 class PdfS3Exporter extends ReportExporter { /* duplicates S3 delivery from CsvS3Exporter */ }`,
-        },
-        { type: 'heading3', text: 'After: compose independent behaviours' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `interface RowFilter { apply(rows: Row[]): Row[]; }
+      },
+      { type: 'heading3', text: 'After: compose independent behaviours' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `interface RowFilter { apply(rows: Row[]): Row[]; }
 interface Formatter { format(rows: Row[]): string; }
 interface Delivery { deliver(content: string): Promise<void>; }
 
@@ -307,66 +305,66 @@ class ReportExporter {
 const exporter = new ReportExporter(new PdfFormatter(), new S3Delivery(bucket), [
   new ActiveOnlyFilter(),
 ]);`,
-        },
-        {
-          type: 'paragraph',
-          text: 'Two formats times three deliveries times N filters used to need a class per combination; now it needs one class per behaviour. Each piece is tested on its own with plain inputs.',
-        },
-        { type: 'heading3', text: 'When inheritance is the right tool' },
-        {
-          type: 'bullets',
-          items: [
-            '**Framework extension points** designed for it: `class MyError extends Error`, `class Transform extends stream.Transform`, a NestJS `ExceptionFilter` base. The base contract is documented and stable.',
-            '**Error hierarchies:** `NotFoundError extends DomainError` gives `instanceof` checks and shared fields with no behaviour override problems.',
-            '**A shallow, closed set of variants** that genuinely share invariants, one level deep, where every subclass satisfies Liskov substitution.',
-            'In TypeScript, a discriminated union is often better than a class hierarchy for closed variants: the compiler checks exhaustiveness.',
-          ],
-        },
-        { type: 'heading3', text: 'Refactoring a deep hierarchy safely' },
-        {
-          type: 'numbered',
-          items: [
-            'Put characterization tests around the current behaviour of each leaf class you will touch.',
-            'List the axes of variation (here: filtering, format, delivery). Each axis becomes an interface.',
-            'Extract one axis at a time: move the overridden method into a strategy class and have the base call the injected strategy, defaulting to the old behaviour.',
-            'Replace subclasses with factory functions that build the composed object, so call sites keep working.',
-            'Delete empty subclasses once nothing references them. Keep each step a small, shippable PR.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Mixins are a third option in TypeScript, but they bring back many of the problems of inheritance (name clashes, hidden ordering). Prefer explicit composed collaborators unless a framework requires mixins.',
-        },
-        { type: 'heading3', text: 'Follow-up questions interviewers ask' },
-        {
-          type: 'bullets',
-          items: [
-            'What is the fragile base class problem? — Base-class changes break subclasses that depended on its internals or call order.',
-            'Template Method vs Strategy? — Template Method varies steps by subclassing; Strategy injects the step, so it composes and swaps at runtime.',
-            'How do you share code between unrelated classes without inheritance? — Extract a collaborator or a plain function and call it.',
-            'When would you use a discriminated union instead of classes? — Closed set of variants with data, where you want exhaustive `switch` checks.',
-          ],
-        },
-        { type: 'heading3', text: 'Common mistakes' },
-        {
-          type: 'bullets',
-          items: [
-            'Using inheritance purely to reuse a few helper methods.',
-            'Overriding a method to throw or do nothing, which breaks substitutability.',
-            'Relying on `protected` mutable state shared up and down the tree.',
-            'Flattening a hierarchy in one big-bang rewrite without tests.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'important',
-          text: 'Senior signal: you can name the axes of variation, explain concretely why the hierarchy multiplies classes, show the composed version, and describe an incremental, test-backed refactor rather than a rewrite, while still knowing the cases where inheritance is the simplest correct choice.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'paragraph',
+        text: 'Two formats times three deliveries times N filters used to need a class per combination; now it needs one class per behaviour. Each piece is tested on its own with plain inputs.',
+      },
+      { type: 'heading3', text: 'When inheritance is the right tool' },
+      {
+        type: 'bullets',
+        items: [
+          '**Framework extension points** designed for it: `class MyError extends Error`, `class Transform extends stream.Transform`, a NestJS `ExceptionFilter` base. The base contract is documented and stable.',
+          '**Error hierarchies:** `NotFoundError extends DomainError` gives `instanceof` checks and shared fields with no behaviour override problems.',
+          '**A shallow, closed set of variants** that genuinely share invariants, one level deep, where every subclass satisfies Liskov substitution.',
+          'In TypeScript, a discriminated union is often better than a class hierarchy for closed variants: the compiler checks exhaustiveness.',
+        ],
+      },
+      { type: 'heading3', text: 'Refactoring a deep hierarchy safely' },
+      {
+        type: 'numbered',
+        items: [
+          'Put characterization tests around the current behaviour of each leaf class you will touch.',
+          'List the axes of variation (here: filtering, format, delivery). Each axis becomes an interface.',
+          'Extract one axis at a time: move the overridden method into a strategy class and have the base call the injected strategy, defaulting to the old behaviour.',
+          'Replace subclasses with factory functions that build the composed object, so call sites keep working.',
+          'Delete empty subclasses once nothing references them. Keep each step a small, shippable PR.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Mixins are a third option in TypeScript, but they bring back many of the problems of inheritance (name clashes, hidden ordering). Prefer explicit composed collaborators unless a framework requires mixins.',
+      },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          'What is the fragile base class problem? — Base-class changes break subclasses that depended on its internals or call order.',
+          'Template Method vs Strategy? — Template Method varies steps by subclassing; Strategy injects the step, so it composes and swaps at runtime.',
+          'How do you share code between unrelated classes without inheritance? — Extract a collaborator or a plain function and call it.',
+          'When would you use a discriminated union instead of classes? — Closed set of variants with data, where you want exhaustive `switch` checks.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          'Using inheritance purely to reuse a few helper methods.',
+          'Overriding a method to throw or do nothing, which breaks substitutability.',
+          'Relying on `protected` mutable state shared up and down the tree.',
+          'Flattening a hierarchy in one big-bang rewrite without tests.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you can name the axes of variation, explain concretely why the hierarchy multiplies classes, show the composed version, and describe an incremental, test-backed refactor rather than a rewrite, while still knowing the cases where inheritance is the simplest correct choice.',
+      },
+    ],
+  },
 
-  'What are coupling and cohesion, and how do you spot and reduce bad coupling in a codebase?': {
+  'coupling-and-cohesion': {
     summary:
       'Cohesion is how strongly the things inside a module belong together; coupling is how much one module depends on the internals of another. I aim for high cohesion and loose coupling, so a change stays inside one module. I spot bad coupling through change patterns (one feature touches many folders), import graphs and cycles, shared mutable state and shared database tables, and I reduce it with narrow interfaces, moving behaviour next to its data, events for side effects, and enforced module boundaries.',
     details: [
@@ -478,26 +476,25 @@ class CompleteOrder {
     ],
   },
 
-  'How do you design code for testability (dependency inversion, ports and adapters, a pure core)?':
-    {
-      summary:
-        'I keep business rules in a pure core of functions and domain objects that take data in and return decisions, with no I/O. Everything that touches the outside world (database, HTTP, clock, random IDs, queues) sits behind small interfaces the core owns, the ports, implemented by adapters at the edge. Then most tests are fast unit tests of pure logic, adapters get a few integration tests against real infrastructure, and only a handful of end-to-end tests cover the wiring.',
-      details: [
-        { type: 'heading3', text: 'What makes code hard to test' },
-        {
-          type: 'bullets',
-          items: [
-            'Hidden dependencies: modules that `import { db }` or `new StripeClient()` inside the function.',
-            'Non-determinism: `Date.now()`, `Math.random()`, `crypto.randomUUID()` called directly.',
-            'Logic mixed with I/O: a 120-line handler where the pricing rule sits between two database calls.',
-            'Global or module-level mutable state shared between tests.',
-          ],
-        },
-        { type: 'heading3', text: 'Before: logic tangled with I/O' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export async function applyCoupon(req: Request, res: Response) {
+  'designing-code-for-testability': {
+    summary:
+      'I keep business rules in a pure core of functions and domain objects that take data in and return decisions, with no I/O. Everything that touches the outside world (database, HTTP, clock, random IDs, queues) sits behind small interfaces the core owns, the ports, implemented by adapters at the edge. Then most tests are fast unit tests of pure logic, adapters get a few integration tests against real infrastructure, and only a handful of end-to-end tests cover the wiring.',
+    details: [
+      { type: 'heading3', text: 'What makes code hard to test' },
+      {
+        type: 'bullets',
+        items: [
+          'Hidden dependencies: modules that `import { db }` or `new StripeClient()` inside the function.',
+          'Non-determinism: `Date.now()`, `Math.random()`, `crypto.randomUUID()` called directly.',
+          'Logic mixed with I/O: a 120-line handler where the pricing rule sits between two database calls.',
+          'Global or module-level mutable state shared between tests.',
+        ],
+      },
+      { type: 'heading3', text: 'Before: logic tangled with I/O' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export async function applyCoupon(req: Request, res: Response) {
   const cart = await db.collection('carts').findOne({ _id: req.params.id });
   const coupon = await db.collection('coupons').findOne({ code: req.body.code });
   if (!coupon || coupon.expiresAt < new Date()) return res.status(400).send('invalid');
@@ -507,12 +504,12 @@ class CompleteOrder {
   res.json({ discount });
 }
 // Testing the discount rule needs a database, an HTTP request and a frozen clock.`,
-        },
-        { type: 'heading3', text: 'After: pure core, ports and adapters' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// 1. Pure core: data in, decision out
+      },
+      { type: 'heading3', text: 'After: pure core, ports and adapters' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// 1. Pure core: data in, decision out
 export type CouponResult =
   | { ok: true; discount: number }
   | { ok: false; reason: 'expired' | 'below-minimum' };
@@ -543,12 +540,12 @@ export class ApplyCoupon {
 }
 
 // 4. Adapters at the edge: MongoCartRepository, SystemClock, and a thin Express handler`,
-        },
-        { type: 'heading3', text: 'What the tests look like now' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Pure core: no mocks, runs in microseconds
+      },
+      { type: 'heading3', text: 'What the tests look like now' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Pure core: no mocks, runs in microseconds
 it('caps a fixed discount at the cart total', () => {
   const result = evaluateCoupon(cart({ total: 30 }), coupon({ type: 'fixed', value: 50 }), now);
   expect(result).toEqual({ ok: true, discount: 30 });
@@ -561,59 +558,58 @@ it('does not save when the coupon is expired', async () => {
   await useCase.execute('c1', 'OLD10');
   expect(carts.discountOf('c1')).toBeUndefined();
 });`,
-        },
-        {
-          type: 'paragraph',
-          text: 'Adapters (`MongoCartRepository`) get a few integration tests against a real MongoDB, for example with Testcontainers or `mongodb-memory-server`, because mocking the driver would only test your assumptions about it. The Express handler is covered by a couple of Supertest tests (see the Node Testing topic).',
-        },
-        { type: 'heading3', text: 'Trade-offs and limits' },
-        {
-          type: 'bullets',
-          items: [
-            'Hand-written fakes are worth it for ports used in many tests; for a one-off, `jest.fn()` is fine.',
-            'A pure core needs the data loaded up front. For logic that must query as it goes, pass a narrow port into the function rather than the whole repository.',
-            'Do not invent ports for things you never swap and can run cheaply in tests (a pure utility library, `JSON`).',
-            'Over-mocking couples tests to implementation; prefer asserting on outputs and on the state of fakes.',
-          ],
-        },
-        { type: 'heading3', text: 'Follow-up questions interviewers ask' },
-        {
-          type: 'bullets',
-          items: [
-            'Fakes vs mocks vs stubs? — Stubs return canned data, mocks verify calls, fakes are working lightweight implementations; prefer fakes and state checks.',
-            'How do you test code that uses the current time? — Inject a `Clock` or pass `now` as a parameter; avoid global fake timers where you can.',
-            'Is hexagonal architecture overkill for a small service? — Often yes; a pure function plus injected dependencies gets most of the benefit.',
-            'How do you keep adapter tests fast enough? — Reuse one container per test run and isolate data per test.',
-          ],
-        },
-        { type: 'heading3', text: 'Common mistakes' },
-        {
-          type: 'bullets',
-          items: [
-            'Mocking the database driver call by call instead of putting a repository port in front of it.',
-            'Letting the core import framework types such as `Request` or Mongoose documents.',
-            'Calling `Date.now()` and `randomUUID()` deep inside business logic.',
-            'Chasing 100% coverage with brittle interaction tests instead of testing behaviour.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'important',
-          text: 'Senior signal: you separate decisions from side effects so most logic is tested without mocks, choose fakes over interaction mocks, test adapters against real infrastructure, and scale the amount of architecture to the size and risk of the service.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'paragraph',
+        text: 'Adapters (`MongoCartRepository`) get a few integration tests against a real MongoDB, for example with Testcontainers or `mongodb-memory-server`, because mocking the driver would only test your assumptions about it. The Express handler is covered by a couple of Supertest tests (see the Node Testing topic).',
+      },
+      { type: 'heading3', text: 'Trade-offs and limits' },
+      {
+        type: 'bullets',
+        items: [
+          'Hand-written fakes are worth it for ports used in many tests; for a one-off, `jest.fn()` is fine.',
+          'A pure core needs the data loaded up front. For logic that must query as it goes, pass a narrow port into the function rather than the whole repository.',
+          'Do not invent ports for things you never swap and can run cheaply in tests (a pure utility library, `JSON`).',
+          'Over-mocking couples tests to implementation; prefer asserting on outputs and on the state of fakes.',
+        ],
+      },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          'Fakes vs mocks vs stubs? — Stubs return canned data, mocks verify calls, fakes are working lightweight implementations; prefer fakes and state checks.',
+          'How do you test code that uses the current time? — Inject a `Clock` or pass `now` as a parameter; avoid global fake timers where you can.',
+          'Is hexagonal architecture overkill for a small service? — Often yes; a pure function plus injected dependencies gets most of the benefit.',
+          'How do you keep adapter tests fast enough? — Reuse one container per test run and isolate data per test.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          'Mocking the database driver call by call instead of putting a repository port in front of it.',
+          'Letting the core import framework types such as `Request` or Mongoose documents.',
+          'Calling `Date.now()` and `randomUUID()` deep inside business logic.',
+          'Chasing 100% coverage with brittle interaction tests instead of testing behaviour.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you separate decisions from side effects so most logic is tested without mocks, choose fakes over interaction mocks, test adapters against real infrastructure, and scale the amount of architecture to the size and risk of the service.',
+      },
+    ],
+  },
 
-  'A service has a growing `switch` over payment providers. Refactor it with the Strategy pattern and explain the trade-offs.':
-    {
-      summary:
-        'I put each provider behind one `PaymentProvider` interface, give every provider its own class, and let the service pick a strategy from a registry keyed by provider name instead of switching on it. Adding a provider then means adding a class and one registration line, with no edits to checkout logic, and each provider can be tested on its own. The cost is more files and an indirection, so I only do it once there are real, diverging variants, not for two branches that will never grow.',
-      details: [
-        { type: 'heading3', text: 'Before: one method that knows every provider' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export class PaymentService {
+  'refactor-a-provider-switch-to-strategy': {
+    summary:
+      'I put each provider behind one `PaymentProvider` interface, give every provider its own class, and let the service pick a strategy from a registry keyed by provider name instead of switching on it. Adding a provider then means adding a class and one registration line, with no edits to checkout logic, and each provider can be tested on its own. The cost is more files and an indirection, so I only do it once there are real, diverging variants, not for two branches that will never grow.',
+    details: [
+      { type: 'heading3', text: 'Before: one method that knows every provider' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export class PaymentService {
   async charge(order: Order, provider: 'stripe' | 'razorpay' | 'paypal') {
     switch (provider) {
       case 'stripe': {
@@ -633,16 +629,16 @@ it('does not save when the coupon is expired', async () => {
     }
   }
 }`,
-        },
-        {
-          type: 'paragraph',
-          text: 'The smell is not the `switch` itself; it is that the same `switch` appears in `charge`, `refund` and `handleWebhook`, every change touches a shared file, and a bug fix for one provider risks breaking the others. That breaks the Open/Closed principle: the class must be modified for every new provider.',
-        },
-        { type: 'heading3', text: 'After: one interface, one class per provider' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export type ProviderName = 'stripe' | 'razorpay' | 'paypal';
+      },
+      {
+        type: 'paragraph',
+        text: 'The smell is not the `switch` itself; it is that the same `switch` appears in `charge`, `refund` and `handleWebhook`, every change touches a shared file, and a bug fix for one provider risks breaking the others. That breaks the Open/Closed principle: the class must be modified for every new provider.',
+      },
+      { type: 'heading3', text: 'After: one interface, one class per provider' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export type ProviderName = 'stripe' | 'razorpay' | 'paypal';
 
 export interface ChargeResult { providerRef: string; status: 'paid' | 'pending' | 'failed'; }
 
@@ -682,12 +678,12 @@ export class PaymentService {
     return result;
   }
 }`,
-        },
-        { type: 'heading3', text: 'Wiring' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Plain Node composition root
+      },
+      { type: 'heading3', text: 'Wiring' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Plain Node composition root
 const paymentService = new PaymentService(
   [new StripeProvider(stripeClient), new RazorpayProvider(razorpayClient), new PaypalProvider(paypalClient)],
   paymentRepository,
@@ -708,54 +704,54 @@ export const PAYMENT_PROVIDERS = Symbol('PAYMENT_PROVIDERS');
   ],
 })
 export class PaymentsModule {}`,
-        },
-        { type: 'heading3', text: 'Testing' },
-        {
-          type: 'bullets',
-          items: [
-            '`PaymentService` is tested with a fake `PaymentProvider` object: no SDK mocking, just "when the provider returns pending, we record pending".',
-            'Each provider class gets its own tests against the SDK (mocked client, or the provider sandbox in a slower contract suite).',
-            'A shared test suite run against every provider (a "contract test" for the interface) catches a provider that maps statuses differently.',
-          ],
-        },
-        { type: 'heading3', text: 'Trade-offs and when not to do it' },
-        {
-          type: 'bullets',
-          items: [
-            '**Benefit:** new providers are additive, ownership is clear, and provider-specific dependencies stay out of the core service.',
-            '**Cost:** more files and one level of indirection; reading the flow means jumping to the strategy class.',
-            '**Leaky interface risk:** if one provider needs a redirect step and others do not, a too-narrow interface forces hacks. Model the difference (`status: "requires_action"` with a `nextAction`) instead of adding provider checks back into the service.',
-            '**Do not** introduce Strategy for two stable branches or a simple value mapping; a lookup object or a small `switch` is clearer.',
-          ],
-        },
-        { type: 'heading3', text: 'Follow-up questions interviewers ask' },
-        {
-          type: 'bullets',
-          items: [
-            'How do you choose the provider per request? — A separate selection policy (country, currency, feature flag, failover) that returns a name; keep it out of the strategies.',
-            'How would you add automatic failover to a second provider? — A composite or decorator strategy that tries the primary and falls back, only for errors that are safe to retry.',
-            'Where does idempotency live? — Pass an idempotency key into every strategy and persist it, so retries never double-charge regardless of provider.',
-            'Strategy vs polymorphism on the Order? — Behaviour depends on the provider, not the order, so the provider owns it.',
-          ],
-        },
-        { type: 'heading3', text: 'Common mistakes' },
-        {
-          type: 'bullets',
-          items: [
-            'Moving the `switch` into a factory but still switching on provider in refund and webhook code.',
-            'Returning raw SDK objects from strategies, which leaks provider types into the core.',
-            'Making the interface the union of every provider feature, so most methods throw "not supported".',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'important',
-          text: 'Senior signal: you name the real driver (the same branch repeated in several places and changing for different reasons), keep provider selection separate from provider behaviour, design the interface around the domain rather than the first SDK, and say when a plain `switch` is the better choice.',
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'Testing' },
+      {
+        type: 'bullets',
+        items: [
+          '`PaymentService` is tested with a fake `PaymentProvider` object: no SDK mocking, just "when the provider returns pending, we record pending".',
+          'Each provider class gets its own tests against the SDK (mocked client, or the provider sandbox in a slower contract suite).',
+          'A shared test suite run against every provider (a "contract test" for the interface) catches a provider that maps statuses differently.',
+        ],
+      },
+      { type: 'heading3', text: 'Trade-offs and when not to do it' },
+      {
+        type: 'bullets',
+        items: [
+          '**Benefit:** new providers are additive, ownership is clear, and provider-specific dependencies stay out of the core service.',
+          '**Cost:** more files and one level of indirection; reading the flow means jumping to the strategy class.',
+          '**Leaky interface risk:** if one provider needs a redirect step and others do not, a too-narrow interface forces hacks. Model the difference (`status: "requires_action"` with a `nextAction`) instead of adding provider checks back into the service.',
+          '**Do not** introduce Strategy for two stable branches or a simple value mapping; a lookup object or a small `switch` is clearer.',
+        ],
+      },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          'How do you choose the provider per request? — A separate selection policy (country, currency, feature flag, failover) that returns a name; keep it out of the strategies.',
+          'How would you add automatic failover to a second provider? — A composite or decorator strategy that tries the primary and falls back, only for errors that are safe to retry.',
+          'Where does idempotency live? — Pass an idempotency key into every strategy and persist it, so retries never double-charge regardless of provider.',
+          'Strategy vs polymorphism on the Order? — Behaviour depends on the provider, not the order, so the provider owns it.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          'Moving the `switch` into a factory but still switching on provider in refund and webhook code.',
+          'Returning raw SDK objects from strategies, which leaks provider types into the core.',
+          'Making the interface the union of every provider feature, so most methods throw "not supported".',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you name the real driver (the same branch repeated in several places and changing for different reasons), keep provider selection separate from provider behaviour, design the interface around the domain rather than the first SDK, and say when a plain `switch` is the better choice.',
+      },
+    ],
+  },
 
-  'When do you use a Factory or Abstract Factory, and when is it over-engineering?': {
+  'factory-vs-abstract-factory': {
     summary:
       'I use a Factory when creating an object involves a decision or non-trivial setup that callers should not repeat, such as picking an implementation from config or assembling a client with retries and credentials. An Abstract Factory creates a family of related objects that must match, like the storage, queue and secrets clients for AWS vs local development. In TypeScript, a plain function or the DI container usually covers this, so a factory class hierarchy is over-engineering unless there really are several families that vary together.',
     details: [
@@ -882,16 +878,15 @@ const infra: InfrastructureFactory =
     ],
   },
 
-  'How do the Adapter and Facade patterns help you integrate a third-party SDK you might replace later?':
-    {
-      summary:
-        'An Adapter makes a third-party SDK fit an interface that my application owns, translating names, types and errors at the boundary, so the rest of the code never imports the SDK. A Facade gives callers one simple entry point over a multi-step subsystem, such as upload, scan and generate a signed URL. Together they turn "replace the vendor" into rewriting one adapter and its tests, and they let me unit test business logic with a fake instead of mocking the SDK.',
-      details: [
-        { type: 'heading3', text: 'Before: the SDK leaks everywhere' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// documents.service.ts
+  'adapter-and-facade-around-a-third-party-sdk': {
+    summary:
+      'An Adapter makes a third-party SDK fit an interface that my application owns, translating names, types and errors at the boundary, so the rest of the code never imports the SDK. A Facade gives callers one simple entry point over a multi-step subsystem, such as upload, scan and generate a signed URL. Together they turn "replace the vendor" into rewriting one adapter and its tests, and they let me unit test business logic with a fake instead of mocking the SDK.',
+    details: [
+      { type: 'heading3', text: 'Before: the SDK leaks everywhere' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// documents.service.ts
 import { S3Client, PutObjectCommand, S3ServiceException } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
@@ -903,16 +898,16 @@ async upload(file: Express.Multer.File, userId: string) {
     throw e;
   }
 }`,
-        },
-        {
-          type: 'paragraph',
-          text: 'AWS types, command classes and error names are spread across services and tests. Moving to Google Cloud Storage, or even upgrading the SDK, touches every file that uploads.',
-        },
-        { type: 'heading3', text: 'Adapter: my interface, their SDK' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// application-owned port
+      },
+      {
+        type: 'paragraph',
+        text: 'AWS types, command classes and error names are spread across services and tests. Moving to Google Cloud Storage, or even upgrading the SDK, touches every file that uploads.',
+      },
+      { type: 'heading3', text: 'Adapter: my interface, their SDK' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// application-owned port
 export interface ObjectStorage {
   put(key: string, body: Buffer | Readable, contentType: string): Promise<void>;
   signedReadUrl(key: string, expiresInSeconds: number): Promise<string>;
@@ -948,16 +943,16 @@ export class S3ObjectStorage implements ObjectStorage {
     return e as Error;
   }
 }`,
-        },
-        {
-          type: 'paragraph',
-          text: 'A `GcsObjectStorage` implements the same interface. Error translation matters as much as method translation: callers catch `StorageUnavailableError`, not vendor exceptions, and the original stays available as `cause` for logs.',
-        },
-        { type: 'heading3', text: 'Facade: one call for a multi-step workflow' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export class DocumentStore {
+      },
+      {
+        type: 'paragraph',
+        text: 'A `GcsObjectStorage` implements the same interface. Error translation matters as much as method translation: callers catch `StorageUnavailableError`, not vendor exceptions, and the original stays available as `cause` for logs.',
+      },
+      { type: 'heading3', text: 'Facade: one call for a multi-step workflow' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export class DocumentStore {
   constructor(
     private readonly storage: ObjectStorage,
     private readonly scanner: VirusScanner,
@@ -973,66 +968,65 @@ export class S3ObjectStorage implements ObjectStorage {
     return { id, url: await this.storage.signedReadUrl(key, 900) };
   }
 }`,
-        },
-        {
-          type: 'paragraph',
-          text: 'Controllers call `documentStore.save()` and never coordinate scanner, storage and repository themselves. This is the same idea as the Angular facade described in the Architecture topic, applied on the server.',
-        },
-        { type: 'heading3', text: 'Testing' },
-        {
-          type: 'bullets',
-          items: [
-            'Business logic and the facade use an `InMemoryObjectStorage` fake: fast, deterministic, no SDK mocks.',
-            'The adapter has a small integration suite against the real service or an emulator (MinIO or LocalStack for S3, the GCS emulator), including error translation.',
-            'Run the same contract tests against every adapter to prove they behave alike (for example, deleting a missing key is not an error).',
-          ],
-        },
-        { type: 'heading3', text: 'When not to bother' },
-        {
-          type: 'bullets',
-          items: [
-            'A throwaway script or a tiny service where the SDK is used in one place.',
-            'Wrapping every SDK method one-to-one: that is a pass-through, not an adapter. Define only the operations your domain needs.',
-            'Pretending vendors are interchangeable when they are not: if you rely on a unique feature (S3 Object Lock, for example), say so in the interface rather than hiding it.',
-          ],
-        },
-        { type: 'heading3', text: 'Follow-up questions interviewers ask' },
-        {
-          type: 'bullets',
-          items: [
-            'How is this related to hexagonal architecture? — The interface is a port owned by the application, and the SDK wrapper is an adapter on the outside.',
-            'Adapter vs Facade in one sentence? — Adapter changes an interface to one you expect; Facade simplifies several interfaces behind one.',
-            'How would you migrate from S3 to GCS with no downtime? — Dual-write through a composite adapter, backfill, switch reads, then remove the old adapter.',
-            'Where do retries go? — Inside the adapter or in a decorator around it, with SDK-level retry settings configured once.',
-          ],
-        },
-        { type: 'heading3', text: 'Common mistakes' },
-        {
-          type: 'bullets',
-          items: [
-            'Returning SDK response types from the adapter, so vendor types leak back in.',
-            'Letting vendor exceptions escape, which forces callers to know the vendor anyway.',
-            'Designing the interface from the first SDK, so the second vendor does not fit.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'important',
-          text: 'Senior signal: you keep the SDK import in one file, own the interface and the error types, translate errors with `cause`, back adapters with contract tests, and are honest about vendor-specific features instead of over-abstracting.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'paragraph',
+        text: 'Controllers call `documentStore.save()` and never coordinate scanner, storage and repository themselves. This is the same idea as the Angular facade described in the Architecture topic, applied on the server.',
+      },
+      { type: 'heading3', text: 'Testing' },
+      {
+        type: 'bullets',
+        items: [
+          'Business logic and the facade use an `InMemoryObjectStorage` fake: fast, deterministic, no SDK mocks.',
+          'The adapter has a small integration suite against the real service or an emulator (MinIO or LocalStack for S3, the GCS emulator), including error translation.',
+          'Run the same contract tests against every adapter to prove they behave alike (for example, deleting a missing key is not an error).',
+        ],
+      },
+      { type: 'heading3', text: 'When not to bother' },
+      {
+        type: 'bullets',
+        items: [
+          'A throwaway script or a tiny service where the SDK is used in one place.',
+          'Wrapping every SDK method one-to-one: that is a pass-through, not an adapter. Define only the operations your domain needs.',
+          'Pretending vendors are interchangeable when they are not: if you rely on a unique feature (S3 Object Lock, for example), say so in the interface rather than hiding it.',
+        ],
+      },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          'How is this related to hexagonal architecture? — The interface is a port owned by the application, and the SDK wrapper is an adapter on the outside.',
+          'Adapter vs Facade in one sentence? — Adapter changes an interface to one you expect; Facade simplifies several interfaces behind one.',
+          'How would you migrate from S3 to GCS with no downtime? — Dual-write through a composite adapter, backfill, switch reads, then remove the old adapter.',
+          'Where do retries go? — Inside the adapter or in a decorator around it, with SDK-level retry settings configured once.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          'Returning SDK response types from the adapter, so vendor types leak back in.',
+          'Letting vendor exceptions escape, which forces callers to know the vendor anyway.',
+          'Designing the interface from the first SDK, so the second vendor does not fit.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you keep the SDK import in one file, own the interface and the error types, translate errors with `cause`, back adapters with contract tests, and are honest about vendor-specific features instead of over-abstracting.',
+      },
+    ],
+  },
 
-  'How do you add cross-cutting behaviour (caching, retries, logging) with the Decorator pattern without changing the original class?':
-    {
-      summary:
-        'I wrap the object in another object that implements the same interface, adds one behaviour such as caching, retries or timing, and delegates the real work to the wrapped instance. Each decorator does one thing, so I can stack them in the composition root (logging around retry around caching around the repository) and test each in isolation. The original class stays focused on its job, and the order of decorators becomes an explicit, reviewable decision.',
-      details: [
-        { type: 'heading3', text: 'Before: concerns tangled into the repository' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export class ProductRepository {
+  'cross-cutting-concerns-with-decorator': {
+    summary:
+      'I wrap the object in another object that implements the same interface, adds one behaviour such as caching, retries or timing, and delegates the real work to the wrapped instance. Each decorator does one thing, so I can stack them in the composition root (logging around retry around caching around the repository) and test each in isolation. The original class stays focused on its job, and the order of decorators becomes an explicit, reviewable decision.',
+    details: [
+      { type: 'heading3', text: 'Before: concerns tangled into the repository' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export class ProductRepository {
   async findById(id: string): Promise<Product | null> {
     const cached = await redis.get('product:' + id);
     if (cached) return JSON.parse(cached);
@@ -1049,16 +1043,16 @@ export class S3ObjectStorage implements ObjectStorage {
     }
   }
 }`,
-        },
-        {
-          type: 'paragraph',
-          text: 'Data access, caching, retry and metrics are mixed in one method, repeated in every other method, and impossible to test separately.',
-        },
-        { type: 'heading3', text: 'After: one interface, small decorators' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export interface ProductReader {
+      },
+      {
+        type: 'paragraph',
+        text: 'Data access, caching, retry and metrics are mixed in one method, repeated in every other method, and impossible to test separately.',
+      },
+      { type: 'heading3', text: 'After: one interface, small decorators' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export interface ProductReader {
   findById(id: string): Promise<Product | null>;
 }
 
@@ -1100,12 +1094,12 @@ export class TimedProductReader implements ProductReader {
     }
   }
 }`,
-        },
-        { type: 'heading3', text: 'Wiring: the order is the design' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `const productReader: ProductReader = new TimedProductReader(
+      },
+      { type: 'heading3', text: 'Wiring: the order is the design' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `const productReader: ProductReader = new TimedProductReader(
   new CachedProductReader(
     new RetryingProductReader(new MongoProductReader(db.collection('products')), retryPolicy),
     redisCache,
@@ -1120,84 +1114,83 @@ export class TimedProductReader implements ProductReader {
     new TimedProductReader(new CachedProductReader(new RetryingProductReader(new MongoProductReader(db.collection('products')), defaultRetry), cache), metrics),
   inject: [MONGO_DB, CACHE, METRICS],
 }`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Retry sits inside the cache, so a cache hit never triggers database retries.',
-            'Timing is outermost, so it measures what callers actually experience, including cache hits.',
-            'Swapping the order is a one-line change in one place, which is the point.',
-          ],
-        },
-        { type: 'heading3', text: 'TypeScript decorators vs the Decorator pattern' },
-        {
-          type: 'paragraph',
-          text: 'A method decorator such as `@Cacheable()` or a NestJS interceptor is a different mechanism with the same goal. Language decorators are convenient for uniform concerns across many classes, but they hide behaviour at the definition site and are harder to order and to switch per environment. Object decorators are plain code, explicit at wiring time, and need no framework. For HTTP-level concerns in Nest, interceptors are the idiomatic choice; for repository and client concerns, I prefer object decorators.',
-        },
-        { type: 'heading3', text: 'Testing' },
-        {
-          type: 'bullets',
-          items: [
-            '`CachedProductReader` with a fake inner reader and an in-memory cache: assert the inner reader is called once for two reads.',
-            '`RetryingProductReader` with an inner reader that fails twice then succeeds, and a policy with zero delay.',
-            'One integration test of the assembled chain to catch ordering mistakes.',
-          ],
-        },
-        { type: 'heading3', text: 'When not to use it' },
-        {
-          type: 'bullets',
-          items: [
-            'Interfaces with many methods, where every decorator must forward 15 methods; consider a narrower interface or a generic proxy.',
-            'When the concern needs internal state of the class (for example, caching partial results inside a computation).',
-            'Deep stacks nobody can read; if the chain grows past four or five, document it or group concerns.',
-          ],
-        },
-        { type: 'heading3', text: 'Follow-up questions interviewers ask' },
-        {
-          type: 'bullets',
-          items: [
-            'How do you invalidate the cache on writes? — A write-side decorator or the writer itself deletes or versions the key; see the cache invalidation answer.',
-            'Decorator vs Proxy? — Same structure; a proxy controls access (lazy loading, permissions), a decorator adds behaviour.',
-            'How would you avoid writing forwarding code? — A generic helper using `Proxy`, at the cost of type clarity and debuggability.',
-            'What should never be retried here? — Non-idempotent writes without an idempotency key, and validation or not-found errors.',
-          ],
-        },
-        { type: 'heading3', text: 'Common mistakes' },
-        {
-          type: 'bullets',
-          items: [
-            'Putting retry outside the cache, so cache failures cause database retries.',
-            'Caching `null` results forever or not at all, without deciding on negative caching.',
-            'Decorators that change the contract (swallowing errors, returning stale data silently) without making it explicit.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'important',
-          text: 'Senior signal: you keep each concern in its own wrapper behind the same interface, treat decorator order as a deliberate decision you can explain, compare object decorators with framework interceptors and language decorators, and test each layer plus the assembled chain.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Retry sits inside the cache, so a cache hit never triggers database retries.',
+          'Timing is outermost, so it measures what callers actually experience, including cache hits.',
+          'Swapping the order is a one-line change in one place, which is the point.',
+        ],
+      },
+      { type: 'heading3', text: 'TypeScript decorators vs the Decorator pattern' },
+      {
+        type: 'paragraph',
+        text: 'A method decorator such as `@Cacheable()` or a NestJS interceptor is a different mechanism with the same goal. Language decorators are convenient for uniform concerns across many classes, but they hide behaviour at the definition site and are harder to order and to switch per environment. Object decorators are plain code, explicit at wiring time, and need no framework. For HTTP-level concerns in Nest, interceptors are the idiomatic choice; for repository and client concerns, I prefer object decorators.',
+      },
+      { type: 'heading3', text: 'Testing' },
+      {
+        type: 'bullets',
+        items: [
+          '`CachedProductReader` with a fake inner reader and an in-memory cache: assert the inner reader is called once for two reads.',
+          '`RetryingProductReader` with an inner reader that fails twice then succeeds, and a policy with zero delay.',
+          'One integration test of the assembled chain to catch ordering mistakes.',
+        ],
+      },
+      { type: 'heading3', text: 'When not to use it' },
+      {
+        type: 'bullets',
+        items: [
+          'Interfaces with many methods, where every decorator must forward 15 methods; consider a narrower interface or a generic proxy.',
+          'When the concern needs internal state of the class (for example, caching partial results inside a computation).',
+          'Deep stacks nobody can read; if the chain grows past four or five, document it or group concerns.',
+        ],
+      },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          'How do you invalidate the cache on writes? — A write-side decorator or the writer itself deletes or versions the key; see the cache invalidation answer.',
+          'Decorator vs Proxy? — Same structure; a proxy controls access (lazy loading, permissions), a decorator adds behaviour.',
+          'How would you avoid writing forwarding code? — A generic helper using `Proxy`, at the cost of type clarity and debuggability.',
+          'What should never be retried here? — Non-idempotent writes without an idempotency key, and validation or not-found errors.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          'Putting retry outside the cache, so cache failures cause database retries.',
+          'Caching `null` results forever or not at all, without deciding on negative caching.',
+          'Decorators that change the contract (swallowing errors, returning stale data silently) without making it explicit.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you keep each concern in its own wrapper behind the same interface, treat decorator order as a deliberate decision you can explain, compare object decorators with framework interceptors and language decorators, and test each layer plus the assembled chain.',
+      },
+    ],
+  },
 
-  'You inherit a 600-line "god service". How do you refactor it safely, and what do you extract first?':
-    {
-      summary:
-        'I start by pinning current behaviour with characterization tests at the service boundary, because I cannot refactor safely what I cannot verify. Then I map responsibilities and pick the extraction with the best value-to-risk ratio, usually pure logic such as pricing or validation first, then I/O behind interfaces. I move in small, behaviour-preserving PRs, route callers to the new pieces gradually, and measure progress so the refactor can stop at any point without leaving the code worse.',
-      details: [
-        { type: 'heading3', text: 'Step 1: understand before touching' },
-        {
-          type: 'bullets',
-          items: [
-            'List what the service does and who calls each method; group methods by responsibility (pricing, inventory, notifications, persistence, provider calls).',
-            'Use git history to find hotspots: the methods that change most often and cause the most bugs are where refactoring pays.',
-            'Note hidden dependencies: module-level singletons, `Date.now()`, `process.env`, direct SDK calls.',
-          ],
-        },
-        { type: 'heading3', text: 'Step 2: characterization tests' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Pin what the code does today, even if it looks wrong
+  'refactoring-a-600-line-god-service': {
+    summary:
+      'I start by pinning current behaviour with characterization tests at the service boundary, because I cannot refactor safely what I cannot verify. Then I map responsibilities and pick the extraction with the best value-to-risk ratio, usually pure logic such as pricing or validation first, then I/O behind interfaces. I move in small, behaviour-preserving PRs, route callers to the new pieces gradually, and measure progress so the refactor can stop at any point without leaving the code worse.',
+    details: [
+      { type: 'heading3', text: 'Step 1: understand before touching' },
+      {
+        type: 'bullets',
+        items: [
+          'List what the service does and who calls each method; group methods by responsibility (pricing, inventory, notifications, persistence, provider calls).',
+          'Use git history to find hotspots: the methods that change most often and cause the most bugs are where refactoring pays.',
+          'Note hidden dependencies: module-level singletons, `Date.now()`, `process.env`, direct SDK calls.',
+        ],
+      },
+      { type: 'heading3', text: 'Step 2: characterization tests' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Pin what the code does today, even if it looks wrong
 describe('OrderService.placeOrder (characterization)', () => {
   it('applies the loyalty discount after the coupon', async () => {
     const { service, db, mailer } = buildLegacyService({ now: new Date('2026-01-10T10:00:00Z') });
@@ -1210,16 +1203,16 @@ describe('OrderService.placeOrder (characterization)', () => {
     expect(db.collection('inventory').find(keyboard.sku).reserved).toBe(2);
   });
 });`,
-        },
-        {
-          type: 'paragraph',
-          text: 'These tests run against the public methods with fakes or a real test database, not against internals, so they survive the refactor. If a result looks like a bug, I record it, file it, and fix it in a separate PR, so behaviour changes are never hidden inside a refactor.',
-        },
-        { type: 'heading3', text: 'Step 3: create seams' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Before: hard-wired dependencies
+      },
+      {
+        type: 'paragraph',
+        text: 'These tests run against the public methods with fakes or a real test database, not against internals, so they survive the refactor. If a result looks like a bug, I record it, file it, and fix it in a separate PR, so behaviour changes are never hidden inside a refactor.',
+      },
+      { type: 'heading3', text: 'Step 3: create seams' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Before: hard-wired dependencies
 export class OrderService {
   async placeOrder(userId: string, items: Item[], coupon?: string) {
     const now = new Date();
@@ -1235,100 +1228,99 @@ export class OrderService {
     private readonly clock: Clock = systemClock,
   ) {}
 }`,
-        },
-        {
-          type: 'paragraph',
-          text: 'Seams (constructor injection of repositories, clock, SDK clients) are the cheapest early change and make every later step testable.',
-        },
-        { type: 'heading3', text: 'Step 4: extract in this order' },
-        {
-          type: 'numbered',
-          items: [
-            '**Pure logic first:** pricing, discount rules and validation become pure functions or a `PricingPolicy` class. No I/O, easy to test exhaustively, low risk.',
-            '**Data access next:** queries move into repositories so the service stops building Mongo queries inline.',
-            '**External calls:** payment, email and storage go behind interfaces (adapters), which also removes SDK mocks from tests.',
-            '**Workflows last:** the remaining orchestration becomes thin use-case classes (`PlaceOrder`, `CancelOrder`), each small enough to read in one screen.',
-          ],
-        },
-        {
-          type: 'paragraph',
-          text: 'The old `OrderService` methods temporarily delegate to the new classes, so callers keep working. That is a strangler inside the codebase: new code uses the use cases directly, old call sites migrate over time, and the god service shrinks until it can be deleted.',
-        },
-        { type: 'heading3', text: 'Keeping it safe in production' },
-        {
-          type: 'bullets',
-          items: [
-            'Small PRs, each one a single behaviour-preserving move, reviewed and deployed separately.',
-            'For risky paths (pricing, payments), run old and new code side by side behind a feature flag and compare results in logs before switching (a shadow comparison).',
-            'Watch error rates and key business metrics after each deploy; keep rollback a flag flip.',
-            'Agree with the team on the target structure and a lint rule (for example, controllers may not import repositories) so the new layout does not decay.',
-          ],
-        },
-        { type: 'heading3', text: 'Measuring progress' },
-        {
-          type: 'bullets',
-          items: [
-            'Lines and dependencies left in the god service, and the number of call sites still using it.',
-            'Test coverage on the extracted modules and the time the test suite takes.',
-            'Change failure rate and lead time for changes in this area, before and after.',
-          ],
-        },
-        { type: 'heading3', text: 'Follow-up questions interviewers ask' },
-        {
-          type: 'bullets',
-          items: [
-            'How do you justify the time to your manager? — Tie it to hotspot data: bug count, slow changes, incidents in this code, and deliver it alongside feature work.',
-            'Rewrite or refactor? — Refactor incrementally unless the code is small and fully covered; big-bang rewrites lose undocumented behaviour.',
-            'What if there are no tests and no time to write many? — Cover the single most critical path end to end, then add tests for each piece as you extract it.',
-            'How do you stop it from growing back? — Clear module boundaries, lint rules on imports, and code review guidance.',
-          ],
-        },
-        { type: 'heading3', text: 'Common mistakes' },
-        {
-          type: 'bullets',
-          items: [
-            'Refactoring and fixing bugs in the same PR, so nobody can tell whether a behaviour change was intended.',
-            'Extracting by layer ("all helpers") instead of by responsibility, producing new god classes.',
-            'A long-lived refactor branch that never merges.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'important',
-          text: 'Senior signal: you lead with safety (characterization tests and seams), prioritize by hotspots and risk, extract pure logic before I/O, keep every step shippable and reversible, and can explain how you measured that the refactor paid off.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'paragraph',
+        text: 'Seams (constructor injection of repositories, clock, SDK clients) are the cheapest early change and make every later step testable.',
+      },
+      { type: 'heading3', text: 'Step 4: extract in this order' },
+      {
+        type: 'numbered',
+        items: [
+          '**Pure logic first:** pricing, discount rules and validation become pure functions or a `PricingPolicy` class. No I/O, easy to test exhaustively, low risk.',
+          '**Data access next:** queries move into repositories so the service stops building Mongo queries inline.',
+          '**External calls:** payment, email and storage go behind interfaces (adapters), which also removes SDK mocks from tests.',
+          '**Workflows last:** the remaining orchestration becomes thin use-case classes (`PlaceOrder`, `CancelOrder`), each small enough to read in one screen.',
+        ],
+      },
+      {
+        type: 'paragraph',
+        text: 'The old `OrderService` methods temporarily delegate to the new classes, so callers keep working. That is a strangler inside the codebase: new code uses the use cases directly, old call sites migrate over time, and the god service shrinks until it can be deleted.',
+      },
+      { type: 'heading3', text: 'Keeping it safe in production' },
+      {
+        type: 'bullets',
+        items: [
+          'Small PRs, each one a single behaviour-preserving move, reviewed and deployed separately.',
+          'For risky paths (pricing, payments), run old and new code side by side behind a feature flag and compare results in logs before switching (a shadow comparison).',
+          'Watch error rates and key business metrics after each deploy; keep rollback a flag flip.',
+          'Agree with the team on the target structure and a lint rule (for example, controllers may not import repositories) so the new layout does not decay.',
+        ],
+      },
+      { type: 'heading3', text: 'Measuring progress' },
+      {
+        type: 'bullets',
+        items: [
+          'Lines and dependencies left in the god service, and the number of call sites still using it.',
+          'Test coverage on the extracted modules and the time the test suite takes.',
+          'Change failure rate and lead time for changes in this area, before and after.',
+        ],
+      },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          'How do you justify the time to your manager? — Tie it to hotspot data: bug count, slow changes, incidents in this code, and deliver it alongside feature work.',
+          'Rewrite or refactor? — Refactor incrementally unless the code is small and fully covered; big-bang rewrites lose undocumented behaviour.',
+          'What if there are no tests and no time to write many? — Cover the single most critical path end to end, then add tests for each piece as you extract it.',
+          'How do you stop it from growing back? — Clear module boundaries, lint rules on imports, and code review guidance.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          'Refactoring and fixing bugs in the same PR, so nobody can tell whether a behaviour change was intended.',
+          'Extracting by layer ("all helpers") instead of by responsibility, producing new god classes.',
+          'A long-lived refactor branch that never merges.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you lead with safety (characterization tests and seams), prioritize by hotspots and risk, extract pure logic before I/O, keep every step shippable and reversible, and can explain how you measured that the refactor paid off.',
+      },
+    ],
+  },
 
-  'Design a parking lot system (LLD): entities, classes, relationships and how it handles concurrency.':
-    {
-      summary:
-        'I start by scoping: a multi-floor lot with spot sizes (motorcycle, compact, large), entry and exit gates that issue tickets, an hourly pricing rule and a live availability count. I model `ParkingLot` → `Floor` → `ParkingSpot`, with `Ticket` linking a `Vehicle` to a spot, a `SpotAllocationStrategy` to choose spots and a `PricingStrategy` to compute fees. The concurrency problem is two gates grabbing the same spot, so allocation must be an atomic claim, either a conditional database update or a lock, never a read-then-write.',
-      details: [
-        { type: 'heading3', text: '1. Clarifying questions and scope' },
-        {
-          type: 'bullets',
-          items: [
-            'How many floors and gates? Several of each, so allocation happens concurrently.',
-            'Which vehicle types and spot sizes? Motorcycle, car, truck; spots are SMALL, COMPACT, LARGE. A smaller vehicle may use a bigger spot.',
-            'Pricing? Hourly, rounded up, different rates per spot size. Must be easy to change (weekend rates, flat fee).',
-            'Payment, reservations, EV charging? Out of scope for v1, but the design should not block them.',
-            'Does it run on one machine or as a service? Assume a backend service with a database, several gate devices calling it.',
-          ],
-        },
-        { type: 'heading3', text: '2. Entities and use cases' },
-        {
-          type: 'bullets',
-          items: [
-            '**Use cases:** vehicle enters → get a ticket with an assigned spot; vehicle exits → pay fee, spot freed; show free spots per floor and size.',
-            '**Entities:** `ParkingLot`, `Floor`, `ParkingSpot`, `Vehicle`, `Ticket`, `Gate`, plus two strategies: `SpotAllocationStrategy` and `PricingStrategy`.',
-            '**Value types:** `SpotSize`, `VehicleType`, `TicketStatus` as string-literal unions, not classes.',
-          ],
-        },
-        {
-          type: 'flow',
-          title: 'Parking lot class diagram',
-          code: `classDiagram
+  'design-a-parking-lot': {
+    summary:
+      'I start by scoping: a multi-floor lot with spot sizes (motorcycle, compact, large), entry and exit gates that issue tickets, an hourly pricing rule and a live availability count. I model `ParkingLot` → `Floor` → `ParkingSpot`, with `Ticket` linking a `Vehicle` to a spot, a `SpotAllocationStrategy` to choose spots and a `PricingStrategy` to compute fees. The concurrency problem is two gates grabbing the same spot, so allocation must be an atomic claim, either a conditional database update or a lock, never a read-then-write.',
+    details: [
+      { type: 'heading3', text: '1. Clarifying questions and scope' },
+      {
+        type: 'bullets',
+        items: [
+          'How many floors and gates? Several of each, so allocation happens concurrently.',
+          'Which vehicle types and spot sizes? Motorcycle, car, truck; spots are SMALL, COMPACT, LARGE. A smaller vehicle may use a bigger spot.',
+          'Pricing? Hourly, rounded up, different rates per spot size. Must be easy to change (weekend rates, flat fee).',
+          'Payment, reservations, EV charging? Out of scope for v1, but the design should not block them.',
+          'Does it run on one machine or as a service? Assume a backend service with a database, several gate devices calling it.',
+        ],
+      },
+      { type: 'heading3', text: '2. Entities and use cases' },
+      {
+        type: 'bullets',
+        items: [
+          '**Use cases:** vehicle enters → get a ticket with an assigned spot; vehicle exits → pay fee, spot freed; show free spots per floor and size.',
+          '**Entities:** `ParkingLot`, `Floor`, `ParkingSpot`, `Vehicle`, `Ticket`, `Gate`, plus two strategies: `SpotAllocationStrategy` and `PricingStrategy`.',
+          '**Value types:** `SpotSize`, `VehicleType`, `TicketStatus` as string-literal unions, not classes.',
+        ],
+      },
+      {
+        type: 'flow',
+        title: 'Parking lot class diagram',
+        code: `classDiagram
   class ParkingLot {
     +floors Floor[]
     +park(vehicle) Ticket
@@ -1372,13 +1364,13 @@ export class OrderService {
   ParkingLot --> PricingStrategy
   NearestFirstStrategy ..|> SpotAllocationStrategy
   HourlyPricing ..|> PricingStrategy`,
-          text: 'Composition for the physical structure (a floor cannot exist without its lot); strategies are injected so allocation and pricing change without touching ParkingLot.',
-        },
-        { type: 'heading3', text: '3. Core types and classes' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `type SpotSize = 'SMALL' | 'COMPACT' | 'LARGE';
+        text: 'Composition for the physical structure (a floor cannot exist without its lot); strategies are injected so allocation and pricing change without touching ParkingLot.',
+      },
+      { type: 'heading3', text: '3. Core types and classes' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `type SpotSize = 'SMALL' | 'COMPACT' | 'LARGE';
 type VehicleType = 'MOTORCYCLE' | 'CAR' | 'TRUCK';
 
 const MIN_SPOT: Record<VehicleType, SpotSize> = {
@@ -1424,15 +1416,15 @@ class HourlyPricing implements PricingStrategy {
     return hours * this.ratePerHour[size];
   }
 }`,
-        },
-        {
-          type: 'paragraph',
-          text: 'Persistence sits behind a repository interface. The important method is `claim`, which must succeed for exactly one caller:',
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `interface SpotRepository {
+      },
+      {
+        type: 'paragraph',
+        text: 'Persistence sits behind a repository interface. The important method is `claim`, which must succeed for exactly one caller:',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `interface SpotRepository {
   findFree(size?: SpotSize): Promise<ParkingSpot[]>;
   /** Atomically marks the spot occupied. Returns false if someone else got it first. */
   claim(spotId: string, ticketId: string): Promise<boolean>;
@@ -1470,37 +1462,37 @@ class ParkingLotService {
     return { ticketId, fee, exitAt };
   }
 }`,
-        },
-        { type: 'heading3', text: '4. Walking through "a car enters"' },
-        {
-          type: 'numbered',
-          items: [
-            'Gate calls `park(new Vehicle("KA01AB1234", "CAR"))`.',
-            '`findFree()` returns free spots; `NearestFirstStrategy` filters to COMPACT and LARGE and orders COMPACT on floor 0 first.',
-            '`claim(spotId, ticketId)` runs a conditional update. If it returns false (another gate won), the loop tries the next spot.',
-            'A ticket is created with entry time and spot; the gate prints it.',
-          ],
-        },
-        { type: 'heading3', text: '5. Patterns and why' },
-        {
-          type: 'bullets',
-          items: [
-            '**Strategy** for allocation and pricing: they are the parts the business changes most (EV-first, VIP floors, weekend rates).',
-            '**Repository** so the domain does not know about SQL or MongoDB, and tests can use an in-memory fake.',
-            '**Injected clock** so pricing is testable without waiting hours.',
-            '**State** (optional) for `Ticket`: ACTIVE → PAID → CLOSED, rejecting invalid transitions such as exiting twice.',
-            'I avoid a `Singleton` ParkingLot: it makes testing and multi-lot support harder; one instance wired at the composition root is enough.',
-          ],
-        },
-        { type: 'heading3', text: '6. Concurrency' },
-        {
-          type: 'paragraph',
-          text: 'Node runs JavaScript on one thread, but `await` points interleave requests, and in production there are several instances. So "check if free, then mark occupied" is a race even on one process. The claim must be a single atomic operation in the shared store:',
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// MongoDB: only one caller can match occupiedBy: null
+      },
+      { type: 'heading3', text: '4. Walking through "a car enters"' },
+      {
+        type: 'numbered',
+        items: [
+          'Gate calls `park(new Vehicle("KA01AB1234", "CAR"))`.',
+          '`findFree()` returns free spots; `NearestFirstStrategy` filters to COMPACT and LARGE and orders COMPACT on floor 0 first.',
+          '`claim(spotId, ticketId)` runs a conditional update. If it returns false (another gate won), the loop tries the next spot.',
+          'A ticket is created with entry time and spot; the gate prints it.',
+        ],
+      },
+      { type: 'heading3', text: '5. Patterns and why' },
+      {
+        type: 'bullets',
+        items: [
+          '**Strategy** for allocation and pricing: they are the parts the business changes most (EV-first, VIP floors, weekend rates).',
+          '**Repository** so the domain does not know about SQL or MongoDB, and tests can use an in-memory fake.',
+          '**Injected clock** so pricing is testable without waiting hours.',
+          '**State** (optional) for `Ticket`: ACTIVE → PAID → CLOSED, rejecting invalid transitions such as exiting twice.',
+          'I avoid a `Singleton` ParkingLot: it makes testing and multi-lot support harder; one instance wired at the composition root is enough.',
+        ],
+      },
+      { type: 'heading3', text: '6. Concurrency' },
+      {
+        type: 'paragraph',
+        text: 'Node runs JavaScript on one thread, but `await` points interleave requests, and in production there are several instances. So "check if free, then mark occupied" is a race even on one process. The claim must be a single atomic operation in the shared store:',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// MongoDB: only one caller can match occupiedBy: null
 async claim(spotId: string, ticketId: string) {
   const res = await this.col.updateOne(
     { _id: spotId, occupiedBy: null },
@@ -1511,87 +1503,86 @@ async claim(spotId: string, ticketId: string) {
 
 // SQL equivalent:
 // UPDATE spots SET occupied_by = $2 WHERE id = $1 AND occupied_by IS NULL;  -- rowCount === 1`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'An in-memory mutex only works for one process; I would not rely on it.',
-            'Under heavy contention, many gates may chase the same "best" spot. Randomising among the top N candidates reduces collisions.',
-            'Exit must be idempotent: a retried exit request on a CLOSED ticket returns the existing receipt instead of charging twice.',
-            'Availability counters are derived (count of free spots) or updated in the same atomic operation, so the display board never drifts.',
-          ],
-        },
-        { type: 'heading3', text: '7. Extensibility and testing' },
-        {
-          type: 'bullets',
-          items: [
-            'New vehicle type (e.g. EV): add to `VehicleType` and `MIN_SPOT`; an `EvFirstStrategy` prefers charger spots. No change to `ParkingLotService`.',
-            'Reservations: a `Reservation` claims a spot with a time window, using the same atomic claim.',
-            'Unit tests: strategies are pure functions, easy to test with tables of inputs.',
-            'Concurrency test: run 50 parallel `park()` calls against a lot with 10 spots and a real database (Testcontainers); assert exactly 10 tickets and 40 `LotFullError`s.',
-          ],
-        },
-        { type: 'heading3', text: 'Follow-up questions interviewers ask' },
-        {
-          type: 'bullets',
-          items: [
-            'How would you add reservations? — A reservation claims a spot for a window; entry converts it into a ticket; expired reservations are released by a job.',
-            'What if the database is down at the gate? — Fail safe: open the barrier and issue an offline ticket with entry time, reconcile later; never trap cars.',
-            'How do you show live availability on displays? — Publish spot-changed events after each claim/release; displays subscribe instead of polling.',
-            'Why not one class per vehicle type (Car extends Vehicle)? — The types differ only by data (minimum spot size), so a type field plus a lookup table is simpler than an inheritance tree.',
-          ],
-        },
-        { type: 'heading3', text: 'Common mistakes' },
-        {
-          type: 'bullets',
-          items: [
-            'Jumping into code before agreeing on scope and use cases.',
-            'A deep inheritance tree (Car, Truck, Bike, CompactSpot, LargeSpot) where data would do.',
-            'Checking availability and then updating in two steps, which double-allocates under concurrency.',
-            'Hard-coding pricing inside the exit method.',
-            'Making ParkingLot a global singleton, which blocks testing and multiple lots.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'important',
-          text: 'Senior signal: you scope before modelling, keep the model small (data over inheritance), isolate what changes behind strategies, and you identify the double-allocation race and solve it with an atomic conditional update that works across processes, then prove it with a concurrency test.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          'An in-memory mutex only works for one process; I would not rely on it.',
+          'Under heavy contention, many gates may chase the same "best" spot. Randomising among the top N candidates reduces collisions.',
+          'Exit must be idempotent: a retried exit request on a CLOSED ticket returns the existing receipt instead of charging twice.',
+          'Availability counters are derived (count of free spots) or updated in the same atomic operation, so the display board never drifts.',
+        ],
+      },
+      { type: 'heading3', text: '7. Extensibility and testing' },
+      {
+        type: 'bullets',
+        items: [
+          'New vehicle type (e.g. EV): add to `VehicleType` and `MIN_SPOT`; an `EvFirstStrategy` prefers charger spots. No change to `ParkingLotService`.',
+          'Reservations: a `Reservation` claims a spot with a time window, using the same atomic claim.',
+          'Unit tests: strategies are pure functions, easy to test with tables of inputs.',
+          'Concurrency test: run 50 parallel `park()` calls against a lot with 10 spots and a real database (Testcontainers); assert exactly 10 tickets and 40 `LotFullError`s.',
+        ],
+      },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          'How would you add reservations? — A reservation claims a spot for a window; entry converts it into a ticket; expired reservations are released by a job.',
+          'What if the database is down at the gate? — Fail safe: open the barrier and issue an offline ticket with entry time, reconcile later; never trap cars.',
+          'How do you show live availability on displays? — Publish spot-changed events after each claim/release; displays subscribe instead of polling.',
+          'Why not one class per vehicle type (Car extends Vehicle)? — The types differ only by data (minimum spot size), so a type field plus a lookup table is simpler than an inheritance tree.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          'Jumping into code before agreeing on scope and use cases.',
+          'A deep inheritance tree (Car, Truck, Bike, CompactSpot, LargeSpot) where data would do.',
+          'Checking availability and then updating in two steps, which double-allocates under concurrency.',
+          'Hard-coding pricing inside the exit method.',
+          'Making ParkingLot a global singleton, which blocks testing and multiple lots.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you scope before modelling, keep the model small (data over inheritance), isolate what changes behind strategies, and you identify the double-allocation race and solve it with an atomic conditional update that works across processes, then prove it with a concurrency test.',
+      },
+    ],
+  },
 
-  'Design a rate-limiter library with pluggable algorithms (LLD): interfaces, classes and how you test it.':
-    {
-      summary:
-        'I design it as a small library with one core interface, `RateLimiter.consume(key, cost)`, that returns allowed or denied plus the headers a caller needs (remaining, retry-after). Algorithms (fixed window, sliding window, token bucket) are strategies, and storage is a separate `RateLimitStore` interface, so the same algorithm runs in memory for tests and on Redis in production. Framework adapters (Express middleware, NestJS guard) sit on top and stay thin. The distributed architecture is covered in the System Design rate limiter lesson; this answer is about the class design and testability.',
-      details: [
-        { type: 'heading3', text: '1. Clarifying questions and scope' },
-        {
-          type: 'bullets',
-          items: [
-            'Who uses it? Several services in a Node codebase, so it is a library with framework adapters, not a standalone service.',
-            'Keys? Per user, API key or IP, and per route; callers decide the key.',
-            'Algorithms? Token bucket and sliding window now; must be easy to add more.',
-            'Distributed? Yes, limits must hold across instances, so a shared store (Redis) with atomic operations.',
-            'Behaviour on store failure? Configurable: fail open (allow) or fail closed (deny).',
-          ],
-        },
-        { type: 'heading3', text: '2. Entities' },
-        {
-          type: 'bullets',
-          items: [
-            '`RateLimiter`: the façade callers use.',
-            '`RateLimitAlgorithm`: strategy that decides allow/deny from stored state.',
-            '`RateLimitStore`: persistence with atomic read-modify-write.',
-            '`RateLimitRule`: limit, window and cost per key pattern.',
-            '`Decision`: the result value object.',
-            'Adapters: `expressRateLimit()` middleware, `RateLimitGuard` for NestJS.',
-          ],
-        },
-        {
-          type: 'flow',
-          title: 'Rate limiter library class diagram',
-          code: `classDiagram
+  'design-a-rate-limiter-library': {
+    summary:
+      'I design it as a small library with one core interface, `RateLimiter.consume(key, cost)`, that returns allowed or denied plus the headers a caller needs (remaining, retry-after). Algorithms (fixed window, sliding window, token bucket) are strategies, and storage is a separate `RateLimitStore` interface, so the same algorithm runs in memory for tests and on Redis in production. Framework adapters (Express middleware, NestJS guard) sit on top and stay thin. The distributed architecture is covered in the System Design rate limiter lesson; this answer is about the class design and testability.',
+    details: [
+      { type: 'heading3', text: '1. Clarifying questions and scope' },
+      {
+        type: 'bullets',
+        items: [
+          'Who uses it? Several services in a Node codebase, so it is a library with framework adapters, not a standalone service.',
+          'Keys? Per user, API key or IP, and per route; callers decide the key.',
+          'Algorithms? Token bucket and sliding window now; must be easy to add more.',
+          'Distributed? Yes, limits must hold across instances, so a shared store (Redis) with atomic operations.',
+          'Behaviour on store failure? Configurable: fail open (allow) or fail closed (deny).',
+        ],
+      },
+      { type: 'heading3', text: '2. Entities' },
+      {
+        type: 'bullets',
+        items: [
+          '`RateLimiter`: the façade callers use.',
+          '`RateLimitAlgorithm`: strategy that decides allow/deny from stored state.',
+          '`RateLimitStore`: persistence with atomic read-modify-write.',
+          '`RateLimitRule`: limit, window and cost per key pattern.',
+          '`Decision`: the result value object.',
+          'Adapters: `expressRateLimit()` middleware, `RateLimitGuard` for NestJS.',
+        ],
+      },
+      {
+        type: 'flow',
+        title: 'Rate limiter library class diagram',
+        code: `classDiagram
   class RateLimiter {
     +consume(key, cost) Decision
   }
@@ -1623,13 +1614,13 @@ async claim(spotId: string, ticketId: string) {
   MemoryStore ..|> RateLimitStore
   RedisStore ..|> RateLimitStore
   ExpressAdapter --> RateLimiter`,
-          text: 'Two independent axes of change, algorithm and storage, each behind its own interface. Adapters depend on the façade, never on concrete algorithms.',
-        },
-        { type: 'heading3', text: '3. Interfaces' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export interface Decision {
+        text: 'Two independent axes of change, algorithm and storage, each behind its own interface. Adapters depend on the façade, never on concrete algorithms.',
+      },
+      { type: 'heading3', text: '3. Interfaces' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export interface Decision {
   allowed: boolean;
   limit: number;
   remaining: number;
@@ -1659,15 +1650,15 @@ export interface RateLimitStore {
   update(key: string, apply: (s: LimiterState | null) => { state: LimiterState; ttlMs: number }):
     Promise<void>;
 }`,
-        },
-        {
-          type: 'paragraph',
-          text: 'Keeping `evaluate` pure is the key design decision: all the tricky arithmetic is testable without Redis, timers or mocks. The store only guarantees atomicity.',
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export class TokenBucket implements RateLimitAlgorithm {
+      },
+      {
+        type: 'paragraph',
+        text: 'Keeping `evaluate` pure is the key design decision: all the tricky arithmetic is testable without Redis, timers or mocks. The store only guarantees atomicity.',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export class TokenBucket implements RateLimitAlgorithm {
   readonly name = 'token-bucket';
   evaluate(state: LimiterState | null, rule: RateLimitRule, cost: number, now: number) {
     const ratePerMs = rule.limit / rule.windowMs;
@@ -1713,46 +1704,46 @@ export class RateLimiter {
     return decision!;
   }
 }`,
-        },
-        {
-          type: 'paragraph',
-          text: 'A Redis store cannot run a JavaScript callback inside Redis, so in practice `RedisStore` pairs with algorithm-specific Lua scripts (the algorithm exposes a `luaScript` alongside `evaluate`), or uses `WATCH`/`MULTI` optimistic retries. I keep the TypeScript `evaluate` as the reference implementation and run the same test table against both, so the Lua and the TypeScript cannot drift. The Express token-bucket exercise in the Coding Round shows the single-process version.',
-        },
-        { type: 'heading3', text: '4. Walking through one request' },
-        {
-          type: 'numbered',
-          items: [
-            'Express adapter builds the key, e.g. `"orders:POST:" + apiKey`, and calls `limiter.consume(key)`.',
-            'The store atomically loads state, runs `TokenBucket.evaluate`, writes new state with a TTL.',
-            'Adapter sets `RateLimit-Limit`, `RateLimit-Remaining` and, on deny, `Retry-After`, then returns 429 or calls `next()`.',
-          ],
-        },
-        { type: 'heading3', text: '5. Patterns' },
-        {
-          type: 'bullets',
-          items: [
-            '**Strategy**: algorithms and stores are interchangeable.',
-            '**Façade**: `RateLimiter` hides the two collaborators behind one method.',
-            '**Adapter**: Express/NestJS wrappers translate HTTP to `consume()` and back.',
-            '**Factory** (optional): `createRateLimiter({ algorithm: "token-bucket", store: "redis" })` for configuration-driven setup.',
-            '**Dependency injection of the clock** for deterministic tests.',
-          ],
-        },
-        { type: 'heading3', text: '6. Concurrency' },
-        {
-          type: 'bullets',
-          items: [
-            'In-memory store: Node is single-threaded and `evaluate` is synchronous, so a synchronous read-evaluate-write on a `Map` is atomic within one process. It is wrong across instances.',
-            'Redis store: one Lua script per call makes read-evaluate-write atomic across instances.',
-            'Clock skew between instances matters for time-based state; using Redis server time (`TIME`) inside the script avoids it.',
-            'Memory growth: every state write carries a TTL so idle keys disappear.',
-          ],
-        },
-        { type: 'heading3', text: '7. Testing' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `describe('TokenBucket', () => {
+      },
+      {
+        type: 'paragraph',
+        text: 'A Redis store cannot run a JavaScript callback inside Redis, so in practice `RedisStore` pairs with algorithm-specific Lua scripts (the algorithm exposes a `luaScript` alongside `evaluate`), or uses `WATCH`/`MULTI` optimistic retries. I keep the TypeScript `evaluate` as the reference implementation and run the same test table against both, so the Lua and the TypeScript cannot drift. The Express token-bucket exercise in the Coding Round shows the single-process version.',
+      },
+      { type: 'heading3', text: '4. Walking through one request' },
+      {
+        type: 'numbered',
+        items: [
+          'Express adapter builds the key, e.g. `"orders:POST:" + apiKey`, and calls `limiter.consume(key)`.',
+          'The store atomically loads state, runs `TokenBucket.evaluate`, writes new state with a TTL.',
+          'Adapter sets `RateLimit-Limit`, `RateLimit-Remaining` and, on deny, `Retry-After`, then returns 429 or calls `next()`.',
+        ],
+      },
+      { type: 'heading3', text: '5. Patterns' },
+      {
+        type: 'bullets',
+        items: [
+          '**Strategy**: algorithms and stores are interchangeable.',
+          '**Façade**: `RateLimiter` hides the two collaborators behind one method.',
+          '**Adapter**: Express/NestJS wrappers translate HTTP to `consume()` and back.',
+          '**Factory** (optional): `createRateLimiter({ algorithm: "token-bucket", store: "redis" })` for configuration-driven setup.',
+          '**Dependency injection of the clock** for deterministic tests.',
+        ],
+      },
+      { type: 'heading3', text: '6. Concurrency' },
+      {
+        type: 'bullets',
+        items: [
+          'In-memory store: Node is single-threaded and `evaluate` is synchronous, so a synchronous read-evaluate-write on a `Map` is atomic within one process. It is wrong across instances.',
+          'Redis store: one Lua script per call makes read-evaluate-write atomic across instances.',
+          'Clock skew between instances matters for time-based state; using Redis server time (`TIME`) inside the script avoids it.',
+          'Memory growth: every state write carries a TTL so idle keys disappear.',
+        ],
+      },
+      { type: 'heading3', text: '7. Testing' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `describe('TokenBucket', () => {
   const rule = { limit: 10, windowMs: 1000 };
   const bucket = new TokenBucket();
 
@@ -1773,77 +1764,76 @@ export class RateLimiter {
     expect(bucket.evaluate(empty, rule, 1, 100).decision.allowed).toBe(true);
   });
 });`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Pure algorithm tests with an explicit `now`: no fake timers needed.',
-            'Store contract tests: one shared suite run against `MemoryStore` and `RedisStore` (Testcontainers).',
-            'Concurrency test: 100 parallel `consume()` calls on a limit of 10 against real Redis; exactly 10 allowed.',
-            'Adapter tests with Supertest for headers and the 429 body.',
-          ],
-        },
-        { type: 'heading3', text: 'Follow-up questions interviewers ask' },
-        {
-          type: 'bullets',
-          items: [
-            'How do you support different limits per plan? — A rule resolver `(key, req) => RateLimitRule` injected into the limiter instead of a fixed rule.',
-            'What if Redis is down? — The configured fail-open/closed policy, plus a local in-memory fallback limiter per instance as a coarse guard.',
-            'How do you avoid a Redis round trip per request? — Local token pre-allocation (take 10 tokens at a time) at the cost of slight over-admission.',
-            'Sliding window log vs counter? — The log is exact but stores every timestamp; the counter approximates with two windows and constant memory.',
-          ],
-        },
-        { type: 'heading3', text: 'Common mistakes' },
-        {
-          type: 'bullets',
-          items: [
-            'Mixing algorithm, storage and HTTP handling in one middleware function, which makes every change risky.',
-            'Read-then-write against Redis without atomicity.',
-            'Calling `Date.now()` inside the algorithm, which forces fake timers in every test.',
-            'Forgetting TTLs, so the store grows forever.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'important',
-          text: 'Senior signal: you separate the two axes of change (algorithm and store), keep the algorithm a pure function with an injected clock, make atomicity the store contract, and back it with a shared contract-test suite and a real concurrency test.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Pure algorithm tests with an explicit `now`: no fake timers needed.',
+          'Store contract tests: one shared suite run against `MemoryStore` and `RedisStore` (Testcontainers).',
+          'Concurrency test: 100 parallel `consume()` calls on a limit of 10 against real Redis; exactly 10 allowed.',
+          'Adapter tests with Supertest for headers and the 429 body.',
+        ],
+      },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          'How do you support different limits per plan? — A rule resolver `(key, req) => RateLimitRule` injected into the limiter instead of a fixed rule.',
+          'What if Redis is down? — The configured fail-open/closed policy, plus a local in-memory fallback limiter per instance as a coarse guard.',
+          'How do you avoid a Redis round trip per request? — Local token pre-allocation (take 10 tokens at a time) at the cost of slight over-admission.',
+          'Sliding window log vs counter? — The log is exact but stores every timestamp; the counter approximates with two windows and constant memory.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          'Mixing algorithm, storage and HTTP handling in one middleware function, which makes every change risky.',
+          'Read-then-write against Redis without atomicity.',
+          'Calling `Date.now()` inside the algorithm, which forces fake timers in every test.',
+          'Forgetting TTLs, so the store grows forever.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you separate the two axes of change (algorithm and store), keep the algorithm a pure function with an injected clock, make atomicity the store contract, and back it with a shared contract-test suite and a real concurrency test.',
+      },
+    ],
+  },
 
-  'Design a notification service (LLD) that supports email, SMS and push, with retries, templates and user preferences.':
-    {
-      summary:
-        "I scope it as an in-process module that other code calls with `notify(userId, event, data)`. A `NotificationService` resolves the user's preferences, renders a template per channel, and hands each message to a `Channel` implementation (email, SMS, push) behind one interface, through a queue so retries and rate limits do not block the caller. Channels are strategies chosen by a registry, providers (SES, Twilio, FCM) sit behind adapters, and every message has an idempotency key so a retry never sends twice. The distributed pipeline is covered in the System Design notification lesson; here I focus on classes and responsibilities.",
-      details: [
-        { type: 'heading3', text: '1. Clarifying questions and scope' },
-        {
-          type: 'bullets',
-          items: [
-            'Who triggers notifications? Domain events such as `OrderShipped` or `PasswordReset`.',
-            'Channels? Email, SMS, push now; WhatsApp or Slack later, so adding a channel must not touch existing code.',
-            'User preferences? Per event category and channel (e.g. marketing off, order updates by push only), plus quiet hours.',
-            'Delivery guarantees? At-least-once with deduplication; transactional messages (password reset) must bypass marketing opt-outs.',
-            'Templates? Per event, per channel, per locale.',
-          ],
-        },
-        { type: 'heading3', text: '2. Entities and responsibilities' },
-        {
-          type: 'bullets',
-          items: [
-            '`NotificationService`: orchestrates; the only entry point.',
-            '`PreferenceService`: answers "which channels may I use for this user and event now?"',
-            '`TemplateRenderer`: turns event + data + locale into channel-specific content.',
-            '`Channel` (interface) with `EmailChannel`, `SmsChannel`, `PushChannel`.',
-            '`ChannelRegistry`: maps a channel name to its implementation.',
-            '`Message`: one rendered notification for one channel, with status and attempts.',
-            '`RetryPolicy`: decides whether and when to retry a failure.',
-          ],
-        },
-        {
-          type: 'flow',
-          title: 'Notification service class diagram',
-          code: `classDiagram
+  'design-a-notification-service': {
+    summary:
+      "I scope it as an in-process module that other code calls with `notify(userId, event, data)`. A `NotificationService` resolves the user's preferences, renders a template per channel, and hands each message to a `Channel` implementation (email, SMS, push) behind one interface, through a queue so retries and rate limits do not block the caller. Channels are strategies chosen by a registry, providers (SES, Twilio, FCM) sit behind adapters, and every message has an idempotency key so a retry never sends twice. The distributed pipeline is covered in the System Design notification lesson; here I focus on classes and responsibilities.",
+    details: [
+      { type: 'heading3', text: '1. Clarifying questions and scope' },
+      {
+        type: 'bullets',
+        items: [
+          'Who triggers notifications? Domain events such as `OrderShipped` or `PasswordReset`.',
+          'Channels? Email, SMS, push now; WhatsApp or Slack later, so adding a channel must not touch existing code.',
+          'User preferences? Per event category and channel (e.g. marketing off, order updates by push only), plus quiet hours.',
+          'Delivery guarantees? At-least-once with deduplication; transactional messages (password reset) must bypass marketing opt-outs.',
+          'Templates? Per event, per channel, per locale.',
+        ],
+      },
+      { type: 'heading3', text: '2. Entities and responsibilities' },
+      {
+        type: 'bullets',
+        items: [
+          '`NotificationService`: orchestrates; the only entry point.',
+          '`PreferenceService`: answers "which channels may I use for this user and event now?"',
+          '`TemplateRenderer`: turns event + data + locale into channel-specific content.',
+          '`Channel` (interface) with `EmailChannel`, `SmsChannel`, `PushChannel`.',
+          '`ChannelRegistry`: maps a channel name to its implementation.',
+          '`Message`: one rendered notification for one channel, with status and attempts.',
+          '`RetryPolicy`: decides whether and when to retry a failure.',
+        ],
+      },
+      {
+        type: 'flow',
+        title: 'Notification service class diagram',
+        code: `classDiagram
   class NotificationService {
     +notify(userId, event, data) void
   }
@@ -1889,13 +1879,13 @@ export class RateLimiter {
   EmailChannel --> EmailProvider
   SesEmailProvider ..|> EmailProvider
   NotificationService ..> Message`,
-          text: 'Channels are strategies looked up by name; providers are adapters behind each channel, so switching from SES to SendGrid touches one class.',
-        },
-        { type: 'heading3', text: '3. Interfaces and the orchestrator' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `type ChannelName = 'email' | 'sms' | 'push';
+        text: 'Channels are strategies looked up by name; providers are adapters behind each channel, so switching from SES to SendGrid touches one class.',
+      },
+      { type: 'heading3', text: '3. Interfaces and the orchestrator' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `type ChannelName = 'email' | 'sms' | 'push';
 type MessageStatus = 'QUEUED' | 'SENT' | 'FAILED' | 'SKIPPED';
 
 interface Content { subject?: string; body: string; }
@@ -1948,15 +1938,15 @@ class NotificationService {
     }
   }
 }`,
-        },
-        {
-          type: 'paragraph',
-          text: 'Sending happens in a worker, so the caller (e.g. the order service) never waits on Twilio. The worker owns retries:',
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `class SendNotificationWorker {
+      },
+      {
+        type: 'paragraph',
+        text: 'Sending happens in a worker, so the caller (e.g. the order service) never waits on Twilio. The worker owns retries:',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `class SendNotificationWorker {
   constructor(
     private readonly messages: MessageRepository,
     private readonly registry: ChannelRegistry,
@@ -1991,80 +1981,80 @@ class ExponentialRetry implements RetryPolicy {
     return Math.round(Math.random() * cap); // full jitter
   }
 }`,
-        },
-        { type: 'heading3', text: '4. Walking through "order shipped"' },
-        {
-          type: 'numbered',
-          items: [
-            'Order module emits `OrderShipped { id: "evt_9", userId, data }` and calls `notify()`.',
-            '`PreferenceService` returns `["push", "email"]` (SMS off, not in quiet hours).',
-            'Two messages are created with keys `evt_9:push` and `evt_9:email`, then enqueued.',
-            'The push worker gets a 503 from FCM → retryable → rescheduled with jittered backoff; the email succeeds.',
-            'If the event is delivered twice, `createOnce` finds the existing keys and enqueues nothing.',
-          ],
-        },
-        { type: 'heading3', text: '5. Patterns and why' },
-        {
-          type: 'bullets',
-          items: [
-            '**Strategy + registry** for channels: adding WhatsApp means one new class and one `register()` call (open/closed).',
-            '**Adapter** for providers: `EmailChannel` depends on an `EmailProvider` interface, not on the SES SDK.',
-            '**Template Method or composition** inside channels for shared steps (validate address, render, send, map provider errors to retryable/non-retryable).',
-            '**Observer / event-driven** triggering: domain modules publish events and do not know notifications exist.',
-            '**Policy object** for retries, so per-channel policies (SMS costs money, fewer retries) are easy.',
-          ],
-        },
-        { type: 'heading3', text: '6. Concurrency and correctness' },
-        {
-          type: 'bullets',
-          items: [
-            'Queues deliver at least once, so the worker checks status and the provider call carries the idempotency key where supported.',
-            'A unique index on `idempotencyKey` makes `createOnce` safe across instances (duplicate-key error means "already created").',
-            'Concurrency limits per channel protect provider rate limits (e.g. a BullMQ limiter on the SMS queue).',
-            'Preferences are re-checked at send time for delayed messages, so an opt-out made after queuing is honoured.',
-          ],
-        },
-        { type: 'heading3', text: '7. Extensibility and testing' },
-        {
-          type: 'bullets',
-          items: [
-            'New channel: implement `Channel`, register it, add templates. No change to the orchestrator.',
-            'Digests (batching): a `DigestChannel` decorator that buffers messages and sends one summary.',
-            'Unit tests: `NotificationService` with fake prefs, renderer, repository and queue; assert which messages were created.',
-            'Worker tests: a fake channel returning retryable and non-retryable failures; assert status transitions and delays (inject `Math.random` or a seeded RNG).',
-            'Contract tests per provider adapter against the provider sandbox, run nightly rather than on every commit.',
-          ],
-        },
-        { type: 'heading3', text: 'Follow-up questions interviewers ask' },
-        {
-          type: 'bullets',
-          items: [
-            'How do you guarantee a password-reset email is not blocked by opt-out? — Event categories: transactional events bypass marketing preferences but still respect hard bounces.',
-            'How do you avoid sending a notification if the order transaction rolled back? — Publish the event via a transactional outbox, not directly from inside the transaction.',
-            'How would you add a fallback channel (SMS if push fails)? — A `FallbackChannel` composite that tries channels in order, recorded as separate attempts.',
-            'Where do templates live? — Versioned in the repo or a template service; rendering is pure, so it is unit-tested with snapshots per locale.',
-          ],
-        },
-        { type: 'heading3', text: 'Common mistakes' },
-        {
-          type: 'bullets',
-          items: [
-            'A `switch (channel)` in the service that grows with every new channel.',
-            'Calling providers synchronously in the request path, so a slow SMS gateway slows checkout.',
-            'Retrying non-retryable errors (invalid phone number) and burning money.',
-            'No idempotency key, so queue redelivery sends duplicates.',
-            'Checking preferences only at enqueue time.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'important',
-          text: 'Senior signal: you keep the orchestrator closed to change (channel strategies + registry, provider adapters), move sending off the request path, make retries policy-driven and classified by error type, and make duplicates impossible with an idempotency key backed by a unique index.',
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: '4. Walking through "order shipped"' },
+      {
+        type: 'numbered',
+        items: [
+          'Order module emits `OrderShipped { id: "evt_9", userId, data }` and calls `notify()`.',
+          '`PreferenceService` returns `["push", "email"]` (SMS off, not in quiet hours).',
+          'Two messages are created with keys `evt_9:push` and `evt_9:email`, then enqueued.',
+          'The push worker gets a 503 from FCM → retryable → rescheduled with jittered backoff; the email succeeds.',
+          'If the event is delivered twice, `createOnce` finds the existing keys and enqueues nothing.',
+        ],
+      },
+      { type: 'heading3', text: '5. Patterns and why' },
+      {
+        type: 'bullets',
+        items: [
+          '**Strategy + registry** for channels: adding WhatsApp means one new class and one `register()` call (open/closed).',
+          '**Adapter** for providers: `EmailChannel` depends on an `EmailProvider` interface, not on the SES SDK.',
+          '**Template Method or composition** inside channels for shared steps (validate address, render, send, map provider errors to retryable/non-retryable).',
+          '**Observer / event-driven** triggering: domain modules publish events and do not know notifications exist.',
+          '**Policy object** for retries, so per-channel policies (SMS costs money, fewer retries) are easy.',
+        ],
+      },
+      { type: 'heading3', text: '6. Concurrency and correctness' },
+      {
+        type: 'bullets',
+        items: [
+          'Queues deliver at least once, so the worker checks status and the provider call carries the idempotency key where supported.',
+          'A unique index on `idempotencyKey` makes `createOnce` safe across instances (duplicate-key error means "already created").',
+          'Concurrency limits per channel protect provider rate limits (e.g. a BullMQ limiter on the SMS queue).',
+          'Preferences are re-checked at send time for delayed messages, so an opt-out made after queuing is honoured.',
+        ],
+      },
+      { type: 'heading3', text: '7. Extensibility and testing' },
+      {
+        type: 'bullets',
+        items: [
+          'New channel: implement `Channel`, register it, add templates. No change to the orchestrator.',
+          'Digests (batching): a `DigestChannel` decorator that buffers messages and sends one summary.',
+          'Unit tests: `NotificationService` with fake prefs, renderer, repository and queue; assert which messages were created.',
+          'Worker tests: a fake channel returning retryable and non-retryable failures; assert status transitions and delays (inject `Math.random` or a seeded RNG).',
+          'Contract tests per provider adapter against the provider sandbox, run nightly rather than on every commit.',
+        ],
+      },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          'How do you guarantee a password-reset email is not blocked by opt-out? — Event categories: transactional events bypass marketing preferences but still respect hard bounces.',
+          'How do you avoid sending a notification if the order transaction rolled back? — Publish the event via a transactional outbox, not directly from inside the transaction.',
+          'How would you add a fallback channel (SMS if push fails)? — A `FallbackChannel` composite that tries channels in order, recorded as separate attempts.',
+          'Where do templates live? — Versioned in the repo or a template service; rendering is pure, so it is unit-tested with snapshots per locale.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          'A `switch (channel)` in the service that grows with every new channel.',
+          'Calling providers synchronously in the request path, so a slow SMS gateway slows checkout.',
+          'Retrying non-retryable errors (invalid phone number) and burning money.',
+          'No idempotency key, so queue redelivery sends duplicates.',
+          'Checking preferences only at enqueue time.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you keep the orchestrator closed to change (channel strategies + registry, provider adapters), move sending off the request path, make retries policy-driven and classified by error type, and make duplicates impossible with an idempotency key backed by a unique index.',
+      },
+    ],
+  },
 
-  'Design an in-memory cache with pluggable eviction policies (LRU, LFU, TTL) (LLD).': {
+  'design-a-cache-with-pluggable-eviction': {
     summary:
       'I separate storage from the eviction decision: a `Cache` class owns a `Map` of entries and asks an `EvictionPolicy` (Strategy) which key to drop when it is full, while expiry is a separate concern checked lazily on read and swept in the background. LRU, LFU and FIFO become small classes behind one interface with O(1) hooks (`onGet`, `onPut`, `onRemove`, `victim`). I add a single-flight `getOrLoad` so concurrent misses for the same key trigger one load, and emit eviction events so callers can observe hit rate and evictions.',
     details: [
@@ -2388,40 +2378,39 @@ it('expires entries using the injected clock', () => {
     ],
   },
 
-  'Design an expense-sharing app like Splitwise (LLD): groups, split types and settling balances.':
-    {
-      summary:
-        'I model users, groups and expenses, and treat each split type (equal, exact amounts, percentage, shares) as a Strategy that turns one expense into per-user owed amounts in integer minor units. Every expense updates a net balance per user in the group, so "who owes whom" is derived from balances rather than stored pairwise. To settle up I simplify debts greedily by matching the biggest creditor with the biggest debtor, which needs at most n − 1 payments and runs in O(n log n) with heaps.',
-      details: [
-        { type: 'heading3', text: '1. Clarifying questions and scope' },
-        {
-          type: 'bullets',
-          items: [
-            '**Groups only, or also 1:1 expenses?** Both; a 1:1 expense is a group of two.',
-            '**Split types?** Equal, exact amounts, percentages and shares (for example 2:1:1).',
-            '**Currencies?** One currency per group for this round; multi-currency is a follow-up.',
-            '**Settle up?** Record a payment between two users, and suggest the minimum set of payments to clear the group.',
-            '**Edits and deletes?** Supported, which means balances must be recomputable from history.',
-            '**Non-goals:** notifications, receipts and OCR, authentication.',
-          ],
-        },
-        { type: 'heading3', text: '2. Entities and use cases' },
-        {
-          type: 'bullets',
-          items: [
-            '**User**, **Group** (members).',
-            '**Expense** — payer(s), total amount, description, split type, the computed **Split** lines (user, owed amount), and an idempotency key.',
-            '**SplitStrategy** — `EqualSplit`, `ExactSplit`, `PercentSplit`, `ShareSplit`.',
-            '**Payment** (settlement) — from, to, amount.',
-            '**BalanceSheet** — net balance per user in a group (positive = is owed, negative = owes).',
-            '**ExpenseService** — validates, applies strategies, writes expenses and updates balances.',
-            '**SettlementService** — computes the simplified payment plan.',
-          ],
-        },
-        {
-          type: 'flow',
-          title: 'Class diagram',
-          code: `classDiagram
+  'design-a-splitwise-style-expense-app': {
+    summary:
+      'I model users, groups and expenses, and treat each split type (equal, exact amounts, percentage, shares) as a Strategy that turns one expense into per-user owed amounts in integer minor units. Every expense updates a net balance per user in the group, so "who owes whom" is derived from balances rather than stored pairwise. To settle up I simplify debts greedily by matching the biggest creditor with the biggest debtor, which needs at most n − 1 payments and runs in O(n log n) with heaps.',
+    details: [
+      { type: 'heading3', text: '1. Clarifying questions and scope' },
+      {
+        type: 'bullets',
+        items: [
+          '**Groups only, or also 1:1 expenses?** Both; a 1:1 expense is a group of two.',
+          '**Split types?** Equal, exact amounts, percentages and shares (for example 2:1:1).',
+          '**Currencies?** One currency per group for this round; multi-currency is a follow-up.',
+          '**Settle up?** Record a payment between two users, and suggest the minimum set of payments to clear the group.',
+          '**Edits and deletes?** Supported, which means balances must be recomputable from history.',
+          '**Non-goals:** notifications, receipts and OCR, authentication.',
+        ],
+      },
+      { type: 'heading3', text: '2. Entities and use cases' },
+      {
+        type: 'bullets',
+        items: [
+          '**User**, **Group** (members).',
+          '**Expense** — payer(s), total amount, description, split type, the computed **Split** lines (user, owed amount), and an idempotency key.',
+          '**SplitStrategy** — `EqualSplit`, `ExactSplit`, `PercentSplit`, `ShareSplit`.',
+          '**Payment** (settlement) — from, to, amount.',
+          '**BalanceSheet** — net balance per user in a group (positive = is owed, negative = owes).',
+          '**ExpenseService** — validates, applies strategies, writes expenses and updates balances.',
+          '**SettlementService** — computes the simplified payment plan.',
+        ],
+      },
+      {
+        type: 'flow',
+        title: 'Class diagram',
+        code: `classDiagram
   class User {
     +id string
     +name string
@@ -2476,17 +2465,17 @@ it('expires entries using the injected clock', () => {
   ExpenseService --> SplitStrategy
   ExpenseService --> BalanceSheet
   SettlementService --> Payment`,
-          text: 'Balances are derived from expenses and payments; the settlement plan is computed from balances, never stored.',
-        },
-        { type: 'heading3', text: '3. Money and split strategies' },
-        {
-          type: 'paragraph',
-          text: 'All amounts are integers in minor units (cents, paise). Floating point cannot represent 0.10 exactly, and summing thousands of float splits drifts. Every strategy must return splits that add up exactly to the total, so remainders are distributed deterministically.',
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export interface Split { userId: string; owedMinor: number }
+        text: 'Balances are derived from expenses and payments; the settlement plan is computed from balances, never stored.',
+      },
+      { type: 'heading3', text: '3. Money and split strategies' },
+      {
+        type: 'paragraph',
+        text: 'All amounts are integers in minor units (cents, paise). Floating point cannot represent 0.10 exactly, and summing thousands of float splits drifts. Every strategy must return splits that add up exactly to the total, so remainders are distributed deterministically.',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export interface Split { userId: string; owedMinor: number }
 
 export interface SplitStrategy {
   split(amountMinor: number, participants: string[], input?: Record<string, number>): Split[];
@@ -2542,12 +2531,12 @@ export const splitStrategies: Record<string, SplitStrategy> = {
   PERCENT: new PercentSplit(),
   SHARES: new ShareSplit(),
 };`,
-        },
-        { type: 'heading3', text: '4. Balances and adding an expense' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export class BalanceSheet {
+      },
+      { type: 'heading3', text: '4. Balances and adding an expense' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export class BalanceSheet {
   private net = new Map<string, number>(); // + is owed money, - owes money
 
   apply(paidBy: string, amountMinor: number, splits: Split[]) {
@@ -2583,27 +2572,27 @@ export class ExpenseService {
     return this.repo.saveWithBalanceDeltas({ ...cmd, splits });
   }
 }`,
-        },
-        { type: 'heading3', text: '5. Walking one use case' },
-        {
-          type: 'numbered',
-          items: [
-            'Asha pays 100.00 (10000 minor) for dinner, split equally among Asha, Ben and Chen.',
-            '`EqualSplit` → Asha 3334, Ben 3333, Chen 3333: the leftover cent goes to the deterministic tiebreak (equal fractions, then user id), and the splits sum to exactly 10000.',
-            'Balances: Asha +10000 − 3334 = +6666, Ben −3333, Chen −3333. The sum of all balances is always zero — a cheap invariant to assert.',
-            'Ben then pays 60.00 for a taxi, shares 1:1 between Ben and Chen → Ben −3333 + 6000 − 3000 = −333; Chen −3333 − 3000 = −6333; Asha still +6666.',
-            'Simplify (below): Chen pays Asha 63.33 and Ben pays Asha 3.33 — two payments instead of tracking every pairwise debt.',
-          ],
-        },
-        { type: 'heading3', text: '6. Settling up: debt simplification' },
-        {
-          type: 'paragraph',
-          text: 'Because only net balances matter, I put creditors and debtors in two max-heaps and repeatedly settle the largest debtor against the largest creditor. Each step zeroes at least one person, so there are at most n − 1 payments, and with heaps it is O(n log n). Finding the true minimum number of payments is NP-hard (it reduces to partitioning balances into zero-sum subsets), so the greedy result is the standard, explainable answer.',
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export interface Payment { from: string; to: string; amountMinor: number }
+      },
+      { type: 'heading3', text: '5. Walking one use case' },
+      {
+        type: 'numbered',
+        items: [
+          'Asha pays 100.00 (10000 minor) for dinner, split equally among Asha, Ben and Chen.',
+          '`EqualSplit` → Asha 3334, Ben 3333, Chen 3333: the leftover cent goes to the deterministic tiebreak (equal fractions, then user id), and the splits sum to exactly 10000.',
+          'Balances: Asha +10000 − 3334 = +6666, Ben −3333, Chen −3333. The sum of all balances is always zero — a cheap invariant to assert.',
+          'Ben then pays 60.00 for a taxi, shares 1:1 between Ben and Chen → Ben −3333 + 6000 − 3000 = −333; Chen −3333 − 3000 = −6333; Asha still +6666.',
+          'Simplify (below): Chen pays Asha 63.33 and Ben pays Asha 3.33 — two payments instead of tracking every pairwise debt.',
+        ],
+      },
+      { type: 'heading3', text: '6. Settling up: debt simplification' },
+      {
+        type: 'paragraph',
+        text: 'Because only net balances matter, I put creditors and debtors in two max-heaps and repeatedly settle the largest debtor against the largest creditor. Each step zeroes at least one person, so there are at most n − 1 payments, and with heaps it is O(n log n). Finding the true minimum number of payments is NP-hard (it reduces to partitioning balances into zero-sum subsets), so the greedy result is the standard, explainable answer.',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export interface Payment { from: string; to: string; amountMinor: number }
 
 export function simplify(balances: Map<string, number>): Payment[] {
   // arrays sorted descending stand in for max-heaps to keep the example short
@@ -2626,60 +2615,60 @@ export function simplify(balances: Map<string, number>): Payment[] {
   }
   return payments;
 }`,
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Mention the trade-off out loud: simplification can create payments between people who never shared an expense (Chen pays Asha even if they never ate together). Real products make it a group setting for that reason.',
-        },
-        { type: 'heading3', text: '7. Concurrency and correctness' },
-        {
-          type: 'bullets',
-          items: [
-            '**Integer money** everywhere, formatted only at the edge; store currency with the group.',
-            '**Deterministic rounding** so the same expense always produces the same splits, and the splits always sum to the total.',
-            '**Idempotent expense creation:** the client sends an idempotency key; a unique index on `(groupId, idempotencyKey)` makes double taps or retries return the first expense instead of charging twice.',
-            '**Atomic updates:** the expense row and its balance deltas are written in one transaction, or balances are recomputed from the expense log. Concurrent expenses in the same group use atomic increments (`$inc` / `UPDATE … SET net = net + ?`), never read-modify-write.',
-            '**Edits and deletes:** apply the reverse deltas of the old splits and the deltas of the new ones in one transaction, and keep an audit history; never mutate silently.',
-            '**Invariant:** the sum of balances in a group is zero; a periodic job recomputes balances from history and alerts on drift.',
-          ],
-        },
-        { type: 'heading3', text: '8. Extensibility and testing' },
-        {
-          type: 'bullets',
-          items: [
-            '**New split type** (for example "by item") = a new `SplitStrategy`; nothing else changes (open/closed).',
-            '**Multiple payers:** model `payers: { userId, paidMinor }[]` and apply each as a credit.',
-            '**Multi-currency:** store the original currency and an FX rate snapshot on the expense; convert to the group currency when computing balances.',
-            '**Tests:** property-based tests that splits always sum to the total and balances always sum to zero; unit tests for rounding edge cases (1 cent among 3 people); `simplify` tests asserting at most n − 1 payments and that applying them zeroes every balance; an idempotency test that submits the same key twice.',
-          ],
-        },
-        { type: 'heading3', text: 'Follow-up questions interviewers ask' },
-        {
-          type: 'bullets',
-          items: [
-            'Can you guarantee the minimum number of payments? — Not efficiently; it is NP-hard. Greedy gives at most n − 1 payments, which is good enough and explainable.',
-            'How do you store balances at scale? — A per-group, per-user balance row updated with atomic increments, rebuilt from the expense log if needed.',
-            'How would you support offline creation on mobile? — Client-generated ids plus idempotency keys, then sync; conflicts resolved per expense, not per balance.',
-            'Where do you put the rounding remainder and why? — A deterministic rule (largest remainder, then id) so results are reproducible and fair over time.',
-          ],
-        },
-        { type: 'heading3', text: 'Common mistakes' },
-        {
-          type: 'bullets',
-          items: [
-            'Using floating-point numbers for money.',
-            'Splits that do not sum to the total because remainders are dropped.',
-            'Storing a pairwise debt matrix and updating it per expense, which is O(n²) and hard to keep consistent.',
-            'A `switch` on split type inside the service instead of strategies.',
-            'No idempotency, so a retried request records the expense twice.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'important',
-          text: 'Senior signal: you treat money as integers with an explicit rounding rule, derive everything from net balances with a zero-sum invariant, make writes idempotent and atomic, and can explain why greedy simplification is used even though the true minimum is NP-hard.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Mention the trade-off out loud: simplification can create payments between people who never shared an expense (Chen pays Asha even if they never ate together). Real products make it a group setting for that reason.',
+      },
+      { type: 'heading3', text: '7. Concurrency and correctness' },
+      {
+        type: 'bullets',
+        items: [
+          '**Integer money** everywhere, formatted only at the edge; store currency with the group.',
+          '**Deterministic rounding** so the same expense always produces the same splits, and the splits always sum to the total.',
+          '**Idempotent expense creation:** the client sends an idempotency key; a unique index on `(groupId, idempotencyKey)` makes double taps or retries return the first expense instead of charging twice.',
+          '**Atomic updates:** the expense row and its balance deltas are written in one transaction, or balances are recomputed from the expense log. Concurrent expenses in the same group use atomic increments (`$inc` / `UPDATE … SET net = net + ?`), never read-modify-write.',
+          '**Edits and deletes:** apply the reverse deltas of the old splits and the deltas of the new ones in one transaction, and keep an audit history; never mutate silently.',
+          '**Invariant:** the sum of balances in a group is zero; a periodic job recomputes balances from history and alerts on drift.',
+        ],
+      },
+      { type: 'heading3', text: '8. Extensibility and testing' },
+      {
+        type: 'bullets',
+        items: [
+          '**New split type** (for example "by item") = a new `SplitStrategy`; nothing else changes (open/closed).',
+          '**Multiple payers:** model `payers: { userId, paidMinor }[]` and apply each as a credit.',
+          '**Multi-currency:** store the original currency and an FX rate snapshot on the expense; convert to the group currency when computing balances.',
+          '**Tests:** property-based tests that splits always sum to the total and balances always sum to zero; unit tests for rounding edge cases (1 cent among 3 people); `simplify` tests asserting at most n − 1 payments and that applying them zeroes every balance; an idempotency test that submits the same key twice.',
+        ],
+      },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          'Can you guarantee the minimum number of payments? — Not efficiently; it is NP-hard. Greedy gives at most n − 1 payments, which is good enough and explainable.',
+          'How do you store balances at scale? — A per-group, per-user balance row updated with atomic increments, rebuilt from the expense log if needed.',
+          'How would you support offline creation on mobile? — Client-generated ids plus idempotency keys, then sync; conflicts resolved per expense, not per balance.',
+          'Where do you put the rounding remainder and why? — A deterministic rule (largest remainder, then id) so results are reproducible and fair over time.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          'Using floating-point numbers for money.',
+          'Splits that do not sum to the total because remainders are dropped.',
+          'Storing a pairwise debt matrix and updating it per expense, which is O(n²) and hard to keep consistent.',
+          'A `switch` on split type inside the service instead of strategies.',
+          'No idempotency, so a retried request records the expense twice.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you treat money as integers with an explicit rounding rule, derive everything from net balances with a zero-sum invariant, make writes idempotent and atomic, and can explain why greedy simplification is used even though the true minimum is NP-hard.',
+      },
+    ],
+  },
 };

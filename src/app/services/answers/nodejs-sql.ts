@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What is the difference between SQL and NoSQL databases?': {
+  'sql-vs-nosql': {
     summary:
       'SQL (relational) databases store data in tables with a fixed schema, relationships enforced by foreign keys, and strong ACID transactions queried with SQL. NoSQL databases (document, key-value, wide-column, graph) use flexible data models designed around access patterns and usually scale horizontally more easily, often trading some consistency or join capability for it. Choose by data shape, consistency needs and query patterns — not hype.',
     details: [
@@ -72,7 +72,7 @@ const user = await db.collection('users').findOne({ _id: 42 });
     ],
   },
 
-  'What is database normalization? Explain 1NF, 2NF, 3NF': {
+  'normalization-1nf-2nf-3nf': {
     summary:
       'Normalization organizes tables to remove redundancy and update anomalies by making every non-key column depend on "the key, the whole key, and nothing but the key". 1NF: atomic values, no repeating groups. 2NF: 1NF + no partial dependency on part of a composite key. 3NF: 2NF + no transitive dependency (non-key column depending on another non-key column).',
     details: [
@@ -154,7 +154,7 @@ CREATE TABLE orders (
     ],
   },
 
-  'What are SQL joins and when do you use each type?': {
+  'sql-joins-and-when-to-use-each': {
     summary:
       'A join combines rows from two tables based on a related column. INNER JOIN returns only matching rows; LEFT/RIGHT JOIN keep all rows from one side with NULLs where there is no match; FULL OUTER JOIN keeps all rows from both; CROSS JOIN gives every combination; a SELF JOIN joins a table to itself. Pick based on whether unmatched rows must appear in the result.',
     details: [
@@ -274,7 +274,7 @@ WHERE p.id IS NULL OR s.id IS NULL;`,
     ],
   },
 
-  'What are indexes in SQL and how do they work?': {
+  'how-sql-indexes-work': {
     summary:
       'An index is a separate data structure — usually a B-tree — that keeps column values sorted with pointers to the rows, so the database can find matching rows in O(log n) instead of scanning the whole table. Indexes speed up reads (WHERE, JOIN, ORDER BY) but cost disk space and slow down writes, because every INSERT/UPDATE/DELETE must also update each index.',
     details: [
@@ -341,7 +341,7 @@ SELECT * FROM orders WHERE created_at > now() - interval '7 days';`,
     ],
   },
 
-  'What is the difference between clustered and non-clustered indexes?': {
+  'clustered-vs-non-clustered-indexes': {
     summary:
       "A clustered index determines the physical order of the table's rows — the table data itself is stored in the index's leaf pages, so there can be only one per table (usually the primary key). A non-clustered (secondary) index is a separate structure whose leaves hold the key plus a pointer (row id or primary key) back to the row, so a lookup may need an extra hop; a table can have many.",
     details: [
@@ -401,7 +401,7 @@ CREATE INDEX idx_customer ON orders (customer_id);
     ],
   },
 
-  'What are database transaction isolation levels?': {
+  'transaction-isolation-levels': {
     summary:
       "Isolation levels define how much concurrent transactions can see of each other's uncommitted or newly committed changes. The SQL standard defines four — READ UNCOMMITTED, READ COMMITTED, REPEATABLE READ, SERIALIZABLE — each preventing more anomalies (dirty reads, non-repeatable reads, phantom reads) at the cost of more locking, retries or lower concurrency.",
     details: [
@@ -475,7 +475,7 @@ async function transfer(from: number, to: number, amount: number) {
     ],
   },
 
-  'What is a stored procedure?': {
+  'stored-procedures': {
     summary:
       'A stored procedure is a named block of SQL (plus procedural logic like variables, loops and conditionals) stored and executed inside the database server. It lets you run multi-step logic close to the data in one round trip, encapsulate business rules and grant permission to the procedure instead of the underlying tables — at the cost of logic that is harder to version, test and port.',
     details: [
@@ -534,7 +534,7 @@ await pool.query('CALL transfer_funds($1, $2, $3)', [1, 2, 100]);
     ],
   },
 
-  'What is an ORM? What are the advantages and disadvantages of using one?': {
+  'orms-pros-and-cons': {
     summary:
       'An ORM (Object-Relational Mapper) maps database tables to classes/objects so you work with entities and methods instead of raw SQL — e.g. Prisma, TypeORM, Sequelize, MikroORM in Node.js. It speeds up development and adds type safety, migrations and portability, but it can hide inefficient queries (N+1, over-fetching), make complex SQL awkward, and add a learning/abstraction layer.',
     details: [
@@ -608,7 +608,7 @@ const top = await prisma.$queryRaw\`
     ],
   },
 
-  'What is the N+1 query problem and how do you fix it?': {
+  'sql-n-plus-1-problem': {
     summary:
       "N+1 happens when you run 1 query to fetch a list of N parent rows and then 1 extra query per row to load a relation — N+1 round trips instead of 1 or 2. Fix it by fetching the related data in bulk: a JOIN, an `IN (...)` query, the ORM's eager loading (`include`/`relations`/`populate`), or batching with DataLoader in GraphQL.",
     details: [
@@ -692,7 +692,7 @@ const authorLoader = new DataLoader(async (ids: readonly number[]) => {
     ],
   },
 
-  'How do you read an `EXPLAIN ANALYZE` plan to find out why a query is slow?': {
+  'read-an-explain-analyze-plan': {
     summary:
       'First find the queries worth fixing with `pg_stat_statements` (highest total time, not just slowest single call). Then run `EXPLAIN (ANALYZE, BUFFERS)` and read the plan bottom-up: inner nodes run first and feed their parents. I look for the node where most of the time goes, for big gaps between estimated and actual rows (stale or missing statistics), for scans that read far more rows than they return, and for many buffer reads from disk.',
     details: [
@@ -791,7 +791,7 @@ Execution Time: 1843.4 ms`,
     ],
   },
 
-  'How do you design a composite index, and why does column order matter?': {
+  'composite-index-column-order': {
     summary:
       'A composite B-tree index is sorted by the first column, then by the second within each value of the first, and so on, so it can only be used efficiently from the left. My rule: equality-filter columns first, then the one range or sort column, then optionally `INCLUDE` extra columns so the query becomes an index-only scan. I design indexes from the real queries, and I keep the count low because every index slows every write.',
     details: [
@@ -896,7 +896,7 @@ ORDER BY pg_relation_size(indexrelid) DESC;
     ],
   },
 
-  'What causes deadlocks, and how do you prevent and handle them?': {
+  'prevent-and-handle-deadlocks': {
     summary:
       'A deadlock happens when two transactions each hold a lock the other one needs, so neither can continue. PostgreSQL detects the cycle and aborts one of them with SQLSTATE `40P01`, so the application must retry that transaction. I prevent most deadlocks by always locking rows in the same order, keeping transactions short, and using `lock_timeout` so nothing waits forever.',
     details: [
@@ -1002,7 +1002,7 @@ export async function withTx<T>(fn: (c: any) => Promise<T>, attempts = 4): Promi
     ],
   },
 
-  'How do you change a database schema with zero downtime (expand and contract)?': {
+  'zero-downtime-schema-changes': {
     summary:
       'During a rolling deploy, old and new versions of the app run against the same database at the same time, so every schema change must work with both. Expand and contract splits a breaking change into safe steps: add the new structure (nullable), backfill in batches, dual-write, switch reads, and only then drop the old structure in a later release. On the database side, I avoid long `ACCESS EXCLUSIVE` locks: `CREATE INDEX CONCURRENTLY`, `NOT VALID` constraints that are validated later, and a short `lock_timeout` on every migration.',
     details: [
@@ -1093,7 +1093,7 @@ ALTER TABLE users DROP CONSTRAINT users_full_name_nn;`,
     ],
   },
 
-  'How do read replicas work, and how do you deal with replication lag?': {
+  'read-replicas-and-replication-lag': {
     summary:
       'The primary streams its write-ahead log (WAL) to replicas, which replay it and serve read-only queries. By default this is asynchronous, so replicas are slightly behind: usually milliseconds, sometimes seconds under heavy load. The main problem is read-your-writes: after a user saves something, read from the primary (or wait until the replica has replayed that write), and monitor lag so you can stop sending traffic to a replica that falls too far behind.',
     details: [
@@ -1189,7 +1189,7 @@ SELECT now() - pg_last_xact_replay_timestamp() AS replay_delay;
     ],
   },
 
-  'When and how do you partition or shard a relational table?': {
+  'partition-or-shard-a-table': {
     summary:
       'Partitioning splits one large table into smaller tables on the same server, and Postgres routes queries to the right ones; I use it when a table is huge, queries filter on a natural key such as time, and I need cheap retention by dropping old partitions. Sharding spreads data across several servers, which is needed only when one machine can no longer handle the writes or the data size. Partition first, shard last: sharding brings shard-key design, cross-shard queries and much more operational work.',
     details: [
@@ -1278,7 +1278,7 @@ DROP TABLE events_2025_10;   -- or archive it to S3 first`,
     ],
   },
 
-  'PostgreSQL `JSONB` vs a document database: when is each the better choice?': {
+  'postgres-jsonb-vs-a-document-db': {
     summary:
       'PostgreSQL `JSONB` stores parsed, binary JSON that you can index with GIN and query with operators like `@>`, inside the same ACID transactions and joins as your relational data. That makes a hybrid model, with relational columns for the core fields and `JSONB` for the variable attributes, a strong default. A document database like MongoDB is the better fit when almost everything is document-shaped, the schema changes per document, and you need built-in horizontal sharding at large scale.',
     details: [
@@ -1365,20 +1365,19 @@ await pool.query('SELECT id FROM products WHERE attrs @> $1', [{ color: 'red' }]
     ],
   },
 
-  'How do you design a multi-tenant database: shared schema, schema per tenant, or database per tenant?':
-    {
-      summary:
-        'There are three main models. Shared schema with a `tenant_id` column on every table is the cheapest and simplest to operate, and Row-Level Security makes the database enforce isolation. Schema per tenant gives some separation but makes migrations and catalog size painful at thousands of tenants. Database per tenant gives the strongest isolation and per-tenant backup and restore, at the highest cost. Many SaaS products use shared schema for most tenants and a dedicated database for large or regulated customers.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'The choice is a trade-off between isolation, cost, operational effort and noisy neighbours (one tenant’s heavy workload slowing everyone else). The number of tenants matters a lot: 20 enterprise customers and 50,000 self-serve sign-ups lead to different answers.',
-        },
-        { type: 'heading3', text: 'Shared schema + Row-Level Security' },
-        {
-          type: 'code',
-          lang: 'sql',
-          code: `ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
+  'multi-tenant-database-models': {
+    summary:
+      'There are three main models. Shared schema with a `tenant_id` column on every table is the cheapest and simplest to operate, and Row-Level Security makes the database enforce isolation. Schema per tenant gives some separation but makes migrations and catalog size painful at thousands of tenants. Database per tenant gives the strongest isolation and per-tenant backup and restore, at the highest cost. Many SaaS products use shared schema for most tenants and a dedicated database for large or regulated customers.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'The choice is a trade-off between isolation, cost, operational effort and noisy neighbours (one tenant’s heavy workload slowing everyone else). The number of tenants matters a lot: 20 enterprise customers and 50,000 self-serve sign-ups lead to different answers.',
+      },
+      { type: 'heading3', text: 'Shared schema + Row-Level Security' },
+      {
+        type: 'code',
+        lang: 'sql',
+        code: `ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE invoices FORCE ROW LEVEL SECURITY;   -- applies to the table owner too
 
 CREATE POLICY tenant_isolation ON invoices
@@ -1387,15 +1386,15 @@ CREATE POLICY tenant_isolation ON invoices
 
 -- Every index starts with tenant_id
 CREATE INDEX invoices_tenant_created_idx ON invoices (tenant_id, created_at DESC);`,
-        },
-        {
-          type: 'paragraph',
-          text: '`USING` filters the rows a query can see, update or delete; `WITH CHECK` stops inserts or updates that would write another tenant’s `tenant_id`. With `missing_ok = true`, an unset `app.tenant_id` gives NULL, so the query returns no rows instead of all rows.',
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Set the tenant per transaction, so pooled connections never leak it
+      },
+      {
+        type: 'paragraph',
+        text: '`USING` filters the rows a query can see, update or delete; `WITH CHECK` stops inserts or updates that would write another tenant’s `tenant_id`. With `missing_ok = true`, an unset `app.tenant_id` gives NULL, so the query returns no rows instead of all rows.',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Set the tenant per transaction, so pooled connections never leak it
 export async function withTenant<T>(tenantId: string, fn: (c: any) => Promise<T>) {
   const client = await pool.connect();
   try {
@@ -1415,41 +1414,41 @@ export async function withTenant<T>(tenantId: string, fn: (c: any) => Promise<T>
 
 // Even a query that forgets "WHERE tenant_id = ..." only sees this tenant
 await withTenant(req.user.tenantId, (c) => c.query('SELECT * FROM invoices'));`,
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'RLS is bypassed by superusers and roles with `BYPASSRLS`, and by the table owner unless you use `FORCE ROW LEVEL SECURITY`. Connect the app as a separate, non-owner role. Use `set_config(..., true)` or `SET LOCAL` inside a transaction; a session-level `SET` on a pooled connection can leak one tenant’s ID to the next request.',
-        },
-        { type: 'heading3', text: 'Comparing the three models' },
-        {
-          type: 'bullets',
-          items: [
-            '**Shared schema (`tenant_id`):** cheapest, one migration run, easy cross-tenant analytics, scales to many thousands of tenants. Weakest isolation (a bug or missing policy leaks data), noisy neighbours, and per-tenant restore means filtering rows out of a full backup.',
-            '**Schema per tenant:** the app sets `search_path` per tenant; data is separated by name, and dropping a tenant is `DROP SCHEMA`. But migrations must run across N schemas (and can fail halfway), and thousands of schemas bloat the system catalog and slow tooling. Same server, so still noisy neighbours.',
-            '**Database per tenant:** strongest isolation, per-tenant backup, restore, region and encryption keys, and easy to move one big tenant to its own hardware. Highest cost, many connection pools, and migrations, monitoring and upgrades across a fleet need automation.',
-            '**Hybrid ("pool" and "silo"):** shared schema for small tenants, dedicated database for enterprise or regulated tenants. A tenant catalog maps each tenant to its database, so the app routes per request.',
-          ],
-        },
-        {
-          type: 'paragraph',
-          text: 'Shared schema also sets you up for growth: with `tenant_id` in every table and key, you can later shard by tenant (for example with Citus) without redesigning the data model.',
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: ask about the number of tenants, compliance needs and tenant size first, then choose. A strong default answer is "shared schema with `tenant_id` everywhere, enforced by RLS as a safety net behind the app checks, plus a path to move big tenants to their own database".',
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'How do you test that tenant isolation cannot be bypassed? (Integration tests that query as tenant A and assert no tenant B rows.)',
-            'How do you handle noisy neighbours? (Per-tenant rate limits, query timeouts, moving heavy tenants out.)',
-            'Does RLS hurt performance? (Small cost if policies are simple and `tenant_id` leads the indexes.)',
-            'How do you delete all data for a tenant on request (GDPR)?',
-          ],
-        },
-      ],
-    },
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'RLS is bypassed by superusers and roles with `BYPASSRLS`, and by the table owner unless you use `FORCE ROW LEVEL SECURITY`. Connect the app as a separate, non-owner role. Use `set_config(..., true)` or `SET LOCAL` inside a transaction; a session-level `SET` on a pooled connection can leak one tenant’s ID to the next request.',
+      },
+      { type: 'heading3', text: 'Comparing the three models' },
+      {
+        type: 'bullets',
+        items: [
+          '**Shared schema (`tenant_id`):** cheapest, one migration run, easy cross-tenant analytics, scales to many thousands of tenants. Weakest isolation (a bug or missing policy leaks data), noisy neighbours, and per-tenant restore means filtering rows out of a full backup.',
+          '**Schema per tenant:** the app sets `search_path` per tenant; data is separated by name, and dropping a tenant is `DROP SCHEMA`. But migrations must run across N schemas (and can fail halfway), and thousands of schemas bloat the system catalog and slow tooling. Same server, so still noisy neighbours.',
+          '**Database per tenant:** strongest isolation, per-tenant backup, restore, region and encryption keys, and easy to move one big tenant to its own hardware. Highest cost, many connection pools, and migrations, monitoring and upgrades across a fleet need automation.',
+          '**Hybrid ("pool" and "silo"):** shared schema for small tenants, dedicated database for enterprise or regulated tenants. A tenant catalog maps each tenant to its database, so the app routes per request.',
+        ],
+      },
+      {
+        type: 'paragraph',
+        text: 'Shared schema also sets you up for growth: with `tenant_id` in every table and key, you can later shard by tenant (for example with Citus) without redesigning the data model.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: ask about the number of tenants, compliance needs and tenant size first, then choose. A strong default answer is "shared schema with `tenant_id` everywhere, enforced by RLS as a safety net behind the app checks, plus a path to move big tenants to their own database".',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'How do you test that tenant isolation cannot be bypassed? (Integration tests that query as tenant A and assert no tenant B rows.)',
+          'How do you handle noisy neighbours? (Per-tenant rate limits, query timeouts, moving heavy tenants out.)',
+          'Does RLS hurt performance? (Small cost if policies are simple and `tenant_id` leads the indexes.)',
+          'How do you delete all data for a tenant on request (GDPR)?',
+        ],
+      },
+    ],
+  },
 };

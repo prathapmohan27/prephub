@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What is clustering in Node.js and why is it needed?': {
+  'clustering-and-why-it-is-needed': {
     summary:
       'Clustering means running several Node.js processes (workers) of the same app, usually one per CPU core, that share the same server port. A single Node process runs your JavaScript on one thread, so it can only use one core; clustering lets one machine use all its cores and keeps the service up if one worker crashes.',
     details: [
@@ -57,7 +57,7 @@ export const answers: AnswerMap = {
     ],
   },
 
-  'How do you implement clustering in Node.js using the cluster module?': {
+  'implement-the-cluster-module': {
     summary:
       'Use the built-in `node:cluster` module: in the primary process (`cluster.isPrimary`) fork one worker per CPU with `cluster.fork()` and restart workers on `exit`; in each worker, start the HTTP server normally. All workers can call `listen()` on the same port and the primary distributes connections between them.',
     details: [
@@ -158,7 +158,7 @@ setInterval(() => process.send({ type: 'stats', requests }), 5000);`,
     ],
   },
 
-  'How does the primary process distribute requests among workers in cluster mode?': {
+  'how-cluster-distributes-requests': {
     summary:
       'Node supports two strategies. The default on every platform except Windows is round-robin (`SCHED_RR`): the primary accepts each TCP connection and hands it to the next worker in turn. The other (`SCHED_NONE`) lets the primary create the listening socket and pass it to workers, which then compete to accept connections — the OS decides, which often leads to uneven load.',
     details: [
@@ -221,7 +221,7 @@ cluster.schedulingPolicy = cluster.SCHED_RR;   // round-robin
     ],
   },
 
-  'How do you share state between cluster workers?': {
+  'share-state-between-workers': {
     summary:
       'Workers are separate processes with separate memory, so you cannot share JavaScript objects. Either keep the app stateless and put shared state in an external store like Redis or a database (the standard answer), or pass messages through the primary with IPC (`process.send` / `worker.send`) for small, non-critical coordination.',
     details: [
@@ -308,7 +308,7 @@ if (cluster.isPrimary) {
     ],
   },
 
-  'What is PM2 and how does it manage Node.js processes?': {
+  'pm2-process-management': {
     summary:
       'PM2 is a production process manager for Node.js. It keeps apps alive (auto-restart on crash), runs them in cluster mode across all cores with `-i max`, supports zero-downtime reloads, collects logs, monitors CPU/memory, and can generate startup scripts so apps come back after a server reboot.',
     details: [

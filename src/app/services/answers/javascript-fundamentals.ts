@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What are ES6 features?': {
+  'es6-features': {
     summary:
       'ES6 (ES2015) was the biggest update to JavaScript: block-scoped `let`/`const`, arrow functions, classes, template literals, destructuring, default/rest/spread parameters, ES modules (`import`/`export`), Promises, iterators and `for...of`, generators, `Map`/`Set`/`WeakMap`, Symbols and Proxy/Reflect.',
     details: [
@@ -152,7 +152,7 @@ const { promise, resolve } = Promise.withResolvers();`,
     ],
   },
 
-  'Difference between var, let, and const': {
+  'var-vs-let-vs-const': {
     summary:
       '`var` is function-scoped, hoisted and initialised to `undefined`, and can be re-declared. `let` and `const` are block-scoped, hoisted but stay in the Temporal Dead Zone until their declaration line, and cannot be re-declared in the same scope. `const` additionally cannot be reassigned — but the object it points to can still be mutated.',
     details: [
@@ -229,44 +229,43 @@ for (let j = 0; j < 3; j++) {
     ],
   },
 
-  'What is the Temporal Dead Zone (TDZ) in JavaScript and how does it affect hoisting with let and const?':
-    {
-      summary:
-        'The TDZ is the period between entering a scope and reaching the line where a `let`, `const` (or `class`) variable is declared. The variable is hoisted — the engine knows it exists — but it is uninitialised, so any access during the TDZ throws a `ReferenceError` instead of quietly returning `undefined` like `var` does.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'A common misconception is that `let` and `const` are "not hoisted". They are: when a block starts, the engine creates bindings for all its declarations. The difference is initialisation — `var` bindings start as `undefined`, while `let`/`const`/`class` bindings stay uninitialised until execution reaches the declaration. That uninitialised window is the TDZ.',
-        },
-        { type: 'heading3', text: 'Proof that let is hoisted' },
-        {
-          type: 'code',
-          lang: 'javascript',
-          code: `let value = 'outer';
+  'temporal-dead-zone-and-hoisting': {
+    summary:
+      'The TDZ is the period between entering a scope and reaching the line where a `let`, `const` (or `class`) variable is declared. The variable is hoisted — the engine knows it exists — but it is uninitialised, so any access during the TDZ throws a `ReferenceError` instead of quietly returning `undefined` like `var` does.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'A common misconception is that `let` and `const` are "not hoisted". They are: when a block starts, the engine creates bindings for all its declarations. The difference is initialisation — `var` bindings start as `undefined`, while `let`/`const`/`class` bindings stay uninitialised until execution reaches the declaration. That uninitialised window is the TDZ.',
+      },
+      { type: 'heading3', text: 'Proof that let is hoisted' },
+      {
+        type: 'code',
+        lang: 'javascript',
+        code: `let value = 'outer';
 {
   // If let were NOT hoisted, this would print 'outer'.
   // Instead the inner 'value' is already in scope — but in its TDZ.
   console.log(value); // ❌ ReferenceError: Cannot access 'value' before initialization
   let value = 'inner';
 }`,
-        },
-        { type: 'heading3', text: 'TDZ is about time, not position' },
-        {
-          type: 'code',
-          lang: 'javascript',
-          code: `function read() {
+      },
+      { type: 'heading3', text: 'TDZ is about time, not position' },
+      {
+        type: 'code',
+        lang: 'javascript',
+        code: `function read() {
   return total; // refers to the outer let
 }
 
 // read();      // ❌ would throw here — total is still in the TDZ
 let total = 10;
 read();         // ✅ 10 — the TDZ ended when the declaration line ran`,
-        },
-        { type: 'heading3', text: 'Other places the TDZ shows up' },
-        {
-          type: 'code',
-          lang: 'javascript',
-          code: `// typeof is NOT safe in the TDZ
+      },
+      { type: 'heading3', text: 'Other places the TDZ shows up' },
+      {
+        type: 'code',
+        lang: 'javascript',
+        code: `// typeof is NOT safe in the TDZ
 typeof undeclaredVar; // 'undefined' (never declared — fine)
 typeof x;             // ❌ ReferenceError
 let x = 1;
@@ -277,49 +276,49 @@ function f(a = b, b = 2) {} // f() → ❌ ReferenceError: b in TDZ
 // Classes are in the TDZ too
 new Person(); // ❌ ReferenceError
 class Person {}`,
-        },
-        {
-          type: 'flow',
-          title: 'Lifecycle of a let/const binding',
-          code: `stateDiagram-v2
+      },
+      {
+        type: 'flow',
+        title: 'Lifecycle of a let/const binding',
+        code: `stateDiagram-v2
   [*] --> Hoisted: scope entered
   Hoisted --> TDZ: binding created, uninitialised
   TDZ --> Error: accessed before declaration
   TDZ --> Initialised: declaration line runs
   Initialised --> Initialised: read / write (let)
   Error --> [*]`,
-          text: '`var` skips the TDZ state: it goes straight from hoisted to initialised with `undefined`.',
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Why it exists: catches use-before-declare bugs early and makes `const` meaningful (a const can never be observed as `undefined` and then change).',
-            'Function declarations are fully hoisted (callable before their line); function **expressions** assigned to `let`/`const` are in the TDZ.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: say "let and const ARE hoisted, but not initialised" — then show the inner-block example. That one sentence separates a confident answer from a memorised one.',
-        },
-        { type: 'divider' },
-        {
-          type: 'heading3',
-          text: 'Follow-up: What is the Temporal Dead Zone (TDZ) in JavaScript and why does accessing let and const before declaration throw a ReferenceError?',
-        },
-        {
-          type: 'paragraph',
-          text: "`let`, `const` and `class` declarations **are hoisted** — the engine knows about the binding from the start of its scope — but they are **not initialised** until the declaration line executes. The period between entering the scope and that line is the Temporal Dead Zone; touching the variable there throws `ReferenceError: Cannot access 'x' before initialization`. `var`, by contrast, is initialised to `undefined` when hoisted, so early access silently returns `undefined`.",
-        },
-        {
-          type: 'paragraph',
-          text: 'The TDZ exists to catch bugs: reading a variable before it has a meaningful value is almost always a mistake, and `const` would be meaningless if you could observe it as `undefined` and then as its real value. It is "temporal" because it depends on execution time, not on where code is written.',
-        },
-        { type: 'heading3', text: 'var vs let/const' },
-        {
-          type: 'code',
-          lang: 'javascript',
-          code: `console.log(a); // undefined — var is hoisted AND initialised
+        text: '`var` skips the TDZ state: it goes straight from hoisted to initialised with `undefined`.',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Why it exists: catches use-before-declare bugs early and makes `const` meaningful (a const can never be observed as `undefined` and then change).',
+          'Function declarations are fully hoisted (callable before their line); function **expressions** assigned to `let`/`const` are in the TDZ.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: say "let and const ARE hoisted, but not initialised" — then show the inner-block example. That one sentence separates a confident answer from a memorised one.',
+      },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: What is the Temporal Dead Zone (TDZ) in JavaScript and why does accessing let and const before declaration throw a ReferenceError?',
+      },
+      {
+        type: 'paragraph',
+        text: "`let`, `const` and `class` declarations **are hoisted** — the engine knows about the binding from the start of its scope — but they are **not initialised** until the declaration line executes. The period between entering the scope and that line is the Temporal Dead Zone; touching the variable there throws `ReferenceError: Cannot access 'x' before initialization`. `var`, by contrast, is initialised to `undefined` when hoisted, so early access silently returns `undefined`.",
+      },
+      {
+        type: 'paragraph',
+        text: 'The TDZ exists to catch bugs: reading a variable before it has a meaningful value is almost always a mistake, and `const` would be meaningless if you could observe it as `undefined` and then as its real value. It is "temporal" because it depends on execution time, not on where code is written.',
+      },
+      { type: 'heading3', text: 'var vs let/const' },
+      {
+        type: 'code',
+        lang: 'javascript',
+        code: `console.log(a); // undefined — var is hoisted AND initialised
 var a = 1;
 
 console.log(b); // ❌ ReferenceError: Cannot access 'b' before initialization
@@ -331,12 +330,12 @@ let c = 'outer';
   console.log(c); // ❌ ReferenceError (not 'outer') — inner c is in its TDZ
   let c = 'inner';
 }`,
-        },
-        { type: 'heading3', text: 'Temporal, not positional' },
-        {
-          type: 'code',
-          lang: 'javascript',
-          code: `function logLimit() {
+      },
+      { type: 'heading3', text: 'Temporal, not positional' },
+      {
+        type: 'code',
+        lang: 'javascript',
+        code: `function logLimit() {
   console.log(LIMIT); // defined above the const — but only CALLED later
 }
 const LIMIT = 100;
@@ -346,12 +345,12 @@ logLimit(); // ✅ 100 — the declaration ran before the call
 typeof undeclared;   // 'undefined'
 typeof later;        // ❌ ReferenceError
 let later = 1;`,
-        },
-        { type: 'heading3', text: 'Where it bites in Node' },
-        {
-          type: 'code',
-          lang: 'javascript',
-          code: `// Circular ES module imports
+      },
+      { type: 'heading3', text: 'Where it bites in Node' },
+      {
+        type: 'code',
+        lang: 'javascript',
+        code: `// Circular ES module imports
 // a.mjs
 import { b } from './b.mjs';
 export const a = 'A';
@@ -364,24 +363,24 @@ export const b = 'B';
 // Default parameters have their own TDZ as well
 function f(x = y, y = 1) {}
 f(); // ❌ ReferenceError — y is used before it is initialised`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Hoisting summary: `var` → hoisted + `undefined`; `let`/`const`/`class` → hoisted, uninitialised (TDZ); function declarations → hoisted with their body.',
-            'The TDZ turns subtle ordering bugs into immediate, loud errors.',
-            'In CommonJS, circular requires give you a partially filled `exports` object instead; in ESM they can surface as TDZ errors.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Common wrong answer: "let and const are not hoisted." They are hoisted — the shadowing example proves it. The correct statement is that they are hoisted but not initialised.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Hoisting summary: `var` → hoisted + `undefined`; `let`/`const`/`class` → hoisted, uninitialised (TDZ); function declarations → hoisted with their body.',
+          'The TDZ turns subtle ordering bugs into immediate, loud errors.',
+          'In CommonJS, circular requires give you a partially filled `exports` object instead; in ESM they can surface as TDZ errors.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common wrong answer: "let and const are not hoisted." They are hoisted — the shadowing example proves it. The correct statement is that they are hoisted but not initialised.',
+      },
+    ],
+  },
 
-  'Difference between == and ===': {
+  'loose-vs-strict-equality': {
     summary:
       '`===` (strict equality) compares value and type with no conversion. `==` (loose equality) first coerces the operands to a common type using the Abstract Equality rules, which leads to surprising results like `0 == ""` being `true`. Use `===` by default; the one idiomatic use of `==` is `x == null` to check for both `null` and `undefined`.',
     details: [
@@ -518,7 +517,7 @@ Object.is(0, -0);     // false  (=== says true)
     ],
   },
 
-  'Explain closures with practical examples': {
+  'closures-with-practical-examples': {
     summary:
       "A closure is a function bundled with the variables from the scope where it was created. Because JavaScript uses lexical scope, an inner function keeps access to its outer function's variables even after the outer function has returned. Closures power data privacy, factories, memoisation, debounce/throttle, event handlers and callbacks.",
     details: [
@@ -699,7 +698,7 @@ const getConfig = memoize((env) => loadConfigFromDisk(env));`,
     ],
   },
 
-  'What is currying in JavaScript?': {
+  currying: {
     summary:
       'Currying transforms a function that takes several arguments, `f(a, b, c)`, into a chain of functions that each take one argument, `f(a)(b)(c)`. It relies on closures to remember earlier arguments and is useful for creating specialised, reusable functions (partial application) and for function composition.',
     details: [
@@ -777,31 +776,30 @@ button.addEventListener('click', onSelect(42));`,
     ],
   },
 
-  'What are ES6 Arrow Functions (`() => {}`) in JavaScript/TypeScript and how do they differ from regular functions?':
-    {
-      summary:
-        'Arrow functions are a concise function syntax introduced in ES6. Beyond shorter syntax they behave differently: they have no own `this` (they use the `this` of the surrounding scope), no `arguments` object, cannot be used as constructors with `new`, have no `prototype`, and their `this` cannot be changed by `call`, `apply` or `bind`.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Syntax-wise, an arrow function can drop the `function` keyword, the parentheses for a single parameter, and the braces plus `return` for a single expression. The more important differences are semantic — mainly how `this` is resolved.',
-        },
-        { type: 'heading3', text: 'Syntax forms' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `function square(n: number) { return n * n; }   // regular
+  'arrow-functions-vs-regular-functions': {
+    summary:
+      'Arrow functions are a concise function syntax introduced in ES6. Beyond shorter syntax they behave differently: they have no own `this` (they use the `this` of the surrounding scope), no `arguments` object, cannot be used as constructors with `new`, have no `prototype`, and their `this` cannot be changed by `call`, `apply` or `bind`.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Syntax-wise, an arrow function can drop the `function` keyword, the parentheses for a single parameter, and the braces plus `return` for a single expression. The more important differences are semantic — mainly how `this` is resolved.',
+      },
+      { type: 'heading3', text: 'Syntax forms' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `function square(n: number) { return n * n; }   // regular
 
 const sq1 = (n: number) => n * n;               // implicit return
 const sq2 = (n: number) => { return n * n; };   // block body needs return
 const log = () => console.log('hi');            // no params
 const toUser = (name: string) => ({ name });    // returning an object → wrap in ()`,
-        },
-        { type: 'heading3', text: 'Difference 1 — this' },
-        {
-          type: 'code',
-          lang: 'javascript',
-          code: `const team = {
+      },
+      { type: 'heading3', text: 'Difference 1 — this' },
+      {
+        type: 'code',
+        lang: 'javascript',
+        code: `const team = {
   name: 'Platform',
   members: ['Asha', 'Ravi'],
   listRegular() {
@@ -815,12 +813,12 @@ const toUser = (name: string) => ({ name });    // returning an object → wrap 
     });
   },
 };`,
-        },
-        { type: 'heading3', text: 'Difference 2 — arguments, new, prototype' },
-        {
-          type: 'code',
-          lang: 'javascript',
-          code: `function regular() { return arguments.length; }
+      },
+      { type: 'heading3', text: 'Difference 2 — arguments, new, prototype' },
+      {
+        type: 'code',
+        lang: 'javascript',
+        code: `function regular() { return arguments.length; }
 regular(1, 2, 3);       // 3
 
 const arrow = (...args) => args.length; // no 'arguments' → use rest params
@@ -832,12 +830,12 @@ new Person('Asha');     // ✅
 const P = (name) => { this.name = name; };
 new P('Asha');          // ❌ TypeError: P is not a constructor
 P.prototype;            // undefined`,
-        },
-        { type: 'heading3', text: 'When NOT to use an arrow function' },
-        {
-          type: 'code',
-          lang: 'javascript',
-          code: `const counter = {
+      },
+      { type: 'heading3', text: 'When NOT to use an arrow function' },
+      {
+        type: 'code',
+        lang: 'javascript',
+        code: `const counter = {
   count: 0,
   inc: () => this.count++,   // ❌ this is NOT counter — arrow takes outer this
   incOk() { this.count++; }, // ✅ method shorthand
@@ -846,36 +844,36 @@ P.prototype;            // undefined`,
 button.addEventListener('click', function () {
   this.classList.toggle('active'); // ✅ this = the button (regular function)
 });`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '**this:** regular → decided by how it is called; arrow → taken from the enclosing scope at definition time.',
-            '**call/apply/bind:** can change `this` for regular functions; ignored for arrows.',
-            '**Hoisting:** function declarations are hoisted; arrows are expressions assigned to variables (TDZ with `const`).',
-            '**Use arrows** for callbacks, array methods, RxJS operators, promise chains. **Use regular functions/methods** for object methods, constructors, and DOM handlers that need `this` = element.',
-            'Arrow functions cannot be generators (no `yield`).',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: "Common pitfall: defining object methods or prototype methods as arrows. They won't see the object as `this`. Use method shorthand instead.",
-        },
-        { type: 'divider' },
-        {
-          type: 'heading3',
-          text: 'Follow-up: Why do we need Arrow Functions when regular function declarations already exist (`lexical this binding`)?',
-        },
-        {
-          type: 'paragraph',
-          text: 'Arrow functions exist mainly to fix the "lost `this`" problem in callbacks. A regular function gets its `this` from how it is called, so passing a method\'s inner callback to `setTimeout`, `forEach` or a subscription loses the object context. Arrows use lexical `this` — they inherit it from where they are written — which replaced old workarounds like `var self = this` and `.bind(this)`.',
-        },
-        { type: 'heading3', text: 'The problem — and the old workarounds' },
-        {
-          type: 'code',
-          lang: 'javascript',
-          code: `function Timer() {
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**this:** regular → decided by how it is called; arrow → taken from the enclosing scope at definition time.',
+          '**call/apply/bind:** can change `this` for regular functions; ignored for arrows.',
+          '**Hoisting:** function declarations are hoisted; arrows are expressions assigned to variables (TDZ with `const`).',
+          '**Use arrows** for callbacks, array methods, RxJS operators, promise chains. **Use regular functions/methods** for object methods, constructors, and DOM handlers that need `this` = element.',
+          'Arrow functions cannot be generators (no `yield`).',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: "Common pitfall: defining object methods or prototype methods as arrows. They won't see the object as `this`. Use method shorthand instead.",
+      },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: Why do we need Arrow Functions when regular function declarations already exist (`lexical this binding`)?',
+      },
+      {
+        type: 'paragraph',
+        text: 'Arrow functions exist mainly to fix the "lost `this`" problem in callbacks. A regular function gets its `this` from how it is called, so passing a method\'s inner callback to `setTimeout`, `forEach` or a subscription loses the object context. Arrows use lexical `this` — they inherit it from where they are written — which replaced old workarounds like `var self = this` and `.bind(this)`.',
+      },
+      { type: 'heading3', text: 'The problem — and the old workarounds' },
+      {
+        type: 'code',
+        lang: 'javascript',
+        code: `function Timer() {
   this.seconds = 0;
 
   // ❌ Bug: inside the callback, this is undefined (strict) or window
@@ -891,12 +889,12 @@ button.addEventListener('click', function () {
   // ✅ ES6: arrow function — lexical this
   setInterval(() => { this.seconds++; }, 1000);
 }`,
-        },
-        { type: 'heading3', text: 'Why it matters in Angular / TypeScript classes' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({ selector: 'app-users', template: '...' })
+      },
+      { type: 'heading3', text: 'Why it matters in Angular / TypeScript classes' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({ selector: 'app-users', template: '...' })
 export class UsersComponent {
   private http = inject(HttpClient);
   users = signal<User[]>([]);
@@ -915,30 +913,30 @@ export class UsersComponent {
   onResize = () => console.log(this.users().length);
   // window.addEventListener('resize', this.onResize) keeps the right this
 }`,
-        },
-        {
-          type: 'flow',
-          title: 'How this is resolved',
-          code: `flowchart TD
+      },
+      {
+        type: 'flow',
+        title: 'How this is resolved',
+        code: `flowchart TD
   F{Function type?} -->|Arrow| L["Look up this in the<br/>enclosing scope (lexical)"]:::highlight
   F -->|Regular| C{How was it called?}
   C -->|"new Fn()"| N[New object]:::server
   C -->|"obj.fn()"| O[obj]:::server
   C -->|"fn.call(x) / bind(x)"| X[x]:::server
   C -->|"plain fn()"| U["undefined (strict)<br/>or globalThis"]:::external`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Arrows also make callbacks shorter (`items.map(i => i.id)`), which suits functional style and RxJS pipelines.',
-            'Trade-off: class-field arrows are created per instance (not on the prototype), so they use a little more memory and cannot be easily overridden via `super`.',
-            "Arrows don't replace regular functions: you still need them for constructors, methods using dynamic `this`, generators and `arguments`.",
-          ],
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Arrows also make callbacks shorter (`items.map(i => i.id)`), which suits functional style and RxJS pipelines.',
+          'Trade-off: class-field arrows are created per instance (not on the prototype), so they use a little more memory and cannot be easily overridden via `super`.',
+          "Arrows don't replace regular functions: you still need them for constructors, methods using dynamic `this`, generators and `arguments`.",
+        ],
+      },
+    ],
+  },
 
-  'Difference between prototype and __proto__': {
+  'prototype-vs-proto': {
     summary:
       "`prototype` is a property on constructor functions (and classes): it is the object that will become the prototype of instances created with `new`. `__proto__` is an accessor on every object that points to that object's actual prototype — the next link in its prototype chain. So `new Foo().__proto__ === Foo.prototype`. Prefer `Object.getPrototypeOf()` over the legacy `__proto__`.",
     details: [
@@ -1004,7 +1002,7 @@ typeof Dog.prototype.speak;                               // 'function' — meth
     ],
   },
 
-  'How to implement inheritance in JavaScript?': {
+  'implementing-inheritance': {
     summary:
       'JavaScript uses prototypal inheritance: objects delegate property lookups to their prototype. The modern way is ES6 `class Child extends Parent` with `super()`. Under the hood that is the same as the older constructor-function pattern (`Parent.call(this)` + `Object.create(Parent.prototype)`), and you can also inherit directly from an object with `Object.create()`. Prefer composition when the "is-a" relationship is weak.',
     details: [
@@ -1100,7 +1098,7 @@ duck('Donald').fly(); // 'Donald flies' — mix behaviours without deep hierarch
     ],
   },
 
-  'Deep copy vs shallow copy': {
+  'deep-copy-vs-shallow-copy': {
     summary:
       'A shallow copy creates a new top-level object but nested objects/arrays are still shared references, so changing a nested value affects the original. A deep copy recursively copies everything, so the copy is fully independent. Shallow: spread `{...obj}`, `Object.assign`, `Array.slice()`. Deep: `structuredClone()` (modern, built-in), `JSON.parse(JSON.stringify())` (lossy), or a library like Lodash `cloneDeep`.',
     details: [
@@ -1246,7 +1244,7 @@ function buildRequestFixed(userHeaders) {
     ],
   },
 
-  'Explain how the JavaScript Event Loop works': {
+  'how-the-event-loop-works': {
     summary:
       'JavaScript runs on a single thread with one call stack. Async work (timers, network, I/O) is handled by the browser or Node.js, and their callbacks are queued. The event loop repeatedly: runs the current synchronous code until the stack is empty, then drains the entire **microtask** queue (Promise callbacks, `queueMicrotask`, `MutationObserver`), then (in the browser) may render, then takes the next **macrotask** (timers, events, I/O). That is why `Promise.then` always runs before `setTimeout(fn, 0)`.',
     details: [
@@ -1334,7 +1332,7 @@ async function processInChunks(items) {
     ],
   },
 
-  'What is a Promise in JavaScript?': {
+  'what-a-promise-is': {
     summary:
       'A Promise is an object representing the eventual result of an asynchronous operation. It starts `pending` and settles exactly once, either `fulfilled` with a value or `rejected` with a reason. You consume it with `.then/.catch/.finally` or `async/await`, and combine several with `Promise.all`, `allSettled`, `race` and `any`. Promises replaced deeply nested callbacks with chainable, composable code.',
     details: [
@@ -1423,7 +1421,7 @@ const [c, d] = await Promise.all([fetch('/c'), fetch('/d')]);`,
     ],
   },
 
-  'Debounce vs Throttle': {
+  'debounce-vs-throttle': {
     summary:
       'Both limit how often a function runs during a burst of events. **Debounce** waits until events STOP for a given delay and then runs once (e.g. search-as-you-type, auto-save, resize end). **Throttle** runs at most once per interval while events keep firing (e.g. scroll position, mouse move, button spam). Debounce = "after the user is done", throttle = "at a steady rate".',
     details: [
@@ -1508,7 +1506,7 @@ export class SearchComponent {
     ],
   },
 
-  'What is the difference between null and undefined in JavaScript?': {
+  'null-vs-undefined': {
     summary:
       '`undefined` means a value was never assigned — it is what JavaScript gives you for uninitialised variables, missing properties, missing arguments and functions without a `return`. `null` is an explicit, intentional "no value" that a developer assigns. `typeof undefined` is `"undefined"`, while `typeof null` is `"object"` (a historical bug).',
     details: [
@@ -1581,7 +1579,7 @@ connect({ retries: null });      // null — but NOT to null
     ],
   },
 
-  'What is the difference between call(), apply(), and bind()?': {
+  'call-vs-apply-vs-bind': {
     summary:
       'All three set the value of `this` for a function. `call(thisArg, a, b)` invokes it immediately with arguments listed individually; `apply(thisArg, [a, b])` invokes it immediately with arguments as an array; `bind(thisArg, a)` does **not** invoke — it returns a new function permanently bound to that `this` (and optional pre-filled arguments).',
     details: [
@@ -1653,7 +1651,7 @@ emitter.on('data', () => { /* arrow: this is NOT the emitter */ });`,
     ],
   },
 
-  'Explain the JavaScript prototype chain': {
+  'prototype-chain': {
     summary:
       'Every JavaScript object has an internal link (`[[Prototype]]`) to another object, its prototype. When you read a property that the object does not have, the engine walks up this chain of prototypes until it finds the property or reaches `null`. This is how inheritance works in JavaScript — `class` and `extends` are syntax on top of prototypes.',
     details: [
@@ -1727,7 +1725,7 @@ const dict = Object.create(null); // no prototype at all — no toString, no __p
     ],
   },
 
-  'What is the difference between Array.map(), Array.filter(), and Array.reduce()?': {
+  'map-vs-filter-vs-reduce': {
     summary:
       'All three iterate an array without mutating it. `map` transforms each element and returns a new array of the **same length**; `filter` returns a new array with only the elements whose callback returns truthy (**same or shorter**); `reduce` folds all elements into a **single value** of any type — a number, object, Map or even another array — using an accumulator.',
     details: [
@@ -1802,7 +1800,7 @@ const activeUsers = all.filter((u) => u.active);`,
     ],
   },
 
-  'What is Promise.all() vs Promise.allSettled() vs Promise.race() vs Promise.any()?': {
+  'promise-all-vs-allsettled-vs-race-vs-any': {
     summary:
       'All four take an iterable of promises and run them concurrently. `Promise.all` resolves with all values or **rejects on the first rejection** (fail-fast). `Promise.allSettled` always resolves with every outcome (`{status, value | reason}`). `Promise.race` settles with **whichever settles first**, success or failure. `Promise.any` resolves with the **first success** and rejects with an `AggregateError` only if all fail.',
     details: [
@@ -1875,7 +1873,7 @@ const res = await fetch(url, { signal: AbortSignal.timeout(2000) });`,
     ],
   },
 
-  'What are generator functions and async generators in JavaScript?': {
+  'generators-and-async-generators': {
     summary:
       'A generator (`function*`) is a function that can pause with `yield` and resume later; calling it returns an iterator, and each `next()` runs it to the next `yield`. An async generator (`async function*`) can also `await` inside and yields promises, so you consume it with `for await...of`. In Node they are ideal for lazily producing sequences and for consuming streams, paginated APIs and large files piece by piece.',
     details: [
@@ -1966,7 +1964,7 @@ await pipeline(
     ],
   },
 
-  'What is a Proxy object and how is it used?': {
+  'proxy-objects-and-their-uses': {
     summary:
       'A `Proxy` wraps a target object and lets you intercept fundamental operations on it — property get/set, `in`, delete, function calls, `new` — through "trap" functions in a handler. It is used for validation, logging/observability, default values, access control, lazy loading and reactive systems (Vue 3, MobX, Immer use Proxies). `Reflect` provides the default behaviour for each trap.',
     details: [
@@ -2054,7 +2052,7 @@ await repo.findById(42); // logs { method: 'findById', ms: 3.2 }`,
     ],
   },
 
-  'What are WeakMap and WeakSet, and why do they allow garbage collection?': {
+  'weakmap-weakset-and-garbage-collection': {
     summary:
       '`WeakMap` is a key-value map whose keys must be objects (or non-registered symbols) and are held **weakly**; `WeakSet` is a set of weakly held objects. "Weak" means the collection does not keep its keys alive — if nothing else references a key object, the garbage collector can reclaim it and the entry disappears automatically. Because entries can vanish at any time, they are not iterable and have no `size`.',
     details: [

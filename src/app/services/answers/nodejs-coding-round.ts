@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'Implement `Promise.all` from scratch.': {
+  'implement-promise-all': {
     summary:
       "I return a new Promise, wrap every input in `Promise.resolve` so plain values and thenables work too, and store each result at its original index so the output keeps input order, not finish order. I keep a counter of pending inputs and resolve when it hits zero; the first rejection rejects the whole thing. An empty input resolves immediately with `[]`. That's O(n) time and O(n) space.",
     details: [
@@ -144,7 +144,7 @@ function promiseAny<T>(values: Iterable<T>): Promise<Awaited<T>> {
     ],
   },
 
-  'Implement a retry function with exponential backoff and jitter.': {
+  'implement-retry-with-backoff-and-jitter': {
     summary:
       "I wrap the async function in a loop: try it, and on failure check whether the error is retryable and whether attempts remain; if so, wait and try again, otherwise rethrow the last error. The wait doubles each time — `base * 2^attempt`, capped at a maximum — and I add full jitter by picking a random delay between 0 and that cap so many clients don't retry in lockstep. I also accept an `AbortSignal` so the caller can cancel both the attempts and the waits.",
     details: [
@@ -298,7 +298,7 @@ function isRetryable(error: unknown): boolean {
     ],
   },
 
-  'Run a list of async tasks with at most N running at the same time (a promise pool).': {
+  'implement-a-promise-pool': {
     summary:
       'I take an array of task functions — not promises, because a promise is already running once it exists — and start N workers. Each worker loops: grab the next unclaimed index, await that task, store the result at that index, repeat until none are left. `Promise.all` over the workers tells me when everything is done, results stay in input order because I write by index, and the first failure rejects the whole pool. O(n) time overhead and O(n + N) space.',
     details: [
@@ -434,7 +434,7 @@ console.log(items.length); // 100, in the same order as ids`,
     ],
   },
 
-  'Implement an LRU cache with O(1) `get` and `put`.': {
+  'implement-an-lru-cache': {
     summary:
       "An LRU cache needs two things in O(1): look up a key, and know which key was used least recently. In JavaScript a `Map` gives both, because it remembers insertion order — on every `get` or `put` I delete the key and re-insert it to move it to the newest end, and when I'm over capacity I evict `map.keys().next().value`, the oldest. The classic language-neutral answer is a hash map pointing into a doubly linked list, and I can write that too.",
     details: [
@@ -610,7 +610,7 @@ class LinkedLRUCache<K, V> {
     ],
   },
 
-  'Implement a simple EventEmitter with `on`, `off`, `once`, and `emit`.': {
+  'implement-an-eventemitter': {
     summary:
       "I keep a `Map` from event name to an array of listener records. `on` pushes a record, `once` pushes one flagged `once`, `off` removes the matching listener, and `emit` calls each listener with the arguments in order. The two details that matter are: `emit` iterates over a **copy** of the array so listeners added or removed during an emit don't break the loop, and a `once` listener is removed **before** it is called. Like Node, emitting `error` with no listener throws.",
     details: [
@@ -754,7 +754,7 @@ orders.emit('error', new Error('payment failed')); // handled: payment failed (n
     ],
   },
 
-  'Implement `promisify` for callback-style (error-first) functions.': {
+  'implement-promisify': {
     summary:
       "`promisify` takes a function whose last argument is an error-first callback `(err, result)` and returns a new function that returns a Promise. Inside, I call the original with the caller's arguments plus my own callback, and that callback rejects if `err` is set or resolves with `result`. I forward `this` so methods still work, and I honour the `util.promisify.custom` symbol so a function can supply its own promise version, like Node does.",
     details: [
@@ -860,7 +860,7 @@ console.log(await promisify(legacyGreet)('Ana')); // 'hello Ana (custom)'`,
     ],
   },
 
-  'Implement a token-bucket rate limiter as Express middleware.': {
+  'implement-token-bucket-middleware': {
     summary:
       "Each client — usually keyed by IP or user ID — gets a bucket that holds up to `capacity` tokens and refills at a steady rate. Every request costs one token: if one is available I take it and call `next()`, otherwise I respond 429 with a `Retry-After` header. I don't need a timer per bucket — I refill lazily on each request from the time since the last refill. Buckets live in a `Map` for one process; with several instances the state moves to Redis with an atomic Lua script.",
     details: [
@@ -1009,7 +1009,7 @@ app.listen(3000);`,
     ],
   },
 
-  'Count word frequencies in a very large file using streams.': {
+  'count-word-frequencies-with-streams': {
     summary:
       "I never load the whole file — I stream it. `fs.createReadStream` feeds `readline`, and I `for await` over the lines, splitting each line into words with a Unicode-aware regex and counting them in a `Map`. Memory is O(distinct words) instead of O(file size), and `for await` gives me backpressure for free because the stream pauses while I'm processing. At the end I sort the Map entries to get the top N.",
     details: [
@@ -1151,27 +1151,26 @@ async function countWordsByChunk(filePath: string): Promise<Map<string, number>>
     ],
   },
 
-  'Write Express error-handling middleware that maps domain errors to Problem Details responses and hides internal details in production.':
-    {
-      summary:
-        "I define a small error hierarchy (`AppError` with `status`, `type` and `title`, plus subclasses like `NotFoundError` and `ConflictError`), throw those from services, and register one 4-argument middleware last. It maps known errors and `ZodError` to `application/problem+json` with the right status, adds `instance` and a request id, logs the full error server-side, and turns anything unknown into a generic 500 with no stack or message in production. If headers were already sent, it delegates to Express's default handler with `next(err)`.",
-      details: [
-        { type: 'heading3', text: 'Requirements to state first' },
-        {
-          type: 'bullets',
-          items: [
-            'One response format for every error (RFC 9457 Problem Details, see the API Design answer for the members).',
-            'Expected (operational) errors keep their status and a safe message; unexpected errors become 500 and leak nothing.',
-            'Validation errors return field-level details.',
-            'Every response carries a request id that matches the server log line.',
-            'Works for async handlers (Express 5 forwards rejected promises; on Express 4 wrap handlers).',
-          ],
-        },
-        { type: 'heading3', text: '1. Error hierarchy' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// errors.ts
+  'write-problem-details-error-middleware': {
+    summary:
+      "I define a small error hierarchy (`AppError` with `status`, `type` and `title`, plus subclasses like `NotFoundError` and `ConflictError`), throw those from services, and register one 4-argument middleware last. It maps known errors and `ZodError` to `application/problem+json` with the right status, adds `instance` and a request id, logs the full error server-side, and turns anything unknown into a generic 500 with no stack or message in production. If headers were already sent, it delegates to Express's default handler with `next(err)`.",
+    details: [
+      { type: 'heading3', text: 'Requirements to state first' },
+      {
+        type: 'bullets',
+        items: [
+          'One response format for every error (RFC 9457 Problem Details, see the API Design answer for the members).',
+          'Expected (operational) errors keep their status and a safe message; unexpected errors become 500 and leak nothing.',
+          'Validation errors return field-level details.',
+          'Every response carries a request id that matches the server log line.',
+          'Works for async handlers (Express 5 forwards rejected promises; on Express 4 wrap handlers).',
+        ],
+      },
+      { type: 'heading3', text: '1. Error hierarchy' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// errors.ts
 export abstract class AppError extends Error {
   abstract readonly status: number;
   abstract readonly type: string; // stable URI clients can switch on
@@ -1203,12 +1202,12 @@ export class ForbiddenError extends AppError {
   readonly type = base + '/forbidden';
   readonly title = 'Not allowed';
 }`,
-        },
-        { type: 'heading3', text: '2. The middleware' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// error-handler.ts
+      },
+      { type: 'heading3', text: '2. The middleware' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// error-handler.ts
 import type { ErrorRequestHandler } from 'express';
 import { ZodError } from 'zod';
 import { AppError } from './errors';
@@ -1260,12 +1259,12 @@ export const problemDetails: ErrorRequestHandler = (err, req, res, next) => {
 function isBodyParserError(err: any): err is { status: number; type: string } {
   return typeof err?.status === 'number' && typeof err?.type === 'string' && err.status < 500;
 }`,
-        },
-        { type: 'heading3', text: '3. Wiring' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `const app = express();
+      },
+      { type: 'heading3', text: '3. Wiring' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `const app = express();
 app.use(requestId());          // sets req.id and the X-Request-Id response header
 app.use(express.json({ limit: '1mb' }));
 app.use('/orders', ordersRouter);
@@ -1278,16 +1277,16 @@ app.use(problemDetails);        // must be last, and must have 4 parameters
 // Express 4 only: forward async errors (Express 5 does this automatically)
 export const ah = (fn: RequestHandler): RequestHandler => (req, res, next) =>
   Promise.resolve(fn(req, res, next)).catch(next);`,
-        },
-        {
-          type: 'paragraph',
-          text: "Inside a route the service just throws: `if (!order) throw new NotFoundError('Order ' + id + ' not found');`. Validation is `Schema.parse(req.body)`, which throws a `ZodError` that the middleware maps. No route needs its own try/catch.",
-        },
-        { type: 'heading3', text: '4. Tests with supertest' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `function buildApp() {
+      },
+      {
+        type: 'paragraph',
+        text: "Inside a route the service just throws: `if (!order) throw new NotFoundError('Order ' + id + ' not found');`. Validation is `Schema.parse(req.body)`, which throws a `ZodError` that the middleware maps. No route needs its own try/catch.",
+      },
+      { type: 'heading3', text: '4. Tests with supertest' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `function buildApp() {
   const app = express();
   app.use(express.json());
   app.get('/missing', () => { throw new NotFoundError('Order 42 not found'); });
@@ -1317,61 +1316,61 @@ it('hides internal details in production', async () => {
   expect(JSON.stringify(res.body)).not.toContain('hunter2');
   expect(res.body.stack).toBeUndefined();
 });`,
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Reading `NODE_ENV` at module load makes the production test order-dependent. A cleaner design is a factory, `problemDetails({ exposeInternals: false, logger })`, so tests pass options instead of mutating globals.',
-        },
-        { type: 'heading3', text: 'Design decisions worth saying out loud' },
-        {
-          type: 'bullets',
-          items: [
-            '**Domain errors do not know HTTP**: an alternative is to keep `status` out of the domain classes and map them in the middleware with a lookup table. That keeps services reusable from queue consumers and CLIs.',
-            '**Stable `type` URIs** are the contract; `detail` is for humans and may change.',
-            '**4xx are warnings, 5xx are errors** in logs and alerts, so a spike of bad client input does not page anyone.',
-            '**Do not echo user input** into `detail` without care; it can end up in logs and error UIs.',
-            '**Programmer errors** (a `TypeError` from a bug) still get a 500 here, and the process keeps running because the request is isolated. Errors outside the request path still go to the process-level handlers.',
-          ],
-        },
-        { type: 'heading3', text: 'Complexity and edge cases' },
-        {
-          type: 'bullets',
-          items: [
-            'O(1) per error, plus O(n) over validation issues.',
-            'Errors thrown after streaming started (`res.headersSent`).',
-            'Non-`Error` values thrown (`throw "oops"`): handled by the generic branch via `String(err)`.',
-            'Errors from `express.json()` (malformed JSON, 413) are client errors and should not become 500.',
-            'Error middleware registered before the routes never runs for them.',
-          ],
-        },
-        { type: 'divider' },
-        { type: 'heading3', text: 'Follow-up questions interviewers ask' },
-        {
-          type: 'bullets',
-          items: [
-            'Why must the handler have exactly four parameters? Hint: Express detects error middleware by `fn.length === 4`; dropping `next` turns it into normal middleware.',
-            'What changes in Express 5? Hint: rejected promises from handlers are passed to `next(err)` automatically, so the `ah()` wrapper is no longer needed.',
-            'How do you correlate the response with logs and traces? Hint: request id via `AsyncLocalStorage` in every log line, plus the OpenTelemetry trace id in the body.',
-            'How would you translate database errors such as a duplicate key? Hint: map driver codes (Postgres `23505`, MongoDB `11000`) to `ConflictError` in the repository layer.',
-          ],
-        },
-        { type: 'heading3', text: 'Common mistakes' },
-        {
-          type: 'bullets',
-          items: [
-            'Returning `err.message` or `err.stack` for every error, leaking SQL, file paths or secrets.',
-            'Every route having its own try/catch with a slightly different JSON shape.',
-            'Turning malformed JSON or validation failures into 500s, which pollutes error rates and alerts.',
-            'Calling `res.status()` after headers were sent, which throws `ERR_HTTP_HEADERS_SENT`.',
-            'Forgetting async errors in Express 4, so requests hang instead of reaching the handler.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'important',
-          text: 'Senior signal: one central boundary, a clear split between safe operational errors and hidden internal ones, request ids that tie responses to logs, correct handling of `headersSent` and body-parser errors, and tests proving that nothing sensitive leaks.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Reading `NODE_ENV` at module load makes the production test order-dependent. A cleaner design is a factory, `problemDetails({ exposeInternals: false, logger })`, so tests pass options instead of mutating globals.',
+      },
+      { type: 'heading3', text: 'Design decisions worth saying out loud' },
+      {
+        type: 'bullets',
+        items: [
+          '**Domain errors do not know HTTP**: an alternative is to keep `status` out of the domain classes and map them in the middleware with a lookup table. That keeps services reusable from queue consumers and CLIs.',
+          '**Stable `type` URIs** are the contract; `detail` is for humans and may change.',
+          '**4xx are warnings, 5xx are errors** in logs and alerts, so a spike of bad client input does not page anyone.',
+          '**Do not echo user input** into `detail` without care; it can end up in logs and error UIs.',
+          '**Programmer errors** (a `TypeError` from a bug) still get a 500 here, and the process keeps running because the request is isolated. Errors outside the request path still go to the process-level handlers.',
+        ],
+      },
+      { type: 'heading3', text: 'Complexity and edge cases' },
+      {
+        type: 'bullets',
+        items: [
+          'O(1) per error, plus O(n) over validation issues.',
+          'Errors thrown after streaming started (`res.headersSent`).',
+          'Non-`Error` values thrown (`throw "oops"`): handled by the generic branch via `String(err)`.',
+          'Errors from `express.json()` (malformed JSON, 413) are client errors and should not become 500.',
+          'Error middleware registered before the routes never runs for them.',
+        ],
+      },
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          'Why must the handler have exactly four parameters? Hint: Express detects error middleware by `fn.length === 4`; dropping `next` turns it into normal middleware.',
+          'What changes in Express 5? Hint: rejected promises from handlers are passed to `next(err)` automatically, so the `ah()` wrapper is no longer needed.',
+          'How do you correlate the response with logs and traces? Hint: request id via `AsyncLocalStorage` in every log line, plus the OpenTelemetry trace id in the body.',
+          'How would you translate database errors such as a duplicate key? Hint: map driver codes (Postgres `23505`, MongoDB `11000`) to `ConflictError` in the repository layer.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          'Returning `err.message` or `err.stack` for every error, leaking SQL, file paths or secrets.',
+          'Every route having its own try/catch with a slightly different JSON shape.',
+          'Turning malformed JSON or validation failures into 500s, which pollutes error rates and alerts.',
+          'Calling `res.status()` after headers were sent, which throws `ERR_HTTP_HEADERS_SENT`.',
+          'Forgetting async errors in Express 4, so requests hang instead of reaching the handler.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: one central boundary, a clear split between safe operational errors and hidden internal ones, request ids that tie responses to logs, correct handling of `headersSent` and body-parser errors, and tests proving that nothing sensitive leaks.',
+      },
+    ],
+  },
 };

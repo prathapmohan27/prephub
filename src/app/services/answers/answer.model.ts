@@ -12,5 +12,5 @@ export interface QuestionAnswer {
   details: ContentBlock[];
 }
 
-/** Answers for one category, keyed by the EXACT question text from `question.ts`. */
+/** Answers for one category, keyed by the question's stable id from `question.ts`. */
 export type AnswerMap = Record<string, QuestionAnswer>;

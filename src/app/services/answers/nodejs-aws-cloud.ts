@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'How do you choose between EC2, ECS on Fargate, and Lambda for a Node.js service?': {
+  'ec2-vs-ecs-fargate-vs-lambda': {
     summary:
       'I default to **ECS on Fargate** for a long-running NestJS API: containers, no servers to patch, steady per-second pricing and no request-duration limits. I pick **Lambda** for spiky, event-driven or low-traffic work (S3 triggers, queue consumers, cron jobs, small APIs) where scale-to-zero matters and every invocation finishes well inside 15 minutes. I only reach for **EC2** when I need host-level control: special hardware, very steady high utilisation where reserved capacity is cheapest, or software that cannot run in a container.',
     details: [
@@ -78,30 +78,29 @@ scaling.scaleOnCpuUtilization('Cpu', { targetUtilizationPercent: 60 });`,
     ],
   },
 
-  'How do you host an Angular SPA on S3 and CloudFront, including deep links, caching and invalidation on deploy?':
-    {
-      summary:
-        'Build the app, upload it to a **private** S3 bucket, and serve it only through **CloudFront** using **Origin Access Control (OAC)** so the bucket is never public. Deep links like `/orders/42` are rewritten to `/index.html` (a CloudFront Function, or error responses mapping 403/404 to `index.html`). Hashed bundles get `Cache-Control: public, max-age=31536000, immutable`, `index.html` gets `no-cache`, and on deploy I upload assets first, `index.html` last, and invalidate only `/index.html`.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'An Angular production build emits content-hashed files (`main-ABC123.js`, `styles-XYZ.css`) plus an `index.html` that references them. That split drives the whole design: hashed files never change, so they can be cached forever at the edge and in browsers; `index.html` is the only file that must always be fresh.',
-        },
-        { type: 'heading3', text: 'Architecture' },
-        {
-          type: 'bullets',
-          items: [
-            '**S3 bucket:** Block Public Access on, no static website hosting (website endpoints do not work with OAC). Only CloudFront can read it via a bucket policy scoped to the distribution ARN.',
-            '**OAC, not OAI:** Origin Access Identity is legacy; OAC signs requests with SigV4 and supports SSE-KMS encrypted buckets.',
-            '**Deep links:** S3 has no `/orders/42` object. A viewer-request **CloudFront Function** rewrites any path without a file extension to `/index.html`. The alternative, custom error responses mapping 403/404 to `/index.html` with status 200, is simpler but applies to the whole distribution, so if `/api/*` is a second origin on the same distribution, real API 404s get turned into HTML.',
-            '**API:** route `/api/*` as a second behaviour to the ALB or API Gateway with caching disabled. Same origin for the browser means no CORS.',
-            '**Security headers:** attach a response headers policy (HSTS, CSP, X-Content-Type-Options).',
-          ],
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// CDK: private bucket + CloudFront with OAC + SPA rewrite function
+  'host-an-angular-spa-on-s3-cloudfront': {
+    summary:
+      'Build the app, upload it to a **private** S3 bucket, and serve it only through **CloudFront** using **Origin Access Control (OAC)** so the bucket is never public. Deep links like `/orders/42` are rewritten to `/index.html` (a CloudFront Function, or error responses mapping 403/404 to `index.html`). Hashed bundles get `Cache-Control: public, max-age=31536000, immutable`, `index.html` gets `no-cache`, and on deploy I upload assets first, `index.html` last, and invalidate only `/index.html`.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'An Angular production build emits content-hashed files (`main-ABC123.js`, `styles-XYZ.css`) plus an `index.html` that references them. That split drives the whole design: hashed files never change, so they can be cached forever at the edge and in browsers; `index.html` is the only file that must always be fresh.',
+      },
+      { type: 'heading3', text: 'Architecture' },
+      {
+        type: 'bullets',
+        items: [
+          '**S3 bucket:** Block Public Access on, no static website hosting (website endpoints do not work with OAC). Only CloudFront can read it via a bucket policy scoped to the distribution ARN.',
+          '**OAC, not OAI:** Origin Access Identity is legacy; OAC signs requests with SigV4 and supports SSE-KMS encrypted buckets.',
+          '**Deep links:** S3 has no `/orders/42` object. A viewer-request **CloudFront Function** rewrites any path without a file extension to `/index.html`. The alternative, custom error responses mapping 403/404 to `/index.html` with status 200, is simpler but applies to the whole distribution, so if `/api/*` is a second origin on the same distribution, real API 404s get turned into HTML.',
+          '**API:** route `/api/*` as a second behaviour to the ALB or API Gateway with caching disabled. Same origin for the browser means no CORS.',
+          '**Security headers:** attach a response headers policy (HSTS, CSP, X-Content-Type-Options).',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// CDK: private bucket + CloudFront with OAC + SPA rewrite function
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
@@ -133,12 +132,12 @@ new cloudfront.Distribution(this, 'Cdn', {
     ],
   },
 });`,
-        },
-        { type: 'heading3', text: 'Deploy order and caching' },
-        {
-          type: 'code',
-          lang: 'bash',
-          code: `# 1. Hashed assets first: cache forever
+      },
+      { type: 'heading3', text: 'Deploy order and caching' },
+      {
+        type: 'code',
+        lang: 'bash',
+        code: `# 1. Hashed assets first: cache forever
 aws s3 sync dist/app/browser s3://$BUCKET \\
   --exclude index.html \\
   --cache-control "public,max-age=31536000,immutable"
@@ -149,34 +148,34 @@ aws s3 cp dist/app/browser/index.html s3://$BUCKET/index.html \\
 
 # 3. Only the shell needs invalidating
 aws cloudfront create-invalidation --distribution-id $DIST_ID --paths "/index.html"`,
-        },
-        {
-          type: 'paragraph',
-          text: 'Uploading assets before `index.html` means no user ever receives a shell that points at bundles that do not exist yet. Do not use `--delete` on the same deploy: users with the old `index.html` still open will lazy-load old chunks, and deleting them causes `ChunkLoadError`. Keep previous builds for a while and clean them up with a lifecycle rule or a later job.',
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Common mistake: invalidating `/*` on every deploy. It throws away the whole edge cache for files that never changed, and it hides a missing `Cache-Control` strategy. With hashed filenames, invalidating `/index.html` is enough.',
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: mention OAC with a private bucket, the deep-link rewrite and why error-response mapping can break API 404s, the two-tier cache headers, and the assets-first, index-last deploy order that avoids broken chunks.',
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'How would you do runtime configuration per environment without rebuilding?',
-            'When would you move to SSR (Angular SSR on Lambda or Fargate) instead of a static SPA?',
-            'How do you do blue/green or rollback for a static site?',
-          ],
-        },
-      ],
-    },
+      },
+      {
+        type: 'paragraph',
+        text: 'Uploading assets before `index.html` means no user ever receives a shell that points at bundles that do not exist yet. Do not use `--delete` on the same deploy: users with the old `index.html` still open will lazy-load old chunks, and deleting them causes `ChunkLoadError`. Keep previous builds for a while and clean them up with a lifecycle rule or a later job.',
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common mistake: invalidating `/*` on every deploy. It throws away the whole edge cache for files that never changed, and it hides a missing `Cache-Control` strategy. With hashed filenames, invalidating `/index.html` is enough.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: mention OAC with a private bucket, the deep-link rewrite and why error-response mapping can break API 404s, the two-tier cache headers, and the assets-first, index-last deploy order that avoids broken chunks.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'How would you do runtime configuration per environment without rebuilding?',
+          'When would you move to SSR (Angular SSR on Lambda or Fargate) instead of a static SPA?',
+          'How do you do blue/green or rollback for a static site?',
+        ],
+      },
+    ],
+  },
 
-  'What are IAM roles and policies, and how do you apply least privilege to a service?': {
+  'iam-roles-and-least-privilege': {
     summary:
       'A **policy** is a JSON document of Allow/Deny statements over actions, resources and conditions; a **role** is an identity with no long-term credentials that a service, workload or person assumes to get short-lived STS credentials. Least privilege means each workload gets its own role, granting only the actions it calls on the specific resource ARNs it touches, with conditions where useful, and no access keys in code. I start narrow, use CDK `grant*` methods, and use IAM Access Analyzer to find and remove unused permissions.',
     details: [
@@ -269,7 +268,7 @@ dbSecret.grantRead(apiTaskDefinition.taskRole);`,
     ],
   },
 
-  'RDS/Aurora vs DynamoDB: how do you choose, and how do you model data for DynamoDB?': {
+  'rds-aurora-vs-dynamodb': {
     summary:
       'Choose **Aurora/RDS (Postgres)** when the data is relational, access patterns are still evolving, or you need ad-hoc queries, joins, reporting and rich transactions. Choose **DynamoDB** when access patterns are known and key-based, you need predictable single-digit-millisecond latency at any scale, and you want no servers or connection management (great with Lambda). In DynamoDB you model **from access patterns, not entities**: pick partition and sort keys so each query is a single `Query` on a table or GSI, and denormalise accordingly.',
     details: [
@@ -350,7 +349,7 @@ export async function listRecentOrders(customerId: string) {
     ],
   },
 
-  'SQS vs SNS vs EventBridge: when do you use each?': {
+  'sqs-vs-sns-vs-eventbridge': {
     summary:
       '**SQS** is a queue: one consumer group pulls work, with retries, visibility timeouts and a DLQ; use it to buffer and decouple work. **SNS** is fast push pub/sub: fan one message out to many subscribers, usually SQS queues. **EventBridge** is an event bus with content-based routing rules, many AWS and SaaS sources, schema discovery, archive and replay; use it for domain events between services. A common pattern is EventBridge or SNS for fan-out, with an SQS queue per consumer for durability and backpressure.',
     details: [
@@ -459,7 +458,7 @@ new events.Rule(this, 'OrderPlacedToEmail', {
     ],
   },
 
-  'How do you let users upload large files directly to S3 with presigned URLs?': {
+  'direct-s3-uploads-with-presigned-urls': {
     summary:
       'The browser asks my API for permission, the API authorises the user, picks the object key and returns a **presigned URL** (or presigned POST) valid for a few minutes; the browser then uploads straight to S3, so file bytes never pass through Node.js. For large files I use **multipart upload**: the API creates the upload, presigns each part, the browser uploads parts in parallel, and the API completes it. Processing happens afterwards, triggered by an S3 event, with the record marked "pending" until it is scanned and validated.',
     details: [
@@ -555,7 +554,7 @@ const partUrls = await Promise.all(
     ],
   },
 
-  'How do you manage secrets and configuration on AWS (Secrets Manager vs Parameter Store)?': {
+  'secrets-manager-vs-parameter-store': {
     summary:
       'I keep non-secret config in **SSM Parameter Store** (cheap, hierarchical, versioned) and credentials that need **rotation**, such as database passwords, in **Secrets Manager**, which has built-in rotation, cross-region replication and native RDS integration. Workloads read them through IAM-scoped roles: ECS injects them as environment variables at task start, Lambda fetches and caches them. Nothing secret lives in Git, Docker images, or plain Lambda environment variables visible in the console.',
     details: [
@@ -635,30 +634,29 @@ export async function getDbCreds(): Promise<DbCreds> {
     ],
   },
 
-  'What is a VPC, and how do public and private subnets, security groups and NAT gateways fit together?':
-    {
-      summary:
-        'A **VPC** is your private network in a region with its own IP range. **Public subnets** have a route to an Internet Gateway and hold internet-facing things like the ALB and NAT gateways; **private subnets** have no inbound route from the internet and hold Fargate tasks, Lambdas and databases. **Security groups** are stateful firewalls on each resource (ALB accepts 443, API accepts traffic only from the ALB SG, DB only from the API SG), and a **NAT gateway** lets private resources make outbound calls without being reachable from outside.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Think in tiers spread across at least two Availability Zones: a public tier for load balancers, a private application tier, and an isolated data tier with no internet route at all. Each subnet lives in exactly one AZ, so you create one subnet per tier per AZ.',
-        },
-        { type: 'heading3', text: 'The pieces' },
-        {
-          type: 'bullets',
-          items: [
-            '**Route tables** make a subnet public or private: public subnets route `0.0.0.0/0` to the Internet Gateway; private subnets route it to a NAT gateway; isolated subnets have no default route.',
-            '**Security groups:** stateful, allow-only rules, attached to ENIs. Reference other security groups instead of CIDRs, so rules follow resources as they scale.',
-            '**Network ACLs:** stateless, subnet-level allow and deny rules. Usually left at defaults; useful for coarse blocks.',
-            '**NAT gateway:** managed, outbound-only internet access for private subnets. One per AZ for high availability; a single shared one is cheaper but is a cross-AZ dependency and single point of failure.',
-            '**VPC endpoints:** private access to AWS services without NAT. **Gateway endpoints** for S3 and DynamoDB have no hourly charge; **interface endpoints** (PrivateLink) cover ECR, Secrets Manager, CloudWatch Logs and more.',
-          ],
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// CDK: three-tier VPC across 2 AZs with SG chaining
+  'vpcs-subnets-and-nat-gateways': {
+    summary:
+      'A **VPC** is your private network in a region with its own IP range. **Public subnets** have a route to an Internet Gateway and hold internet-facing things like the ALB and NAT gateways; **private subnets** have no inbound route from the internet and hold Fargate tasks, Lambdas and databases. **Security groups** are stateful firewalls on each resource (ALB accepts 443, API accepts traffic only from the ALB SG, DB only from the API SG), and a **NAT gateway** lets private resources make outbound calls without being reachable from outside.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Think in tiers spread across at least two Availability Zones: a public tier for load balancers, a private application tier, and an isolated data tier with no internet route at all. Each subnet lives in exactly one AZ, so you create one subnet per tier per AZ.',
+      },
+      { type: 'heading3', text: 'The pieces' },
+      {
+        type: 'bullets',
+        items: [
+          '**Route tables** make a subnet public or private: public subnets route `0.0.0.0/0` to the Internet Gateway; private subnets route it to a NAT gateway; isolated subnets have no default route.',
+          '**Security groups:** stateful, allow-only rules, attached to ENIs. Reference other security groups instead of CIDRs, so rules follow resources as they scale.',
+          '**Network ACLs:** stateless, subnet-level allow and deny rules. Usually left at defaults; useful for coarse blocks.',
+          '**NAT gateway:** managed, outbound-only internet access for private subnets. One per AZ for high availability; a single shared one is cheaper but is a cross-AZ dependency and single point of failure.',
+          '**VPC endpoints:** private access to AWS services without NAT. **Gateway endpoints** for S3 and DynamoDB have no hourly charge; **interface endpoints** (PrivateLink) cover ECR, Secrets Manager, CloudWatch Logs and more.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// CDK: three-tier VPC across 2 AZs with SG chaining
 const vpc = new ec2.Vpc(this, 'Vpc', {
   maxAzs: 2,
   natGateways: 2, // one per AZ in prod; 1 (or 0 + endpoints) in dev
@@ -677,106 +675,105 @@ const dbSg = new ec2.SecurityGroup(this, 'DbSg', { vpc });
 albSg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443));
 apiSg.addIngressRule(albSg, ec2.Port.tcp(3000), 'only the ALB');
 dbSg.addIngressRule(apiSg, ec2.Port.tcp(5432), 'only the API');`,
-        },
-        { type: 'heading3', text: 'Request path' },
-        {
-          type: 'paragraph',
-          text: 'The Angular app calls `https://app.example.com/api` → CloudFront → ALB in the public subnets → NestJS tasks in the private app subnets → Aurora in the isolated subnets. When the API calls Stripe, traffic leaves through the NAT gateway in its AZ; calls to S3 and DynamoDB go through gateway endpoints and never touch NAT.',
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Common mistake: sending all AWS service traffic through NAT. NAT gateways bill per hour and per GB processed, and pulling container images from ECR or shipping logs through them can quietly become a top line item. Add S3/DynamoDB gateway endpoints first, and interface endpoints when the traffic justifies them.',
-        },
-        {
-          type: 'paragraph',
-          text: 'Plan CIDR ranges up front so they do not overlap with other VPCs or on-premises networks you may later connect via peering or Transit Gateway, and leave room for growth. Lambda in a VPC no longer has the large cold-start penalty it once had (it uses shared Hyperplane ENIs), but it still needs NAT or endpoints to reach AWS APIs.',
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: explain that a route table is what makes a subnet public, chain security groups by reference, put databases in isolated subnets, and bring up NAT cost and VPC endpoints unprompted.',
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'Security group vs NACL: when do you need a NACL?',
-            'How do you connect several VPCs or accounts (peering vs Transit Gateway vs PrivateLink)?',
-            'How would an engineer reach the private database for debugging (SSM Session Manager, no bastion with open SSH)?',
-          ],
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'Request path' },
+      {
+        type: 'paragraph',
+        text: 'The Angular app calls `https://app.example.com/api` → CloudFront → ALB in the public subnets → NestJS tasks in the private app subnets → Aurora in the isolated subnets. When the API calls Stripe, traffic leaves through the NAT gateway in its AZ; calls to S3 and DynamoDB go through gateway endpoints and never touch NAT.',
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common mistake: sending all AWS service traffic through NAT. NAT gateways bill per hour and per GB processed, and pulling container images from ECR or shipping logs through them can quietly become a top line item. Add S3/DynamoDB gateway endpoints first, and interface endpoints when the traffic justifies them.',
+      },
+      {
+        type: 'paragraph',
+        text: 'Plan CIDR ranges up front so they do not overlap with other VPCs or on-premises networks you may later connect via peering or Transit Gateway, and leave room for growth. Lambda in a VPC no longer has the large cold-start penalty it once had (it uses shared Hyperplane ENIs), but it still needs NAT or endpoints to reach AWS APIs.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: explain that a route table is what makes a subnet public, chain security groups by reference, put databases in isolated subnets, and bring up NAT cost and VPC endpoints unprompted.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'Security group vs NACL: when do you need a NACL?',
+          'How do you connect several VPCs or accounts (peering vs Transit Gateway vs PrivateLink)?',
+          'How would an engineer reach the private database for debugging (SSM Session Manager, no bastion with open SSH)?',
+        ],
+      },
+    ],
+  },
 
-  'How do you design for high availability and disaster recovery on AWS (multi-AZ, multi-region, RPO and RTO)?':
-    {
-      summary:
-        '**High availability** handles component and AZ failures automatically, so every production tier runs across at least two AZs: ALB, Fargate tasks in each AZ, Aurora with a replica in another AZ. **Disaster recovery** handles losing a region or your data, and is driven by two business numbers: **RPO** (how much data you can lose) and **RTO** (how long you can be down). Those numbers pick the strategy, from backup-and-restore through pilot light and warm standby to active-active, and every step up costs more money and complexity.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Start with the business, not the architecture. Ask: what does an hour of downtime cost, and how much data loss is acceptable? An internal tool might accept RPO of 24 hours and RTO of a day; a payments API might need RPO near zero and RTO in minutes. Most systems are well served by solid multi-AZ HA plus tested backups; multi-region is a deliberate investment.',
-        },
-        { type: 'heading3', text: 'Multi-AZ HA (baseline for production)' },
-        {
-          type: 'bullets',
-          items: [
-            'Stateless compute in at least two AZs behind an ALB with health checks; ECS replaces failed tasks.',
-            'Aurora with at least one replica in another AZ (automatic failover), or RDS Multi-AZ. DynamoDB and S3 are multi-AZ by default.',
-            'NAT gateway per AZ so one AZ failing does not cut egress for the others.',
-            'Capacity headroom: if one of two AZs disappears, the remaining tasks must absorb the load, so scale limits and minimums must allow it.',
-            'App behaviour: retries with backoff and jitter, timeouts, and reconnect logic in the DB pool so a failover is a blip, not an outage.',
-          ],
-        },
-        { type: 'heading3', text: 'DR strategies (cheapest to most resilient)' },
-        {
-          type: 'numbered',
-          items: [
-            '**Backup and restore:** AWS Backup with cross-region (and ideally cross-account) copies, infrastructure in CDK so you can rebuild. RPO hours, RTO hours.',
-            '**Pilot light:** data continuously replicated to the DR region (Aurora Global Database, DynamoDB global tables, S3 replication), compute not running. RPO seconds to minutes, RTO tens of minutes.',
-            '**Warm standby:** a scaled-down full stack running in the DR region, scaled up on failover.',
-            '**Multi-site active-active:** both regions serve traffic; needs conflict handling for writes and is the most complex and expensive.',
-          ],
-        },
-        {
-          type: 'code',
-          lang: 'bash',
-          code: `# Aurora Global Database: planned switchover / unplanned failover to the DR region
+  'high-availability-and-disaster-recovery': {
+    summary:
+      '**High availability** handles component and AZ failures automatically, so every production tier runs across at least two AZs: ALB, Fargate tasks in each AZ, Aurora with a replica in another AZ. **Disaster recovery** handles losing a region or your data, and is driven by two business numbers: **RPO** (how much data you can lose) and **RTO** (how long you can be down). Those numbers pick the strategy, from backup-and-restore through pilot light and warm standby to active-active, and every step up costs more money and complexity.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Start with the business, not the architecture. Ask: what does an hour of downtime cost, and how much data loss is acceptable? An internal tool might accept RPO of 24 hours and RTO of a day; a payments API might need RPO near zero and RTO in minutes. Most systems are well served by solid multi-AZ HA plus tested backups; multi-region is a deliberate investment.',
+      },
+      { type: 'heading3', text: 'Multi-AZ HA (baseline for production)' },
+      {
+        type: 'bullets',
+        items: [
+          'Stateless compute in at least two AZs behind an ALB with health checks; ECS replaces failed tasks.',
+          'Aurora with at least one replica in another AZ (automatic failover), or RDS Multi-AZ. DynamoDB and S3 are multi-AZ by default.',
+          'NAT gateway per AZ so one AZ failing does not cut egress for the others.',
+          'Capacity headroom: if one of two AZs disappears, the remaining tasks must absorb the load, so scale limits and minimums must allow it.',
+          'App behaviour: retries with backoff and jitter, timeouts, and reconnect logic in the DB pool so a failover is a blip, not an outage.',
+        ],
+      },
+      { type: 'heading3', text: 'DR strategies (cheapest to most resilient)' },
+      {
+        type: 'numbered',
+        items: [
+          '**Backup and restore:** AWS Backup with cross-region (and ideally cross-account) copies, infrastructure in CDK so you can rebuild. RPO hours, RTO hours.',
+          '**Pilot light:** data continuously replicated to the DR region (Aurora Global Database, DynamoDB global tables, S3 replication), compute not running. RPO seconds to minutes, RTO tens of minutes.',
+          '**Warm standby:** a scaled-down full stack running in the DR region, scaled up on failover.',
+          '**Multi-site active-active:** both regions serve traffic; needs conflict handling for writes and is the most complex and expensive.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'bash',
+        code: `# Aurora Global Database: planned switchover / unplanned failover to the DR region
 aws rds failover-global-cluster \\
   --global-cluster-identifier prephub-global \\
   --target-db-cluster-identifier arn:aws:rds:eu-central-1:123456789012:cluster:prephub-dr
 
 # Route 53 failover records then point api.example.com at the DR ALB
 # (health-check driven, or flipped manually as part of the runbook)`,
-        },
-        {
-          type: 'paragraph',
-          text: 'Backups also protect against the most common disaster, which is not a region outage but a bad migration, a deleted table or ransomware. Replication copies a `DROP TABLE` instantly, so you still need point-in-time recovery (Aurora point-in-time restore, DynamoDB PITR), S3 versioning, and backups in a separate account with restricted delete permissions.',
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Common mistake: having backups and a DR region on paper but never testing a restore or failover. An untested DR plan has unknown RTO. Run game days, use AWS Fault Injection Service to kill tasks or an AZ, and time the full runbook.',
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: "Interview tip: define RPO and RTO in your own words, tie the strategy to business cost, and point out that replication is not a backup. Mentioning static stability (the DR region does not depend on the failed region's control plane) and regular game days signals real experience.",
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'How do you handle writes in active-active (conflicts, home region per tenant)?',
-            'What happens to in-flight SQS messages and sessions during a regional failover?',
-            'How do you fail over the Angular SPA and CloudFront origin (origin groups)?',
-          ],
-        },
-      ],
-    },
+      },
+      {
+        type: 'paragraph',
+        text: 'Backups also protect against the most common disaster, which is not a region outage but a bad migration, a deleted table or ransomware. Replication copies a `DROP TABLE` instantly, so you still need point-in-time recovery (Aurora point-in-time restore, DynamoDB PITR), S3 versioning, and backups in a separate account with restricted delete permissions.',
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common mistake: having backups and a DR region on paper but never testing a restore or failover. An untested DR plan has unknown RTO. Run game days, use AWS Fault Injection Service to kill tasks or an AZ, and time the full runbook.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: "Interview tip: define RPO and RTO in your own words, tie the strategy to business cost, and point out that replication is not a backup. Mentioning static stability (the DR region does not depend on the failed region's control plane) and regular game days signals real experience.",
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'How do you handle writes in active-active (conflicts, home region per tenant)?',
+          'What happens to in-flight SQS messages and sessions during a regional failover?',
+          'How do you fail over the Angular SPA and CloudFront origin (origin groups)?',
+        ],
+      },
+    ],
+  },
 
-  'How do you monitor a production service with CloudWatch, and what would you alarm on?': {
+  'monitoring-and-alarms-in-cloudwatch': {
     summary:
       'I collect the **golden signals** (latency percentiles, traffic, errors, saturation) from ALB, ECS/Lambda, the database and queues into CloudWatch, plus custom business metrics via Embedded Metric Format, structured JSON logs queried with **Logs Insights**, and traces with X-Ray or OpenTelemetry. I alarm on **symptoms users feel**, such as 5xx rate and p99 latency against SLOs, and on a few leading indicators like queue age, DLQ depth and DB connections, and route only actionable alarms to on-call.',
     details: [
@@ -855,7 +852,7 @@ metrics.publishStoredMetrics(); // written as a structured log line, no PutMetri
     ],
   },
 
-  'What are Lambda cold starts, and how do you reduce them?': {
+  'lambda-cold-starts': {
     summary:
       'A **cold start** happens when Lambda has no warm execution environment for a request, so it must create one, download your code, start the Node.js runtime and run your module-level init code before the handler. It hits the first request after deploy, after idle, and every scale-out. I reduce it by shipping a small, tree-shaken ESM bundle, using modular SDK v3 clients, doing init work once outside the handler, choosing enough memory (more memory means more CPU), and using **provisioned concurrency** for latency-sensitive paths.',
     details: [
@@ -947,7 +944,7 @@ export const handler = async (event: { pathParameters: { id: string } }) => {
     ],
   },
 
-  'How do you keep an AWS bill under control?': {
+  'keep-the-aws-bill-under-control': {
     summary:
       'Make cost **visible and owned**: tag everything (service, team, environment), activate cost allocation tags, set AWS Budgets and Cost Anomaly Detection alerts, and review Cost Explorer regularly with the teams that own the spend. Then remove waste (idle resources, unbounded log retention, NAT data processing, oversized instances, forgotten dev environments), right-size with Compute Optimizer, move to Graviton and Spot where safe, and commit to **Savings Plans** only for the steady baseline.',
     details: [

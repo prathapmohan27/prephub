@@ -1,5 +1,4 @@
 import { ActivatedRouteSnapshot, Routes } from '@angular/router';
-import { Questions } from '@components/questions';
 import { Home } from './components/home/home';
 
 const APP_NAME = 'PrepHub';
@@ -11,7 +10,12 @@ const loadCoreConcepts = () =>
 
 export const routes: Routes = [
   { path: '', component: Home, title: APP_NAME },
-  { path: 'questions', component: Questions, title: `Interview Q&A · ${APP_NAME}` },
+  {
+    path: 'questions',
+    title: `Interview Q&A · ${APP_NAME}`,
+    // Lazy like the other sections, so the Q&A page and Mock Me stay out of the first load
+    loadComponent: () => import('./components/questions/questions').then((m) => m.Questions),
+  },
   {
     path: 'daily',
     title: `Daily Learning · ${APP_NAME}`,

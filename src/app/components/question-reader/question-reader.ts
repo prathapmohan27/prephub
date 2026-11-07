@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output, signal } f
 import { Highlight } from '@pipes/highlight';
 import { Answer } from '../answer/answer';
 import { QItem } from '../question-list/question-list';
-import { Track, isTrack, levelOf, trackInfo } from '@services/question';
+import { Track, isTrack, trackInfo } from '@services/question';
 import { RATINGS, ReviewRating } from '@services/reviews';
 
 /** Reading pane for the selected question: answer, mastered/star toggles and prev/next navigation. */
@@ -77,7 +77,7 @@ import { RATINGS, ReviewRating } from '@services/reviews';
             </button>
           </div>
         } @else {
-          <app-answer [categoryId]="item().cat.id" [question]="item().q" [toc]="true" />
+          <app-answer [categoryId]="item().cat.id" [questionId]="item().id" [toc]="true" />
         }
       </div>
 
@@ -187,7 +187,7 @@ export class QuestionReader {
     trackInfo(isTrack(this.mode()) ? (this.mode() as Track) : 'angular'),
   );
 
-  protected readonly senior = computed(() => levelOf(this.item().q) === 'senior');
+  protected readonly senior = computed(() => this.item().senior);
 
   protected readonly docsLink = computed(() => {
     const q = encodeURIComponent(this.item().q);

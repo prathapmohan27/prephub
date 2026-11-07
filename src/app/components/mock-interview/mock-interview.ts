@@ -16,6 +16,9 @@ import { RichText } from '../content-blocks/rich-text';
 import { RATINGS, REVIEWS_KEY } from '@services/reviews';
 
 export interface MockItem {
+  /** Stable question id: mastered, starred and ratings are keyed by it. */
+  id: string;
+  /** Question text, for display. */
   q: string;
   cat: CategoryModel;
 }
@@ -328,12 +331,12 @@ function formatClock(totalSeconds: number): string {
                     [style.background]="item.cat.color + '18'"
                     >{{ item.cat.title }}</span
                   >
-                  @if (prepared().has(item.q)) {
+                  @if (prepared().has(item.id)) {
                     <span class="mock-tag mock-tag--mastered"
                       ><i class="ti ti-circle-check"></i> Mastered</span
                     >
                   }
-                  @if (lastReview(item.q); as r) {
+                  @if (lastReview(item.id); as r) {
                     <span class="mock-tag" [class]="'mock-tag mock-tag--' + r">
                       Last time: {{ ratingLabel[r] }}
                     </span>
@@ -343,7 +346,7 @@ function formatClock(totalSeconds: number): string {
 
               @if (revealed()) {
                 <div class="spotlight-answer animate-fade-in">
-                  <app-answer [categoryId]="item.cat.id" [question]="item.q" />
+                  <app-answer [categoryId]="item.cat.id" [questionId]="item.id" />
                 </div>
 
                 <div class="mock-rate">
@@ -535,7 +538,7 @@ export class MockInterview {
     this.focusChange.emit('all');
   }
 
-  preparedChange = output<{ q: string; prepared: boolean }>();
+  preparedChange = output<{ id: string; prepared: boolean }>();
   starQuestions = output<string[]>();
   closed = output<void>();
 
@@ -591,7 +594,7 @@ export class MockInterview {
       totalTime: formatClock(totalSeconds),
       avgTime: formatClock(results.length ? totalSeconds / results.length : 0),
       missed,
-      unstarredMissed: missed.filter((m) => !starred.has(m.q)),
+      unstarredMissed: missed.filter((m) => !starred.has(m.id)),
       weakTopics: [...byTopic.values()].sort((a, b) => b.missed - a.missed).slice(0, 3),
     };
   });
@@ -643,7 +646,7 @@ export class MockInterview {
   }
 
   starMissed() {
-    this.starQuestions.emit(this.summary().unstarredMissed.map((m) => m.q));
+    this.starQuestions.emit(this.summary().unstarredMissed.map((m) => m.id));
   }
 
   toggleReveal() {
@@ -672,14 +675,14 @@ export class MockInterview {
     this.results.update((list) => [...list, { item, rating, seconds }]);
 
     if (rating !== 'skipped') {
-      this.reviews.update((all) => ({ ...all, [item.q]: { r: rating, t: Date.now() } }));
+      this.reviews.update((all) => ({ ...all, [item.id]: { r: rating, t: Date.now() } }));
       writeJson(REVIEWS_KEY, this.reviews());
 
-      const isPrepared = this.prepared().has(item.q);
+      const isPrepared = this.prepared().has(item.id);
       if (rating === 'nailed' && !isPrepared)
-        this.preparedChange.emit({ q: item.q, prepared: true });
+        this.preparedChange.emit({ id: item.id, prepared: true });
       if (rating === 'blanked' && isPrepared)
-        this.preparedChange.emit({ q: item.q, prepared: false });
+        this.preparedChange.emit({ id: item.id, prepared: false });
     }
 
     if (this.isSession() && this.position() >= this.deck.length) {
@@ -695,8 +698,8 @@ export class MockInterview {
     else this.closed.emit();
   }
 
-  lastReview(q: string): Review['r'] | null {
-    return this.reviews()[q]?.r ?? null;
+  lastReview(id: string): Review['r'] | null {
+    return this.reviews()[id]?.r ?? null;
   }
 
   docsUrl(question: string): string {
@@ -782,11 +785,11 @@ export class MockInterview {
       if (signature !== this.deckSignature && this.position() < this.deck.length) {
         // Filters changed (or a rating moved a question out of the filter): keep the
         // remaining order, drop questions no longer visible, and add newly visible ones.
-        const visible = new Set(pool.map((p) => p.q));
-        const inDeck = new Set(this.deck.map((d) => d.q));
-        const remaining = this.deck.slice(this.position()).filter((d) => visible.has(d.q));
-        const added = this.shuffle(pool.filter((p) => !inDeck.has(p.q)));
-        const done = this.deck.slice(0, this.position()).filter((d) => visible.has(d.q));
+        const visible = new Set(pool.map((p) => p.id));
+        const inDeck = new Set(this.deck.map((d) => d.id));
+        const remaining = this.deck.slice(this.position()).filter((d) => visible.has(d.id));
+        const added = this.shuffle(pool.filter((p) => !inDeck.has(p.id)));
+        const done = this.deck.slice(0, this.position()).filter((d) => visible.has(d.id));
         this.deck = [...done, ...remaining, ...added];
         this.position.set(done.length);
         this.deckSize.set(this.deck.length);
@@ -795,8 +798,8 @@ export class MockInterview {
       if (this.position() >= this.deck.length) {
         const deck = this.shuffle(pool);
         // Don't open a new round with the question that was just on screen
-        const last = this.current()?.q;
-        if (deck.length > 1 && deck[0].q === last) deck.push(deck.shift()!);
+        const last = this.current()?.id;
+        if (deck.length > 1 && deck[0].id === last) deck.push(deck.shift()!);
         this.deck = deck;
         this.deckSignature = signature;
         this.position.set(0);
@@ -827,10 +830,10 @@ export class MockInterview {
     const starred = this.starred();
     const reviews = this.reviews();
     const now = Date.now();
-    return weightedShuffle(items, ({ q }) => {
-      let w = prepared.has(q) ? 1 : 4;
-      if (starred.has(q)) w += 2;
-      const review = reviews[q];
+    return weightedShuffle(items, ({ id }) => {
+      let w = prepared.has(id) ? 1 : 4;
+      if (starred.has(id)) w += 2;
+      const review = reviews[id];
       if (review?.r === 'blanked') w *= 3;
       else if (review?.r === 'shaky') w *= 2;
       else if (review?.r === 'nailed' && now - review.t < 3 * DAY_MS) w *= 0.5;
@@ -839,7 +842,7 @@ export class MockInterview {
   }
 
   private signatureOf(pool: MockItem[]): string {
-    return pool.map((p) => p.q).join('\u0000');
+    return pool.map((p) => p.id).join('\u0000');
   }
 
   private startTimer(categoryId: string) {

@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'How do you design a rate limiter in Node.js?': {
+  'design-a-rate-limiter': {
     summary:
       'Clarify the rules (limit per user, API key or IP; how many requests per window; what happens when exceeded), choose an algorithm — fixed window, sliding window log/counter, or token bucket — and store counters in a shared, fast store like Redis with atomic operations so all Node instances agree. Expose it as middleware that returns `429 Too Many Requests` with `Retry-After` and rate-limit headers.',
     details: [
@@ -102,7 +102,7 @@ export function rateLimit({ limit = 100, windowMs = 60_000, keyFn = (req) => req
     ],
   },
 
-  'How do you design a URL shortener service?': {
+  'design-a-url-shortener': {
     summary:
       'Two core operations: create (`POST /urls` takes a long URL and returns a short code) and redirect (`GET /:code` looks up the code and returns a 301/302). Generate short codes by base62-encoding a unique ID (from a counter, ID ranges or Snowflake) or by random codes with collision checks, store mappings in a scalable key-value or relational store, and put a cache (Redis/CDN) in front because reads vastly outnumber writes.',
     details: [
@@ -215,7 +215,7 @@ const randomCode = () => Array.from({ length: 7 }, () => ALPHABET[randomInt(62)]
     ],
   },
 
-  'How would you design a notification system that sends emails, SMS, and push notifications?': {
+  'design-a-notification-system': {
     summary:
       'Expose a single Notification API that accepts an event (who, which template, data), checks user preferences and rate limits, renders the content per channel, and enqueues one job per channel. Separate worker pools for email, SMS and push call the providers (SES/SendGrid, Twilio, FCM/APNs) with retries, backoff, fallbacks and a dead-letter queue. Delivery status is tracked in a database, and idempotency keys prevent duplicate sends.',
     details: [

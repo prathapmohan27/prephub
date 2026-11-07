@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What are pipes in Angular? Name the built-in pipes you use most.': {
+  'built-in-pipes-you-use-most': {
     summary:
       "A pipe is a small, reusable function you apply in a template with the `|` operator to transform a value for display, without changing the underlying data — `{{ price | currency }}`, `{{ createdAt | date }}`. The ones I use most are `date`, `currency`, `number` (DecimalPipe), `percent`, `async`, `uppercase`/`lowercase`/`titlecase`, `slice`, `keyvalue` and `json` for debugging. They are standalone, so you add them to the component's `imports`, and most are pure, so Angular only re-runs them when the input changes.",
     details: [
@@ -78,7 +78,7 @@ bootstrapApplication(App, {
     ],
   },
 
-  'What is the difference between pure and impure pipes?': {
+  'pure-vs-impure-pipes': {
     summary:
       'A pure pipe (the default) only re-runs when Angular detects a change in its input or parameters by reference — a new primitive value or a new object/array reference — so its result is effectively memoized. An impure pipe (`pure: false`) runs on every change-detection cycle, which lets it react to mutations inside objects but can be expensive. The classic impure built-in is `async`; for your own pipes, prefer pure and pass new references.',
     details: [
@@ -148,7 +148,7 @@ export class TimeAgoPipe implements PipeTransform {
     ],
   },
 
-  'How do you create a custom pipe? Write one with parameters.': {
+  'writing-a-custom-pipe-with-parameters': {
     summary:
       "Create a class decorated with `@Pipe({ name: 'truncate' })` that implements `PipeTransform`; the `transform(value, ...args)` method receives the piped value first and each colon-separated parameter after it. Pipes are standalone by default, so you just add the class to a component's `imports` and use `{{ text | truncate: 50 : '…' }}`. Keep it pure and side-effect free, and generate it with `ng generate pipe truncate`.",
     details: [
@@ -223,7 +223,7 @@ export class PriceWithTaxPipe implements PipeTransform {
     ],
   },
 
-  'How does the `async` pipe work, and why is it preferred over subscribing manually?': {
+  'how-the-async-pipe-works': {
     summary:
       'The `async` pipe subscribes to an Observable (or waits on a Promise), returns the latest emitted value to the template, and calls `markForCheck()` on each emission so it works with OnPush. It automatically unsubscribes when the component is destroyed or when the source reference changes. That removes manual `subscribe`/`unsubscribe` boilerplate and the memory leaks that come with forgetting it; in signal-based code, `toSignal()` is the equivalent.',
     details: [
@@ -322,20 +322,19 @@ user = toSignal(this.api.getUser(id));      // Signal<User | undefined>, auto-un
     ],
   },
 
-  'Why is calling a method in a template bad for performance, and how do pure pipes or `computed()` fix it?':
-    {
-      summary:
-        "Angular cannot know whether a method's result changed, so `{{ getTotal() }}` is called on every change-detection pass for that view — every click, keystroke or timer anywhere in a zone-based app. If the method filters, sorts or formats a large list, that work is repeated constantly. A pure pipe fixes it by re-running only when its input reference changes, and `computed()` fixes it by caching the result and recalculating only when the signals it reads change.",
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Template expressions are re-evaluated during change detection to see whether the DOM needs updating. A field read is trivial; a method call runs the whole method body. With 200 rows each calling `formatPrice(row)` and a parent that re-renders on every keystroke in a search box, you get thousands of calls per second for values that did not change.',
-        },
-        { type: 'heading3', text: 'The problem' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+  'template-method-calls-vs-pipes-and-computed': {
+    summary:
+      "Angular cannot know whether a method's result changed, so `{{ getTotal() }}` is called on every change-detection pass for that view — every click, keystroke or timer anywhere in a zone-based app. If the method filters, sorts or formats a large list, that work is repeated constantly. A pure pipe fixes it by re-running only when its input reference changes, and `computed()` fixes it by caching the result and recalculating only when the signals it reads change.",
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Template expressions are re-evaluated during change detection to see whether the DOM needs updating. A field read is trivial; a method call runs the whole method body. With 200 rows each calling `formatPrice(row)` and a parent that re-renders on every keystroke in a search box, you get thousands of calls per second for values that did not change.',
+      },
+      { type: 'heading3', text: 'The problem' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   template: \`
     <input (input)="query = $any($event.target).value" />
     <p>Total: {{ getCartTotal() }}</p>             <!-- runs on every keystroke -->
@@ -353,70 +352,69 @@ export class CartComponent {
   }
   formatPrice(p: number) { return '$' + p.toFixed(2); }
 }`,
-        },
-        { type: 'heading3', text: 'Fix 1: computed() for derived state' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export class CartComponent {
+      },
+      { type: 'heading3', text: 'Fix 1: computed() for derived state' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export class CartComponent {
   query = signal('');
   items = signal<CartItem[]>([]);
   total = computed(() => this.items().reduce((s, i) => s + i.price * i.qty, 0));
   // template: {{ total() | currency }}
   // total() is a cached getter — the reduce runs only when items changes
 }`,
-        },
-        { type: 'heading3', text: 'Fix 2: a pure pipe for per-item formatting' },
-        {
-          type: 'code',
-          lang: 'html',
-          code: `@for (item of items(); track item.id) {
+      },
+      { type: 'heading3', text: 'Fix 2: a pure pipe for per-item formatting' },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `@for (item of items(); track item.id) {
   <span>{{ item.price | currency: 'USD' }}</span>   <!-- re-runs only if item.price changes -->
   <small>{{ item.addedAt | timeAgo }}</small>
 }`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '**computed()**: best for component-level derived values (totals, filtered lists, flags). Memoized and lazy.',
-            '**Pure pipe**: best for reusable formatting applied per item, or across many components.',
-            '**Precompute**: map data once when it arrives (e.g. add `displayPrice` in the service or a `map` operator).',
-            'Reading a signal in a template (`{{ total() }}`) looks like a method call but is not the same problem — it is a cheap getter returning a cached value, and it lets Angular track exactly which views depend on it.',
-            'A trivial method (`isActive()` returning a boolean field) is not a real performance issue; the concern is methods that do work or allocate new objects/arrays (which can also break child `@Input` identity checks).',
-            'OnPush and zoneless change detection reduce how often templates are checked, but do not make an expensive method cheap.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: "Interview tip: explain WHY (Angular can't memoize an arbitrary method, so it re-runs on every CD pass), show the console.log demo, then give the fixes in order: `computed()` for derived state, pure pipe for formatting, precomputing data. Clarify that signal reads in templates are fine.",
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**computed()**: best for component-level derived values (totals, filtered lists, flags). Memoized and lazy.',
+          '**Pure pipe**: best for reusable formatting applied per item, or across many components.',
+          '**Precompute**: map data once when it arrives (e.g. add `displayPrice` in the service or a `map` operator).',
+          'Reading a signal in a template (`{{ total() }}`) looks like a method call but is not the same problem — it is a cheap getter returning a cached value, and it lets Angular track exactly which views depend on it.',
+          'A trivial method (`isActive()` returning a boolean field) is not a real performance issue; the concern is methods that do work or allocate new objects/arrays (which can also break child `@Input` identity checks).',
+          'OnPush and zoneless change detection reduce how often templates are checked, but do not make an expensive method cheap.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: "Interview tip: explain WHY (Angular can't memoize an arbitrary method, so it re-runs on every CD pass), show the console.log demo, then give the fixes in order: `computed()` for derived state, pure pipe for formatting, precomputing data. Clarify that signal reads in templates are fine.",
+      },
+    ],
+  },
 
-  "Why doesn't Angular ship `filter` or `orderBy` pipes, and how should you filter or sort lists instead?":
-    {
-      summary:
-        "AngularJS had `filter` and `orderBy`, but Angular deliberately dropped them. To notice items being added or edited in place they would have to be impure, so they would filter and sort the whole list on every change-detection cycle — a big performance cost — and `orderBy: 'name'` style string property access also breaks under aggressive minification. Instead, filter and sort in the component, ideally with `computed()` over signals, or with a pure pipe that receives a new array reference.",
-      details: [
-        {
-          type: 'paragraph',
-          text: 'The Angular team documented this decision explicitly: the convenience was not worth the hidden cost. Moving the logic into the component makes it explicit, testable, and computed only when the inputs actually change.',
-        },
-        {
-          type: 'bullets',
-          items: [
-            '**Performance**: filtering/sorting is O(n) / O(n log n). An impure pipe would do it on every CD pass, even when nothing about the list changed.',
-            '**Correctness with a pure version**: a pure filter would miss in-place mutations (`push`, editing an item), leading to stale UI and confusion.',
-            "**Minification**: string-based property paths (`orderBy: 'customer.name'`) are fragile when property names are mangled and are not type-checked.",
-            '**Separation of concerns**: what the list contains is business/view logic, better placed in TypeScript than buried in templates.',
-          ],
-        },
-        { type: 'heading3', text: 'Search + sort with signals' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `type SortKey = 'name' | 'price';
+  'why-no-filter-or-orderby-pipes': {
+    summary:
+      "AngularJS had `filter` and `orderBy`, but Angular deliberately dropped them. To notice items being added or edited in place they would have to be impure, so they would filter and sort the whole list on every change-detection cycle — a big performance cost — and `orderBy: 'name'` style string property access also breaks under aggressive minification. Instead, filter and sort in the component, ideally with `computed()` over signals, or with a pure pipe that receives a new array reference.",
+    details: [
+      {
+        type: 'paragraph',
+        text: 'The Angular team documented this decision explicitly: the convenience was not worth the hidden cost. Moving the logic into the component makes it explicit, testable, and computed only when the inputs actually change.',
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**Performance**: filtering/sorting is O(n) / O(n log n). An impure pipe would do it on every CD pass, even when nothing about the list changed.',
+          '**Correctness with a pure version**: a pure filter would miss in-place mutations (`push`, editing an item), leading to stale UI and confusion.',
+          "**Minification**: string-based property paths (`orderBy: 'customer.name'`) are fragile when property names are mangled and are not type-checked.",
+          '**Separation of concerns**: what the list contains is business/view logic, better placed in TypeScript than buried in templates.',
+        ],
+      },
+      { type: 'heading3', text: 'Search + sort with signals' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `type SortKey = 'name' | 'price';
 
 @Component({
   selector: 'app-product-list',
@@ -450,12 +448,12 @@ export class ProductListComponent {
   });
   // filter() returns a new array, so sort() never mutates the input
 }`,
-        },
-        { type: 'heading3', text: 'Reusable alternative: a typed pure pipe' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Pipe({ name: 'search' })
+      },
+      { type: 'heading3', text: 'Reusable alternative: a typed pure pipe' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Pipe({ name: 'search' })
 export class SearchPipe implements PipeTransform {
   transform<T>(items: readonly T[] | null, query: string, field: (item: T) => string): T[] {
     if (!items) return [];
@@ -466,21 +464,21 @@ export class SearchPipe implements PipeTransform {
 // {{ products() | search: query() : byName }}  — byName = (p: Product) => p.name
 // Pure: re-runs only when products(), query() or byName change by reference.
 // Works as long as the list is updated immutably.`,
-        },
-        {
-          type: 'callout',
-          variant: 'info',
-          text: 'For large lists or server-side data, push filtering and sorting to the API (query params) and debounce the search input — the client should not hold 50,000 rows just to filter them.',
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: mention the AngularJS history, give the two reasons (impure = slow, string paths = minification/type-safety issues), then show the `computed()` search + sort. Bonus points for noting server-side filtering with debounce for big datasets.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'callout',
+        variant: 'info',
+        text: 'For large lists or server-side data, push filtering and sorting to the API (query params) and debounce the search input — the client should not hold 50,000 rows just to filter them.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: mention the AngularJS history, give the two reasons (impure = slow, string paths = minification/type-safety issues), then show the `computed()` search + sort. Bonus points for noting server-side filtering with debounce for big datasets.',
+      },
+    ],
+  },
 
-  'How do you use a pipe inside a component or service class instead of a template?': {
+  'using-a-pipe-in-a-class': {
     summary:
       'There are three options. You can inject a built-in pipe like `DatePipe`, but it is not provided by default, so you must add it to `providers` first. Better, call the underlying functions Angular exports from `@angular/common` — `formatDate`, `formatCurrency`, `formatNumber`, `formatPercent` — passing the locale from `LOCALE_ID`. For a simple custom pure pipe with no dependencies, you can just `new TruncatePipe().transform(...)`, though extracting the logic into a plain function shared by the pipe and the class is cleanest.',
     details: [

@@ -20,7 +20,7 @@ import { QuestionReader } from '../question-reader/question-reader';
 import {
   Question,
   CategoryModel,
-  RENAMED_QUESTIONS,
+  QuestionModel,
   Level,
   TOPIC_GROUPS,
   TRACKS,
@@ -30,6 +30,7 @@ import {
   trackOf,
 } from '@services/question';
 import { AnswerService } from '@services/answer.service';
+import { legacyQuestionId } from '@services/progress-migration';
 import { RATINGS, Review, ReviewRating, readReviews, recordReview } from '@services/reviews';
 
 type AppMode = Track;
@@ -244,7 +245,7 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
                 (topicChange)="selectTopicById($event)"
                 (levelChange)="setLevel($event)"
                 (focusChange)="onFilterChange($event)"
-                (preparedChange)="setPrepared($event.q, $event.prepared)"
+                (preparedChange)="setPrepared($event.id, $event.prepared)"
                 (starQuestions)="starAll($event)"
                 (closed)="closeMock()"
               />
@@ -310,12 +311,12 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
                   [item]="item"
                   [position]="activeIndex() + 1"
                   [total]="items().length"
-                  [starred]="starredSet().has(item.q)"
+                  [starred]="starredSet().has(item.id)"
                   [mode]="mode()"
                   [practice]="practice()"
                   [revealed]="revealedKey() === item.key"
-                  [rating]="ratingOf(item.q)"
-                  (rate)="rate(item.q, $event)"
+                  [rating]="ratingOf(item.id)"
+                  (rate)="rate(item.id, $event)"
                   (reveal)="revealedKey.set(item.key)"
                   (togglePractice)="togglePractice()"
                   (prev)="go(-1)"
@@ -462,7 +463,7 @@ export class Questions implements OnInit {
     // Keep ?topic=&q= in the URL so a question can be shared or survive a refresh
     effect(() => {
       const topic = this.selectedCategory()?.id;
-      const q = this.selectedKey() ? this.active()?.q : undefined;
+      const q = this.selectedKey() ? this.active()?.id : undefined;
       this.urlSync(); // re-run after Back pops to an entry holding an older URL
       if (!this.urlReady()) return;
       const tree = this.router.createUrlTree(['/questions'], { queryParams: { topic, q } });
@@ -509,7 +510,7 @@ export class Questions implements OnInit {
   });
 
   /** Questions of a topic at the selected level; sidebar counts follow the level filter. */
-  private atLevel(cat: CategoryModel): string[] {
+  private atLevel(cat: CategoryModel): QuestionModel[] {
     const level = this.levelFilter();
     return level === 'all' ? cat.questions : cat.questions.filter((q) => levelOf(q) === level);
   }
@@ -545,11 +546,11 @@ export class Questions implements OnInit {
       .map((cat) => ({
         ...cat,
         questions: cat.questions.filter((q) => {
-          if (filter && !q.toLowerCase().includes(filter)) return false;
+          if (filter && !q.text.toLowerCase().includes(filter)) return false;
           if (level !== 'all' && levelOf(q) !== level) return false;
-          if (activeF === 'prepared') return this.preparedSet().has(q);
-          if (activeF === 'starred') return this.starredSet().has(q);
-          if (activeF === 'unprepared') return !this.preparedSet().has(q);
+          if (activeF === 'prepared') return this.preparedSet().has(q.id);
+          if (activeF === 'starred') return this.starredSet().has(q.id);
+          if (activeF === 'unprepared') return !this.preparedSet().has(q.id);
           return true;
         }),
       }))
@@ -564,8 +565,10 @@ export class Questions implements OnInit {
       return {
         cat,
         items: vc.questions.map((q, i) => ({
-          key: questionKey(cat.id, q),
-          q,
+          key: questionKey(cat.id, q.id),
+          id: q.id,
+          q: q.text,
+          senior: !!q.senior,
           cat,
           num: i + 1,
         })),
@@ -589,7 +592,7 @@ export class Questions implements OnInit {
   masteredInMode = computed(() => {
     const prepared = this.preparedSet();
     return this.modeCategories().reduce(
-      (n, c) => n + this.atLevel(c).filter((q) => prepared.has(q)).length,
+      (n, c) => n + this.atLevel(c).filter((q) => prepared.has(q.id)).length,
       0,
     );
   });
@@ -610,12 +613,12 @@ export class Questions implements OnInit {
     const selected = this.selectedCategory();
     const scope = (selected ? [selected] : this.modeCategories())
       .flatMap((c) => this.atLevel(c))
-      .filter((q) => !search || q.toLowerCase().includes(search));
-    const done = scope.filter((q) => prepared.has(q)).length;
+      .filter((q) => !search || q.text.toLowerCase().includes(search));
+    const done = scope.filter((q) => prepared.has(q.id)).length;
     return {
       all: scope.length,
       prepared: done,
-      starred: scope.filter((q) => starred.has(q)).length,
+      starred: scope.filter((q) => starred.has(q.id)).length,
       unprepared: scope.length - done,
     };
   });
@@ -626,25 +629,25 @@ export class Questions implements OnInit {
 
   categoryDone(cat: CategoryModel): number {
     const prepared = this.preparedSet();
-    return this.atLevel(cat).filter((q) => prepared.has(q)).length;
+    return this.atLevel(cat).filter((q) => prepared.has(q.id)).length;
   }
 
   /**
    * The rating shown in the reader, kept consistent with the mastered flag: mastered shows
    * "Nailed it" (or "Shaky" if rated so since), and an un-mastered question never shows "Nailed it".
    */
-  ratingOf(q: string): ReviewRating | null {
-    const r = this.reviews()[q]?.r ?? null;
-    if (this.preparedSet().has(q)) return r === 'shaky' ? 'shaky' : 'nailed';
+  ratingOf(id: string): ReviewRating | null {
+    const r = this.reviews()[id]?.r ?? null;
+    if (this.preparedSet().has(id)) return r === 'shaky' ? 'shaky' : 'nailed';
     return r === 'nailed' ? null : r;
   }
 
   /** Same rules as Mock Me: Nailed it masters, Blanked un-masters, Shaky leaves it as it is. */
-  rate(q: string, rating: ReviewRating) {
-    this.reviews.set(recordReview(q, rating));
+  rate(id: string, rating: ReviewRating) {
+    this.reviews.set(recordReview(id, rating));
     this.anchorIndex.set(this.activeIndex());
-    if (rating === 'nailed') this.setPrepared(q, true);
-    if (rating === 'blanked') this.setPrepared(q, false);
+    if (rating === 'nailed') this.setPrepared(id, true);
+    if (rating === 'blanked') this.setPrepared(id, false);
   }
 
   /** Questions in the current topic (or track) before level, status and search filters. */
@@ -712,7 +715,7 @@ export class Questions implements OnInit {
     const byId = new Map(this.modeCategories().map((c) => [c.id, c]));
     return this.visibleCategories().flatMap((vc) => {
       const cat = byId.get(vc.id);
-      return cat ? vc.questions.map((q) => ({ q, cat })) : [];
+      return cat ? vc.questions.map((q) => ({ id: q.id, q: q.text, cat })) : [];
     });
   });
 
@@ -735,12 +738,9 @@ export class Questions implements OnInit {
     const params = this.route.snapshot.queryParamMap;
     const topic = all.find((c) => c.id === params.get('topic'));
     const rawQ = params.get('q');
-    const q = rawQ ? (RENAMED_QUESTIONS[rawQ] ?? rawQ) : null;
-    const qCat = q
-      ? topic?.questions.includes(q)
-        ? topic
-        : all.find((c) => c.questions.includes(q))
-      : undefined;
+    const found = rawQ ? this.questionService.find(rawQ) : undefined;
+    const q = found?.question.id ?? null;
+    const qCat = found?.cat;
 
     const linked = topic ?? qCat;
     const savedMode = localStorage.getItem('prep_mode');
@@ -753,10 +753,24 @@ export class Questions implements OnInit {
     if (q && qCat) {
       this.selectedKey.set(questionKey(qCat.id, q));
       this.readerOpen.set(true);
+    } else if (rawQ) {
+      // Links shared before ids existed carry the question text
+      this.openLegacyLink(rawQ);
     } else if (!topic) {
       this.restoreLastViewed();
     }
     this.urlReady.set(true);
+    afterNextRender(() => this.revealActive(false), { injector: this.injector });
+  }
+
+  /** Resolves an old `?q=<question text>` link to its question, then opens it. */
+  private async openLegacyLink(text: string) {
+    const id = await legacyQuestionId(text);
+    const found = id ? this.questionService.find(id) : undefined;
+    if (!found) return;
+    this.mode.set(trackOf(found.cat.id));
+    this.selectedKey.set(questionKey(found.cat.id, found.question.id));
+    this.readerOpen.set(true);
     afterNextRender(() => this.revealActive(false), { injector: this.injector });
   }
 
@@ -771,9 +785,8 @@ export class Questions implements OnInit {
     if (!saved?.key) return;
     const sep = saved.key.indexOf('::');
     const cat = this.modeCategories().find((c) => c.id === saved.key.slice(0, sep));
-    const rawQ = saved.key.slice(sep + 2);
-    const q = RENAMED_QUESTIONS[rawQ] ?? rawQ;
-    if (!cat || !cat.questions.includes(q)) return;
+    const q = saved.key.slice(sep + 2);
+    if (!cat || !cat.questions.some((it) => it.id === q)) return;
 
     const topic = saved.topic ? this.modeCategories().find((c) => c.id === saved.topic) : null;
     this.selectedCategory.set(topic ?? null);
@@ -888,14 +901,14 @@ export class Questions implements OnInit {
     if (!item) return;
     // If the filter hides it now (e.g. "Unprepared"), the next question takes its place
     this.anchorIndex.set(this.activeIndex());
-    this.togglePrepared(item.q);
+    this.togglePrepared(item.id);
   }
 
   toggleActiveStarred() {
     const item = this.active();
     if (!item) return;
     this.anchorIndex.set(this.activeIndex());
-    this.toggleStarred(item.q);
+    this.toggleStarred(item.id);
   }
 
   /** Keyboard shortcuts — the full list is in `shortcuts` and the "?" dialog. */
@@ -942,7 +955,7 @@ export class Questions implements OnInit {
 
     const rating = RATINGS.find((r) => r.key === e.key);
     if (rating) {
-      this.rate(this.active()!.q, rating.value);
+      this.rate(this.active()!.id, rating.value);
       e.preventDefault();
       return;
     }
@@ -1011,39 +1024,31 @@ export class Questions implements OnInit {
     try {
       const prepared = JSON.parse(localStorage.getItem('prep_prepared') || '[]');
       const starred = JSON.parse(localStorage.getItem('prep_starred') || '[]');
-      this.preparedSet.set(this.migrateRenamed(prepared, 'prep_prepared'));
-      this.starredSet.set(this.migrateRenamed(starred, 'prep_starred'));
+      // Question ids (saved text from older versions is converted at startup)
+      this.preparedSet.set(new Set<string>(Array.isArray(prepared) ? prepared : []));
+      this.starredSet.set(new Set<string>(Array.isArray(starred) ? starred : []));
     } catch (e) {
       console.error('Failed to load storage state', e);
     }
   }
 
-  /** Moves saved progress from corrected question wording to the new wording. */
-  private migrateRenamed(saved: string[], storageKey: string): Set<string> {
-    const set = new Set<string>(saved.map((q) => RENAMED_QUESTIONS[q] ?? q));
-    if (saved.some((q) => q in RENAMED_QUESTIONS)) {
-      localStorage.setItem(storageKey, JSON.stringify(Array.from(set)));
-    }
-    return set;
-  }
-
-  togglePrepared(q: string) {
+  togglePrepared(id: string) {
     const updated = new Set(this.preparedSet());
-    if (updated.has(q)) {
-      updated.delete(q);
+    if (updated.has(id)) {
+      updated.delete(id);
     } else {
-      updated.add(q);
+      updated.add(id);
     }
     this.preparedSet.set(updated);
     localStorage.setItem('prep_prepared', JSON.stringify(Array.from(updated)));
   }
 
-  toggleStarred(q: string) {
+  toggleStarred(id: string) {
     const updated = new Set(this.starredSet());
-    if (updated.has(q)) {
-      updated.delete(q);
+    if (updated.has(id)) {
+      updated.delete(id);
     } else {
-      updated.add(q);
+      updated.add(id);
     }
     this.starredSet.set(updated);
     localStorage.setItem('prep_starred', JSON.stringify(Array.from(updated)));
@@ -1058,13 +1063,13 @@ export class Questions implements OnInit {
     }
   }
 
-  setPrepared(q: string, prepared: boolean) {
-    if (this.preparedSet().has(q) !== prepared) this.togglePrepared(q);
+  setPrepared(id: string, prepared: boolean) {
+    if (this.preparedSet().has(id) !== prepared) this.togglePrepared(id);
   }
 
-  starAll(questions: string[]) {
+  starAll(ids: string[]) {
     const updated = new Set(this.starredSet());
-    questions.forEach((q) => updated.add(q));
+    ids.forEach((id) => updated.add(id));
     this.starredSet.set(updated);
     localStorage.setItem('prep_starred', JSON.stringify(Array.from(updated)));
   }

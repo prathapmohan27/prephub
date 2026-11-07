@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What are Core Web Vitals (LCP, INP, CLS), what are the thresholds, and why do they matter?': {
+  'core-web-vitals-and-thresholds': {
     summary:
       'Core Web Vitals are three user-centred metrics from Google: **LCP** (loading: when the main content appears), **INP** (responsiveness: how fast the page reacts to clicks, taps and key presses) and **CLS** (visual stability: how much content jumps around). "Good" is LCP ≤ 2.5 s, INP ≤ 200 ms and CLS ≤ 0.1, measured at the **75th percentile** of real page loads, separately for mobile and desktop. They matter because they track what users actually feel, they are visible in Search Console and CrUX, and they feed Google Search page experience signals, although content relevance still dominates ranking.',
     details: [
@@ -68,7 +68,7 @@ onCLS(console.log);`,
     ],
   },
 
-  'How do you improve Largest Contentful Paint (LCP)?': {
+  'improving-lcp': {
     summary:
       'First find the LCP element (usually a hero image or a large heading), then split its time into four parts: **TTFB**, **resource load delay**, **resource load duration** and **element render delay**, and fix the biggest one. Typical fixes are a faster server and CDN cache, making the LCP image discoverable in the HTML with `fetchpriority="high"` (never lazy-loaded), smaller modern image formats, removing render-blocking CSS and JS, and server-rendering or prerendering the content instead of building it in the browser.',
     details: [
@@ -142,7 +142,7 @@ onLCP(({ value, attribution: a }) => {
     ],
   },
 
-  'What is Interaction to Next Paint (INP), and how do you fix a slow interaction?': {
+  'inp-and-fixing-slow-interactions': {
     summary:
       'INP measures how long it takes from a click, tap or key press until the browser paints the next frame, and reports roughly the worst interaction of the visit; good is ≤ 200 ms at p75. Each interaction has three phases: **input delay** (the main thread is busy), **processing time** (your event handlers) and **presentation delay** (style, layout and paint of the result). I find the slow interaction with `web-vitals` attribution and Long Animation Frames, then break up long tasks, yield to the main thread, do less work per interaction, and move heavy work off the main thread or defer it.',
     details: [
@@ -226,7 +226,7 @@ button.addEventListener('click', async () => {
     ],
   },
 
-  'What causes Cumulative Layout Shift (CLS), and how do you prevent it?': {
+  'causes-of-cls-and-how-to-prevent-it': {
     summary:
       'CLS adds up unexpected movements of visible content, weighted by how much of the viewport moved and how far. The usual causes are images, videos, iframes and ads without reserved space, content injected above existing content (cookie banners, promos, late API results), web fonts swapping with different metrics, and animations that change layout properties. Prevention is mostly about **reserving space**: `width`/`height` or `aspect-ratio`, fixed slots for ads and banners, skeletons with the final size, matched fallback fonts, and `transform` animations.',
     details: [
@@ -303,37 +303,36 @@ body { font-family: 'Inter', 'Inter Fallback', sans-serif; }
     ],
   },
 
-  'Lab data vs field data: how do you measure performance with Lighthouse, DevTools, CrUX and real-user monitoring?':
-    {
-      summary:
-        '**Lab data** (Lighthouse, PageSpeed Insights lab section, DevTools) is one synthetic load on a fixed device and network: reproducible and great for debugging, but not what users experience. **Field data** (CrUX, and your own RUM with the `web-vitals` library) is what real users on real devices got, and it is what Core Web Vitals are judged on. I use field data to decide **what** to fix and lab tools to find **why** and verify the fix before release.',
-      details: [
-        { type: 'heading3', text: 'The tools' },
-        {
-          type: 'bullets',
-          items: [
-            '**Lighthouse**: simulated mid-range mobile with throttled CPU and network, cold cache, no interactions. Gives LCP, CLS, TBT and diagnostics. Run it in DevTools, the CLI or Lighthouse CI.',
-            '**PageSpeed Insights**: CrUX field data for the URL and origin at the top, a Lighthouse lab run below. Many people only read the score and miss the field section.',
-            '**CrUX**: p75 field data from opted-in Chrome users over 28 days. Available via PSI, Search Console, the CrUX API and BigQuery. Chrome only, and low-traffic pages may have no data.',
-            '**DevTools Performance panel**: live LCP, CLS and INP as you use the page, with CPU and network throttling, a trace showing long tasks, layout and paint, and it can show your CrUX field data next to the local numbers.',
-            '**RUM**: your own collection of web vitals from every visit, with route, release, device and country attached. This is the only source that covers all browsers your users have and gives per-route detail.',
-          ],
-        },
-        { type: 'heading3', text: 'Why lab and field disagree' },
-        {
-          type: 'bullets',
-          items: [
-            '**Devices and networks**: real users have slow Android phones and flaky 4G, or fast desktops on fibre; the lab picks one profile.',
-            '**Cache and state**: Lighthouse uses a cold cache and a logged-out session; real users have warm caches, cookies, A/B variants, consent banners and personalised content.',
-            '**Interactions**: a Lighthouse navigation run does not click anything, so it **cannot measure INP**. Use **TBT** as the lab proxy, and DevTools live metrics or Lighthouse user flows to test interactions.',
-            '**Lifetime**: field CLS and INP cover the whole visit, including scrolling and later interactions.',
-          ],
-        },
-        { type: 'heading3', text: 'Real-user monitoring with `web-vitals`' },
-        {
-          type: 'code',
-          lang: 'javascript',
-          code: `import { onCLS, onINP, onLCP, onTTFB } from 'web-vitals';
+  'lab-data-vs-field-data': {
+    summary:
+      '**Lab data** (Lighthouse, PageSpeed Insights lab section, DevTools) is one synthetic load on a fixed device and network: reproducible and great for debugging, but not what users experience. **Field data** (CrUX, and your own RUM with the `web-vitals` library) is what real users on real devices got, and it is what Core Web Vitals are judged on. I use field data to decide **what** to fix and lab tools to find **why** and verify the fix before release.',
+    details: [
+      { type: 'heading3', text: 'The tools' },
+      {
+        type: 'bullets',
+        items: [
+          '**Lighthouse**: simulated mid-range mobile with throttled CPU and network, cold cache, no interactions. Gives LCP, CLS, TBT and diagnostics. Run it in DevTools, the CLI or Lighthouse CI.',
+          '**PageSpeed Insights**: CrUX field data for the URL and origin at the top, a Lighthouse lab run below. Many people only read the score and miss the field section.',
+          '**CrUX**: p75 field data from opted-in Chrome users over 28 days. Available via PSI, Search Console, the CrUX API and BigQuery. Chrome only, and low-traffic pages may have no data.',
+          '**DevTools Performance panel**: live LCP, CLS and INP as you use the page, with CPU and network throttling, a trace showing long tasks, layout and paint, and it can show your CrUX field data next to the local numbers.',
+          '**RUM**: your own collection of web vitals from every visit, with route, release, device and country attached. This is the only source that covers all browsers your users have and gives per-route detail.',
+        ],
+      },
+      { type: 'heading3', text: 'Why lab and field disagree' },
+      {
+        type: 'bullets',
+        items: [
+          '**Devices and networks**: real users have slow Android phones and flaky 4G, or fast desktops on fibre; the lab picks one profile.',
+          '**Cache and state**: Lighthouse uses a cold cache and a logged-out session; real users have warm caches, cookies, A/B variants, consent banners and personalised content.',
+          '**Interactions**: a Lighthouse navigation run does not click anything, so it **cannot measure INP**. Use **TBT** as the lab proxy, and DevTools live metrics or Lighthouse user flows to test interactions.',
+          '**Lifetime**: field CLS and INP cover the whole visit, including scrolling and later interactions.',
+        ],
+      },
+      { type: 'heading3', text: 'Real-user monitoring with `web-vitals`' },
+      {
+        type: 'code',
+        lang: 'javascript',
+        code: `import { onCLS, onINP, onLCP, onTTFB } from 'web-vitals';
 
 function send(metric) {
   const body = JSON.stringify({
@@ -351,35 +350,35 @@ function send(metric) {
 }
 
 onCLS(send); onINP(send); onLCP(send); onTTFB(send);`,
-        },
-        {
-          type: 'paragraph',
-          text: 'On the backend, aggregate to **p75 per route, device type and release**, and alert when a release moves p75 past a threshold. Commercial RUM products (Datadog, Sentry, New Relic and others) do this out of the box.',
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'The Lighthouse performance score is a weighted lab summary, not a Core Web Vitals result. Chasing 100 on a developer laptop can hide a failing field p75. Always check the field section first.',
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: say "field tells me what, lab tells me why", give two reasons they disagree (device/network and missing interactions), and mention that Lighthouse uses TBT because it cannot measure INP.',
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'Your page has no CrUX data. What do you do?',
-            'How do you attribute a regression to a specific release?',
-            'Why use `sendBeacon` instead of a normal `fetch`?',
-            'How would you sample RUM on a high-traffic site?',
-          ],
-        },
-      ],
-    },
+      },
+      {
+        type: 'paragraph',
+        text: 'On the backend, aggregate to **p75 per route, device type and release**, and alert when a release moves p75 past a threshold. Commercial RUM products (Datadog, Sentry, New Relic and others) do this out of the box.',
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'The Lighthouse performance score is a weighted lab summary, not a Core Web Vitals result. Chasing 100 on a developer laptop can hide a failing field p75. Always check the field section first.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: say "field tells me what, lab tells me why", give two reasons they disagree (device/network and missing interactions), and mention that Lighthouse uses TBT because it cannot measure INP.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'Your page has no CrUX data. What do you do?',
+          'How do you attribute a regression to a specific release?',
+          'Why use `sendBeacon` instead of a normal `fetch`?',
+          'How would you sample RUM on a high-traffic site?',
+        ],
+      },
+    ],
+  },
 
-  'How does the critical rendering path work, and what blocks rendering?': {
+  'critical-rendering-path': {
     summary:
       'The browser parses HTML into the **DOM** and CSS into the **CSSOM**, combines them into the **render tree**, computes **layout** (sizes and positions), **paints** pixels and **composites** layers to the screen. **CSS is render-blocking**: nothing is painted until the stylesheets in `<head>` are loaded. **Synchronous scripts are parser-blocking**: the parser stops to download and run them, and they also wait for pending CSS. So the fast path is small inlined critical CSS, `defer` or `type="module"` scripts, and HTML that lets the preload scanner find important resources early.',
     details: [
@@ -465,16 +464,15 @@ onCLS(send); onINP(send); onLCP(send); onTTFB(send);`,
     ],
   },
 
-  'How do you load images and fonts efficiently (modern formats, responsive images, lazy loading, `font-display`)?':
-    {
-      summary:
-        'For images: serve **AVIF or WebP** with a fallback via `<picture>`, send the right size with `srcset`/`sizes`, always set `width`/`height`, lazy-load below-the-fold images with `loading="lazy"` but **never** the LCP image, and use an image CDN to automate formats and resizing. For fonts: use **WOFF2**, subset to the characters you need, self-host where possible, choose `font-display: swap` or `optional`, and preload only the one or two fonts used above the fold, with `crossorigin`.',
-      details: [
-        { type: 'heading3', text: 'Images' },
-        {
-          type: 'code',
-          lang: 'html',
-          code: `<picture>
+  'loading-images-and-fonts-efficiently': {
+    summary:
+      'For images: serve **AVIF or WebP** with a fallback via `<picture>`, send the right size with `srcset`/`sizes`, always set `width`/`height`, lazy-load below-the-fold images with `loading="lazy"` but **never** the LCP image, and use an image CDN to automate formats and resizing. For fonts: use **WOFF2**, subset to the characters you need, self-host where possible, choose `font-display: swap` or `optional`, and preload only the one or two fonts used above the fold, with `crossorigin`.',
+    details: [
+      { type: 'heading3', text: 'Images' },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<picture>
   <source type="image/avif" srcset="/p/sofa-400.avif 400w, /p/sofa-800.avif 800w">
   <source type="image/webp" srcset="/p/sofa-400.webp 400w, /p/sofa-800.webp 800w">
   <img src="/p/sofa-800.jpg"
@@ -484,23 +482,23 @@ onCLS(send); onINP(send); onLCP(send); onTTFB(send);`,
        loading="lazy" decoding="async"
        alt="Blue three-seater sofa">
 </picture>`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '**Formats**: AVIF usually compresses best, WebP is a safe second, JPEG/PNG the fallback. `<picture>` lets the browser pick the first type it supports. An image CDN can do this automatically based on the `Accept` header.',
-            '**`srcset` + `sizes`**: `srcset` lists the available widths, `sizes` tells the browser how wide the image will be displayed, so it can choose before CSS loads. Without `sizes`, the browser assumes `100vw` and often downloads an image far too large.',
-            '**`loading="lazy"`**: native lazy loading for images and iframes below the fold. Not on the LCP image or anything in the first viewport.',
-            '**`decoding="async"`**: hints that decoding need not block other rendering; a small win for non-critical images.',
-            '**Dimensions**: `width`/`height` attributes prevent layout shifts (CLS).',
-            '**Icons and simple graphics**: SVG (inline or sprite) instead of icon fonts or PNGs.',
-          ],
-        },
-        { type: 'heading3', text: 'Fonts' },
-        {
-          type: 'code',
-          lang: 'html',
-          code: `<!-- Preload only the critical font; crossorigin is required even for same-origin fonts -->
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**Formats**: AVIF usually compresses best, WebP is a safe second, JPEG/PNG the fallback. `<picture>` lets the browser pick the first type it supports. An image CDN can do this automatically based on the `Accept` header.',
+          '**`srcset` + `sizes`**: `srcset` lists the available widths, `sizes` tells the browser how wide the image will be displayed, so it can choose before CSS loads. Without `sizes`, the browser assumes `100vw` and often downloads an image far too large.',
+          '**`loading="lazy"`**: native lazy loading for images and iframes below the fold. Not on the LCP image or anything in the first viewport.',
+          '**`decoding="async"`**: hints that decoding need not block other rendering; a small win for non-critical images.',
+          '**Dimensions**: `width`/`height` attributes prevent layout shifts (CLS).',
+          '**Icons and simple graphics**: SVG (inline or sprite) instead of icon fonts or PNGs.',
+        ],
+      },
+      { type: 'heading3', text: 'Fonts' },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<!-- Preload only the critical font; crossorigin is required even for same-origin fonts -->
 <link rel="preload" href="/fonts/inter-latin-600.woff2" as="font" type="font/woff2" crossorigin>
 
 <style>
@@ -512,63 +510,62 @@ onCLS(send); onINP(send); onLCP(send); onTTFB(send);`,
     unicode-range: U+0000-00FF;          /* only download for Latin characters */
   }
 </style>`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '**`font-display: swap`**: text shows immediately in the fallback, then swaps (good for brand fonts, but can cause a layout shift). **`optional`**: uses the web font only if it is ready very quickly, otherwise keeps the fallback for that page view (no shift, best for CLS). Avoid the default `block` behaviour, which hides text.',
-            '**Subsetting** and `unicode-range`: ship only the scripts and glyphs you use. Variable fonts can replace several weight files with one.',
-            '**Self-hosting** vs a third-party font service: self-hosting avoids an extra connection to another origin and gives you control over caching and preloading. Browsers partition their cache per site, so a shared font CDN no longer gives a cross-site cache benefit.',
-            '**Fallback metrics**: `size-adjust` and `ascent-override` on a local fallback font reduce the reflow when the web font arrives.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Preloading every font weight is a common mistake: the preloads compete with the LCP image and CSS for bandwidth. A font preload without `crossorigin` is also fetched twice, because the actual font request is made in CORS mode.',
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: show the full `<img>` with `srcset`, `sizes`, `width`/`height` and the right loading attribute, and explain the trade-off between `swap` (text visible, may shift) and `optional` (stable, may not show the brand font). In Angular, `NgOptimizedImage` enforces most of the image rules.',
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'How does the browser choose an image from `srcset` on a high-DPR screen?',
-            'When would you use an image CDN instead of a build-time pipeline?',
-            'Why is a CSS background image a bad choice for a hero?',
-          ],
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**`font-display: swap`**: text shows immediately in the fallback, then swaps (good for brand fonts, but can cause a layout shift). **`optional`**: uses the web font only if it is ready very quickly, otherwise keeps the fallback for that page view (no shift, best for CLS). Avoid the default `block` behaviour, which hides text.',
+          '**Subsetting** and `unicode-range`: ship only the scripts and glyphs you use. Variable fonts can replace several weight files with one.',
+          '**Self-hosting** vs a third-party font service: self-hosting avoids an extra connection to another origin and gives you control over caching and preloading. Browsers partition their cache per site, so a shared font CDN no longer gives a cross-site cache benefit.',
+          '**Fallback metrics**: `size-adjust` and `ascent-override` on a local fallback font reduce the reflow when the web font arrives.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Preloading every font weight is a common mistake: the preloads compete with the LCP image and CSS for bandwidth. A font preload without `crossorigin` is also fetched twice, because the actual font request is made in CORS mode.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: show the full `<img>` with `srcset`, `sizes`, `width`/`height` and the right loading attribute, and explain the trade-off between `swap` (text visible, may shift) and `optional` (stable, may not show the brand font). In Angular, `NgOptimizedImage` enforces most of the image rules.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'How does the browser choose an image from `srcset` on a high-DPR screen?',
+          'When would you use an image CDN instead of a build-time pipeline?',
+          'Why is a CSS background image a bad choice for a hero?',
+        ],
+      },
+    ],
+  },
 
-  'How do HTTP caching headers and a CDN work together for a web app (`Cache-Control`, `ETag`, immutable assets)?':
-    {
-      summary:
-        'The pattern is: **hashed static assets** (`main.3f9a1c.js`) are cached for a year with `Cache-Control: public, max-age=31536000, immutable`, because a new build gets a new filename; **`index.html` is revalidated** on every load (`no-cache` plus an `ETag`), so users pick up new releases immediately. The CDN caches both at the edge, controlled by `s-maxage` and its cache key, and a deploy only needs to invalidate the HTML. Validators turn repeat downloads into cheap `304 Not Modified` responses.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'The concrete S3 and CloudFront setup (upload order, invalidation of `index.html`) is covered in the AWS topic, and the "users see a `ChunkLoadError` after a deploy" scenario in Frontend Debugging. Here are the underlying HTTP rules.',
-        },
-        { type: 'heading3', text: '`Cache-Control` directives' },
-        {
-          type: 'bullets',
-          items: [
-            '**`max-age=N`**: fresh for N seconds in any cache. **`s-maxage=N`**: overrides it for shared caches (CDNs, proxies) only.',
-            '**`no-cache`**: may be stored, but must be **revalidated** with the server before each use. Not "do not cache".',
-            '**`no-store`**: must not be stored at all. For sensitive responses (account pages, personal API data).',
-            '**`private`**: only the browser may cache it, not the CDN. Use for per-user responses.',
-            '**`immutable`**: the content will never change during its freshness, so the browser skips revalidation even when the user reloads.',
-            '**`stale-while-revalidate=N`**: after expiry, serve the stale copy for up to N seconds while fetching a new one in the background. Great for API responses and HTML that can be a little stale.',
-          ],
-        },
-        {
-          type: 'code',
-          lang: 'http',
-          code: `# Hashed JS/CSS/fonts/images
+  'http-caching-headers-with-a-cdn': {
+    summary:
+      'The pattern is: **hashed static assets** (`main.3f9a1c.js`) are cached for a year with `Cache-Control: public, max-age=31536000, immutable`, because a new build gets a new filename; **`index.html` is revalidated** on every load (`no-cache` plus an `ETag`), so users pick up new releases immediately. The CDN caches both at the edge, controlled by `s-maxage` and its cache key, and a deploy only needs to invalidate the HTML. Validators turn repeat downloads into cheap `304 Not Modified` responses.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'The concrete S3 and CloudFront setup (upload order, invalidation of `index.html`) is covered in the AWS topic, and the "users see a `ChunkLoadError` after a deploy" scenario in Frontend Debugging. Here are the underlying HTTP rules.',
+      },
+      { type: 'heading3', text: '`Cache-Control` directives' },
+      {
+        type: 'bullets',
+        items: [
+          '**`max-age=N`**: fresh for N seconds in any cache. **`s-maxage=N`**: overrides it for shared caches (CDNs, proxies) only.',
+          '**`no-cache`**: may be stored, but must be **revalidated** with the server before each use. Not "do not cache".',
+          '**`no-store`**: must not be stored at all. For sensitive responses (account pages, personal API data).',
+          '**`private`**: only the browser may cache it, not the CDN. Use for per-user responses.',
+          '**`immutable`**: the content will never change during its freshness, so the browser skips revalidation even when the user reloads.',
+          '**`stale-while-revalidate=N`**: after expiry, serve the stale copy for up to N seconds while fetching a new one in the background. Great for API responses and HTML that can be a little stale.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'http',
+        code: `# Hashed JS/CSS/fonts/images
 Cache-Control: public, max-age=31536000, immutable
 
 # index.html: always check, cheap 304 if unchanged; CDN may hold it briefly
@@ -582,54 +579,53 @@ Cache-Control: public, max-age=60, s-maxage=300, stale-while-revalidate=600
 GET /index.html
 If-None-Match: "a1b2c3"
 -> 304 Not Modified   (no body sent)`,
-        },
-        { type: 'heading3', text: 'Validators' },
-        {
-          type: 'paragraph',
-          text: '`ETag` (a content fingerprint) and `Last-Modified` let the browser ask "has this changed?" with `If-None-Match` or `If-Modified-Since`. If not, the server answers `304` with no body. That still costs a round trip, which is why hashed assets use `immutable` instead and skip the check completely.',
-        },
-        { type: 'heading3', text: 'The CDN side' },
-        {
-          type: 'bullets',
-          items: [
-            '**Cache key**: by default host + path (+ query string, depending on config). Every extra header or cookie you add to the key lowers the hit ratio, so include only what changes the response.',
-            '**`Vary`**: tells caches which request headers change the response, typically `Vary: Accept-Encoding`. `Vary: Cookie` or `User-Agent` effectively disables shared caching.',
-            '**Invalidation**: with hashed filenames you only invalidate `index.html` (or nothing, if it is `no-cache`). Purging everything on each deploy throws away the edge cache.',
-            '**Compression**: Brotli for text assets (better ratio than gzip for JS/CSS), gzip as fallback, negotiated via `Accept-Encoding`. Pre-compress static files at build time at maximum level.',
-            '**Protocols**: HTTP/2 multiplexes many requests over one connection (so bundling everything into one file matters less); HTTP/3 runs over QUIC and handles lossy mobile networks better. Most CDNs enable both.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: "Never give `index.html` a long `max-age`. Users will keep loading an old HTML that points to old chunks, and if those were deleted on deploy, the app breaks. Also keep previous builds' assets available for a while after each deploy.",
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: explain `no-cache` vs `no-store` correctly (many candidates get it backwards) and describe the "hashed assets forever, HTML always revalidated" strategy in one sentence.',
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'How would you cache a personalised page or an authenticated API?',
-            'What is the difference between a browser cache hit and a CDN hit?',
-            'How does a service worker cache interact with HTTP caching?',
-          ],
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'Validators' },
+      {
+        type: 'paragraph',
+        text: '`ETag` (a content fingerprint) and `Last-Modified` let the browser ask "has this changed?" with `If-None-Match` or `If-Modified-Since`. If not, the server answers `304` with no body. That still costs a round trip, which is why hashed assets use `immutable` instead and skip the check completely.',
+      },
+      { type: 'heading3', text: 'The CDN side' },
+      {
+        type: 'bullets',
+        items: [
+          '**Cache key**: by default host + path (+ query string, depending on config). Every extra header or cookie you add to the key lowers the hit ratio, so include only what changes the response.',
+          '**`Vary`**: tells caches which request headers change the response, typically `Vary: Accept-Encoding`. `Vary: Cookie` or `User-Agent` effectively disables shared caching.',
+          '**Invalidation**: with hashed filenames you only invalidate `index.html` (or nothing, if it is `no-cache`). Purging everything on each deploy throws away the edge cache.',
+          '**Compression**: Brotli for text assets (better ratio than gzip for JS/CSS), gzip as fallback, negotiated via `Accept-Encoding`. Pre-compress static files at build time at maximum level.',
+          '**Protocols**: HTTP/2 multiplexes many requests over one connection (so bundling everything into one file matters less); HTTP/3 runs over QUIC and handles lossy mobile networks better. Most CDNs enable both.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: "Never give `index.html` a long `max-age`. Users will keep loading an old HTML that points to old chunks, and if those were deleted on deploy, the app breaks. Also keep previous builds' assets available for a while after each deploy.",
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: explain `no-cache` vs `no-store` correctly (many candidates get it backwards) and describe the "hashed assets forever, HTML always revalidated" strategy in one sentence.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'How would you cache a personalised page or an authenticated API?',
+          'What is the difference between a browser cache hit and a CDN hit?',
+          'How does a service worker cache interact with HTTP caching?',
+        ],
+      },
+    ],
+  },
 
-  'What are resource hints (`preload`, `preconnect`, `prefetch`, `fetchpriority`), and when do they backfire?':
-    {
-      summary:
-        'Resource hints tell the browser about work it would otherwise discover late: `preconnect` opens a connection to an origin early, `dns-prefetch` only resolves DNS, `preload` fetches a resource needed for **this** page now, `modulepreload` does the same for ES modules, `prefetch` fetches something for a **likely next** navigation at low priority, and `fetchpriority` raises or lowers the priority of a specific request. They backfire when overused: every preload competes for bandwidth with the LCP image and CSS, unused preloads waste bytes, and too many preconnects waste connection setup.',
-      details: [
-        {
-          type: 'code',
-          lang: 'html',
-          code: `<!-- Early connection to a critical third-party origin (DNS + TCP + TLS) -->
+  'resource-hints-and-when-they-backfire': {
+    summary:
+      'Resource hints tell the browser about work it would otherwise discover late: `preconnect` opens a connection to an origin early, `dns-prefetch` only resolves DNS, `preload` fetches a resource needed for **this** page now, `modulepreload` does the same for ES modules, `prefetch` fetches something for a **likely next** navigation at low priority, and `fetchpriority` raises or lowers the priority of a specific request. They backfire when overused: every preload competes for bandwidth with the LCP image and CSS, unused preloads waste bytes, and too many preconnects waste connection setup.',
+    details: [
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<!-- Early connection to a critical third-party origin (DNS + TCP + TLS) -->
 <link rel="preconnect" href="https://cdn.example-images.com">
 <link rel="dns-prefetch" href="https://cdn.example-images.com"> <!-- cheap fallback -->
 
@@ -645,63 +641,63 @@ If-None-Match: "a1b2c3"
 <!-- Raise the hero, lower a below-the-fold carousel image -->
 <img src="/hero.avif" fetchpriority="high" alt="..." width="1200" height="600">
 <img src="/slide-2.avif" fetchpriority="low" alt="..." width="1200" height="600">`,
-        },
-        { type: 'heading3', text: 'When to use which' },
-        {
-          type: 'bullets',
-          items: [
-            '**`preconnect`**: for 1–3 origins you will definitely use early (image CDN, API, font host). Each preconnect costs CPU and sockets, and an unused one is closed after a few seconds.',
-            '**`preload`**: only for late-discovered, critical resources on the current page (fonts in CSS, a CSS background LCP image, a script loaded by another script). The `as` attribute must be correct, or the browser downloads it twice and warns that the preload was unused.',
-            '**`fetchpriority`**: prefer it over `preload` when the resource is already in the HTML. `high` on the LCP image, `low` on images that are in the markup but not visible yet. It also works on `fetch()` via the `priority` option.',
-            '**`prefetch`**: for the next navigation (the next step of a checkout). Low priority, stored in the HTTP cache. Wasted if the user never goes there, and it costs mobile data.',
-            '**Speculation Rules API**: a JSON `<script type="speculationrules">` block that prefetches or even fully **prerenders** likely next pages, making navigations near-instant. Chromium-only for now, so treat it as progressive enhancement.',
-          ],
-        },
-        {
-          type: 'code',
-          lang: 'html',
-          code: `<script type="speculationrules">
+      },
+      { type: 'heading3', text: 'When to use which' },
+      {
+        type: 'bullets',
+        items: [
+          '**`preconnect`**: for 1–3 origins you will definitely use early (image CDN, API, font host). Each preconnect costs CPU and sockets, and an unused one is closed after a few seconds.',
+          '**`preload`**: only for late-discovered, critical resources on the current page (fonts in CSS, a CSS background LCP image, a script loaded by another script). The `as` attribute must be correct, or the browser downloads it twice and warns that the preload was unused.',
+          '**`fetchpriority`**: prefer it over `preload` when the resource is already in the HTML. `high` on the LCP image, `low` on images that are in the markup but not visible yet. It also works on `fetch()` via the `priority` option.',
+          '**`prefetch`**: for the next navigation (the next step of a checkout). Low priority, stored in the HTTP cache. Wasted if the user never goes there, and it costs mobile data.',
+          '**Speculation Rules API**: a JSON `<script type="speculationrules">` block that prefetches or even fully **prerenders** likely next pages, making navigations near-instant. Chromium-only for now, so treat it as progressive enhancement.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<script type="speculationrules">
 {
   "prerender": [
     { "where": { "href_matches": "/products/*" }, "eagerness": "moderate" }
   ]
 }
 </script>`,
-        },
-        { type: 'heading3', text: 'How they backfire' },
-        {
-          type: 'bullets',
-          items: [
-            '**Over-preloading**: ten preloads in `<head>` all start at high priority and delay the CSS and the LCP image. If everything is a priority, nothing is.',
-            '**Wrong or missing `as`/`crossorigin`**: double downloads.',
-            '**Preloading what the preload scanner already finds**: no benefit, just noise.',
-            '**Stale hints**: a preload for a file that was renamed or no longer used keeps downloading bytes on every page view. Lighthouse and the DevTools console warn about unused preloads.',
-            '**Prerendering pages with side effects**: analytics page views or state changes may fire for pages the user never sees, unless the code checks `document.prerendering`.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Always measure a hint before and after (network waterfall plus LCP in the field). Hints are easy to add and rarely removed, so they pile up and quietly make things slower.',
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: the senior signal is restraint. Say "preload is for late-discovered critical resources only, `fetchpriority` for things already in the HTML", and give one example of a preload that made LCP worse.',
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'What is the difference between `preload` and `prefetch` in priority and cache?',
-            'How do 103 Early Hints relate to `preload` and `preconnect`?',
-            'How would you decide which routes to prefetch or prerender?',
-          ],
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'How they backfire' },
+      {
+        type: 'bullets',
+        items: [
+          '**Over-preloading**: ten preloads in `<head>` all start at high priority and delay the CSS and the LCP image. If everything is a priority, nothing is.',
+          '**Wrong or missing `as`/`crossorigin`**: double downloads.',
+          '**Preloading what the preload scanner already finds**: no benefit, just noise.',
+          '**Stale hints**: a preload for a file that was renamed or no longer used keeps downloading bytes on every page view. Lighthouse and the DevTools console warn about unused preloads.',
+          '**Prerendering pages with side effects**: analytics page views or state changes may fire for pages the user never sees, unless the code checks `document.prerendering`.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Always measure a hint before and after (network waterfall plus LCP in the field). Hints are easy to add and rarely removed, so they pile up and quietly make things slower.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: the senior signal is restraint. Say "preload is for late-discovered critical resources only, `fetchpriority` for things already in the HTML", and give one example of a preload that made LCP worse.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'What is the difference between `preload` and `prefetch` in priority and cache?',
+          'How do 103 Early Hints relate to `preload` and `preconnect`?',
+          'How would you decide which routes to prefetch or prerender?',
+        ],
+      },
+    ],
+  },
 
-  'How do you set and enforce a performance budget in CI?': {
+  'enforcing-a-performance-budget-in-ci': {
     summary:
       'A performance budget is a set of limits the team agrees on, for example "initial JavaScript ≤ 200 kB compressed", "LCP ≤ 2.5 s in the lab on mobile", "no more than N third-party requests". I enforce it at three levels: **build-time size limits** (bundler budgets, size-limit) that fail the PR, **Lighthouse CI** assertions on key pages, and **RUM alerts** on field p75 after release. Budgets come from field data and competitors, and I track trends per commit rather than trusting a single run.',
     details: [

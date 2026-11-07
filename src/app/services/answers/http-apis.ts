@@ -1,41 +1,40 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What are the most common HTTP methods (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`) and when should each be used?':
-    {
-      summary:
-        '`GET` reads a resource, `POST` creates one (or triggers a non-idempotent action), `PUT` replaces a resource entirely, `PATCH` partially updates it, and `DELETE` removes it. The key properties to mention are **safety** (GET does not change state) and **idempotency** (GET, PUT and DELETE can be repeated with the same result; POST cannot, PATCH is not guaranteed to be).',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'HTTP methods express the intent of a request. In a REST API the URL identifies the resource (`/api/users/42`) and the method says what to do with it. Choosing the right method matters because browsers, proxies, caches, retry logic and API gateways all make decisions based on it.',
-        },
-        { type: 'heading3', text: 'The five methods against one resource' },
-        {
-          type: 'code',
-          lang: 'text',
-          code: `GET    /api/users          → 200 list of users        (read collection)
+  'http-methods-and-when-to-use-each': {
+    summary:
+      '`GET` reads a resource, `POST` creates one (or triggers a non-idempotent action), `PUT` replaces a resource entirely, `PATCH` partially updates it, and `DELETE` removes it. The key properties to mention are **safety** (GET does not change state) and **idempotency** (GET, PUT and DELETE can be repeated with the same result; POST cannot, PATCH is not guaranteed to be).',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'HTTP methods express the intent of a request. In a REST API the URL identifies the resource (`/api/users/42`) and the method says what to do with it. Choosing the right method matters because browsers, proxies, caches, retry logic and API gateways all make decisions based on it.',
+      },
+      { type: 'heading3', text: 'The five methods against one resource' },
+      {
+        type: 'code',
+        lang: 'text',
+        code: `GET    /api/users          → 200 list of users        (read collection)
 GET    /api/users/42       → 200 user 42              (read one)
 POST   /api/users          → 201 Created + Location   (create; server assigns the id)
 PUT    /api/users/42       → 200/204                  (replace the whole user 42)
 PATCH  /api/users/42       → 200/204                  (change only the fields sent)
 DELETE /api/users/42       → 204 No Content           (remove user 42)`,
-        },
-        { type: 'heading3', text: 'Safe and idempotent — the properties interviewers want' },
-        {
-          type: 'bullets',
-          items: [
-            '**Safe** = does not modify server state. Only `GET` (plus `HEAD`, `OPTIONS`) is safe, so it can be cached, prefetched and retried freely.',
-            '**Idempotent** = sending it N times has the same effect as sending it once. `GET`, `PUT`, `DELETE` are idempotent: deleting user 42 twice still leaves user 42 deleted (the second call may return 404, but the state is the same).',
-            '`POST` is neither: submitting an order twice creates two orders. That is why payment APIs use an **idempotency key** header.',
-            '`PATCH` is not idempotent by definition — `{ "op": "increment", "field": "views" }` changes the result each time — although a simple "set these fields" patch behaves idempotently in practice.',
-          ],
-        },
-        { type: 'heading3', text: 'Calling them from Angular' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Injectable({ providedIn: 'root' })
+      },
+      { type: 'heading3', text: 'Safe and idempotent — the properties interviewers want' },
+      {
+        type: 'bullets',
+        items: [
+          '**Safe** = does not modify server state. Only `GET` (plus `HEAD`, `OPTIONS`) is safe, so it can be cached, prefetched and retried freely.',
+          '**Idempotent** = sending it N times has the same effect as sending it once. `GET`, `PUT`, `DELETE` are idempotent: deleting user 42 twice still leaves user 42 deleted (the second call may return 404, but the state is the same).',
+          '`POST` is neither: submitting an order twice creates two orders. That is why payment APIs use an **idempotency key** header.',
+          '`PATCH` is not idempotent by definition — `{ "op": "increment", "field": "views" }` changes the result each time — although a simple "set these fields" patch behaves idempotently in practice.',
+        ],
+      },
+      { type: 'heading3', text: 'Calling them from Angular' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Injectable({ providedIn: 'root' })
 export class UserApi {
   private http = inject(HttpClient);
   private base = '/api/users';
@@ -49,11 +48,11 @@ export class UserApi {
   }
   remove(id: number)              { return this.http.delete<void>(\`\${this.base}/\${id}\`); }
 }`,
-        },
-        {
-          type: 'flow',
-          title: 'Picking the method',
-          code: `flowchart TD
+      },
+      {
+        type: 'flow',
+        title: 'Picking the method',
+        code: `flowchart TD
   Q{"Does the request<br/>change data?"} -->|No| G["GET"]:::cache
   Q -->|Yes| C{"What kind of change?"}
   C -->|"Create, server picks id"| P["POST"]:::server
@@ -61,38 +60,38 @@ export class UserApi {
   C -->|"Change some fields"| PA["PATCH"]:::server
   C -->|"Remove"| D["DELETE"]:::db
   C -->|"Action / command<br/>e.g. send email"| P`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Common status codes: `200 OK`, `201 Created`, `204 No Content`, `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `409 Conflict`, `422 Unprocessable Entity`, `500` server error.',
-            'Use `POST` for actions that do not map to CRUD (`POST /orders/42/cancel`) and for complex searches whose criteria do not fit in a URL.',
-            '`HEAD` (headers only) and `OPTIONS` (used by the browser for CORS preflight) are the other methods worth naming.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: go beyond "GET reads, POST writes". Mention safety and idempotency and give the retry example — "it is safe to automatically retry a PUT or DELETE after a timeout, but not a POST without an idempotency key".',
-        },
-        { type: 'divider' },
-        {
-          type: 'heading3',
-          text: 'Follow-up: What is the difference between `PUT` (`full replacement`) and `PATCH` (`partial update`) HTTP methods when updating resource data?',
-        },
-        {
-          type: 'paragraph',
-          text: '`PUT` sends the complete new representation of a resource and replaces whatever is stored — fields you omit are cleared or reset. `PATCH` sends only the changes, leaving other fields untouched. `PUT` is idempotent by definition; `PATCH` is not guaranteed to be.',
-        },
-        {
-          type: 'paragraph',
-          text: 'Both methods update an existing resource, but they disagree on what the body means. With `PUT` the body IS the new resource. With `PATCH` the body is a set of instructions describing how to modify the resource.',
-        },
-        { type: 'heading3', text: 'Same starting data, two requests' },
-        {
-          type: 'code',
-          lang: 'json',
-          code: `// Stored: GET /api/users/42
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Common status codes: `200 OK`, `201 Created`, `204 No Content`, `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `409 Conflict`, `422 Unprocessable Entity`, `500` server error.',
+          'Use `POST` for actions that do not map to CRUD (`POST /orders/42/cancel`) and for complex searches whose criteria do not fit in a URL.',
+          '`HEAD` (headers only) and `OPTIONS` (used by the browser for CORS preflight) are the other methods worth naming.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: go beyond "GET reads, POST writes". Mention safety and idempotency and give the retry example — "it is safe to automatically retry a PUT or DELETE after a timeout, but not a POST without an idempotency key".',
+      },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: What is the difference between `PUT` (`full replacement`) and `PATCH` (`partial update`) HTTP methods when updating resource data?',
+      },
+      {
+        type: 'paragraph',
+        text: '`PUT` sends the complete new representation of a resource and replaces whatever is stored — fields you omit are cleared or reset. `PATCH` sends only the changes, leaving other fields untouched. `PUT` is idempotent by definition; `PATCH` is not guaranteed to be.',
+      },
+      {
+        type: 'paragraph',
+        text: 'Both methods update an existing resource, but they disagree on what the body means. With `PUT` the body IS the new resource. With `PATCH` the body is a set of instructions describing how to modify the resource.',
+      },
+      { type: 'heading3', text: 'Same starting data, two requests' },
+      {
+        type: 'code',
+        lang: 'json',
+        code: `// Stored: GET /api/users/42
 { "id": 42, "name": "Asha", "email": "asha@mail.com", "role": "admin" }
 
 // PUT /api/users/42   body: { "id": 42, "name": "Asha K" }
@@ -102,27 +101,27 @@ export class UserApi {
 // PATCH /api/users/42 body: { "name": "Asha K" }
 // Result → { "id": 42, "name": "Asha K", "email": "asha@mail.com", "role": "admin" }
 //          only name changed`,
-        },
-        { type: 'heading3', text: 'PATCH formats' },
-        {
-          type: 'paragraph',
-          text: 'The most common format is **JSON Merge Patch** (RFC 7396, `Content-Type: application/merge-patch+json`): send a partial object, and `null` means "remove this field". For more precise operations there is **JSON Patch** (RFC 6902, `application/json-patch+json`), a list of operations.',
-        },
-        {
-          type: 'code',
-          lang: 'json',
-          code: `// JSON Patch (RFC 6902) — explicit operations, applied in order
+      },
+      { type: 'heading3', text: 'PATCH formats' },
+      {
+        type: 'paragraph',
+        text: 'The most common format is **JSON Merge Patch** (RFC 7396, `Content-Type: application/merge-patch+json`): send a partial object, and `null` means "remove this field". For more precise operations there is **JSON Patch** (RFC 6902, `application/json-patch+json`), a list of operations.',
+      },
+      {
+        type: 'code',
+        lang: 'json',
+        code: `// JSON Patch (RFC 6902) — explicit operations, applied in order
 [
   { "op": "replace", "path": "/name", "value": "Asha K" },
   { "op": "add",     "path": "/tags/-", "value": "beta-tester" },
   { "op": "remove",  "path": "/nickname" }
 ]`,
-        },
-        { type: 'heading3', text: 'In Angular' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Edit-profile form that always submits every field → PUT
+      },
+      { type: 'heading3', text: 'In Angular' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Edit-profile form that always submits every field → PUT
 saveProfile(user: User) {
   return this.http.put<User>(\`/api/users/\${user.id}\`, user);
 }
@@ -131,50 +130,49 @@ saveProfile(user: User) {
 setNewsletter(id: number, enabled: boolean) {
   return this.http.patch<User>(\`/api/users/\${id}\`, { newsletter: enabled });
 }`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '**PUT**: full body, idempotent, simple server logic, but larger payloads and risk of wiping fields the client did not know about (e.g. an older client version).',
-            '**PATCH**: small payloads, safer when several clients edit different fields, but the server must validate partial input and merge it.',
-            'Some APIs allow `PUT` to create a resource at a client-chosen URL (`PUT /files/report.pdf`) — creation via PUT is also idempotent.',
-            'Concurrent edits: combine either method with `ETag` + `If-Match` headers so the server rejects stale updates with `412 Precondition Failed`.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Common pitfall: many backends implement `PUT` as a partial update. It works, but it is not what the spec says. If you call it out and explain the "missing fields get cleared" behaviour, you show you know the actual semantics.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**PUT**: full body, idempotent, simple server logic, but larger payloads and risk of wiping fields the client did not know about (e.g. an older client version).',
+          '**PATCH**: small payloads, safer when several clients edit different fields, but the server must validate partial input and merge it.',
+          'Some APIs allow `PUT` to create a resource at a client-chosen URL (`PUT /files/report.pdf`) — creation via PUT is also idempotent.',
+          'Concurrent edits: combine either method with `ETag` + `If-Match` headers so the server rejects stale updates with `412 Precondition Failed`.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common pitfall: many backends implement `PUT` as a partial update. It works, but it is not what the spec says. If you call it out and explain the "missing fields get cleared" behaviour, you show you know the actual semantics.',
+      },
+    ],
+  },
 
-  'In what different ways can client data be transmitted to an HTTP API endpoint (`Path Params`, `Query Params`, `Headers`, `Request Body/Payload`)?':
-    {
-      summary:
-        'Four places: **path params** identify the resource (`/users/42`), **query params** filter, sort or paginate (`?page=2&sort=name`), **headers** carry metadata like auth tokens, content type and correlation ids, and the **body** carries the payload being created or updated (JSON, form data, files). Pick the location by what the data means, not by convenience.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'A single request can use all four. The rule of thumb: the URL path says WHICH resource, the query string says HOW you want it (a view of the collection), headers say things ABOUT the request, and the body is the DATA you are sending.',
-        },
-        { type: 'heading3', text: 'All four in one request' },
-        {
-          type: 'code',
-          lang: 'text',
-          code: `PATCH /api/orgs/7/users/42?notify=true HTTP/1.1      ← path params: orgId=7, userId=42
+  'ways-to-send-data-to-an-api': {
+    summary:
+      'Four places: **path params** identify the resource (`/users/42`), **query params** filter, sort or paginate (`?page=2&sort=name`), **headers** carry metadata like auth tokens, content type and correlation ids, and the **body** carries the payload being created or updated (JSON, form data, files). Pick the location by what the data means, not by convenience.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'A single request can use all four. The rule of thumb: the URL path says WHICH resource, the query string says HOW you want it (a view of the collection), headers say things ABOUT the request, and the body is the DATA you are sending.',
+      },
+      { type: 'heading3', text: 'All four in one request' },
+      {
+        type: 'code',
+        lang: 'text',
+        code: `PATCH /api/orgs/7/users/42?notify=true HTTP/1.1      ← path params: orgId=7, userId=42
 Host: api.example.com                                  ← query param: notify=true
 Authorization: Bearer eyJhbGciOi...                    ← headers: auth, content type,
 Content-Type: application/json                            tracing
 X-Request-Id: 9f1c2b
 
 { "role": "editor" }                                   ← body / payload`,
-        },
-        { type: 'heading3', text: 'The same request with Angular HttpClient' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `const orgId = 7;
+      },
+      { type: 'heading3', text: 'The same request with Angular HttpClient' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `const orgId = 7;
 const userId = 42;
 
 this.http.patch<User>(
@@ -186,27 +184,27 @@ this.http.patch<User>(
   },
 );
 // Authorization is usually added globally by an interceptor, not per call.`,
-        },
-        { type: 'heading3', text: 'When to use which' },
-        {
-          type: 'bullets',
-          items: [
-            '**Path params** — required identifiers that form the resource hierarchy: `/products/123/reviews/9`. Missing one means a different resource.',
-            '**Query params** — optional modifiers: filters, search terms, pagination, sorting, field selection. Visible in the URL, so they are bookmarkable and cacheable, but also logged by servers and proxies.',
-            '**Headers** — metadata and cross-cutting concerns: `Authorization`, `Content-Type`, `Accept`, `Accept-Language`, `If-None-Match`, idempotency keys, tracing ids.',
-            '**Body** — the resource representation or command data for `POST`/`PUT`/`PATCH`: JSON, `multipart/form-data` for file uploads, `application/x-www-form-urlencoded` for classic forms.',
-            'Cookies are technically a header (`Cookie`) and are sent automatically by the browser — common for session auth.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Never put secrets (passwords, tokens, personal data) in path or query params — URLs end up in browser history, server access logs, analytics and the `Referer` header. Use headers or the body over HTTPS.',
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'When to use which' },
+      {
+        type: 'bullets',
+        items: [
+          '**Path params** — required identifiers that form the resource hierarchy: `/products/123/reviews/9`. Missing one means a different resource.',
+          '**Query params** — optional modifiers: filters, search terms, pagination, sorting, field selection. Visible in the URL, so they are bookmarkable and cacheable, but also logged by servers and proxies.',
+          '**Headers** — metadata and cross-cutting concerns: `Authorization`, `Content-Type`, `Accept`, `Accept-Language`, `If-None-Match`, idempotency keys, tracing ids.',
+          '**Body** — the resource representation or command data for `POST`/`PUT`/`PATCH`: JSON, `multipart/form-data` for file uploads, `application/x-www-form-urlencoded` for classic forms.',
+          'Cookies are technically a header (`Cookie`) and are sent automatically by the browser — common for session auth.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Never put secrets (passwords, tokens, personal data) in path or query params — URLs end up in browser history, server access logs, analytics and the `Referer` header. Use headers or the body over HTTPS.',
+      },
+    ],
+  },
 
-  'Can you include a request body/payload inside an HTTP GET API request (`HttpClient.get()`)?': {
+  'body-in-a-get-request': {
     summary:
       'Not with Angular `HttpClient.get()` — its signature has no body parameter, only `url` and `options`. Browsers also refuse it: `fetch` throws a TypeError if you give a GET request a body, and `XMLHttpRequest` silently drops it. At the protocol level a GET body is not forbidden, but it has no defined meaning, so servers and proxies may ignore or reject it.',
     details: [
@@ -303,7 +301,7 @@ this.http.post<Page<Product>>('/api/products/search', criteria);
     ],
   },
 
-  'How do you make an HTTP API call in Angular using `HttpClient`?': {
+  'making-an-api-call-with-httpclient': {
     summary:
       'Register the client with `provideHttpClient()` in `app.config.ts`, `inject(HttpClient)` into a service, and call `get/post/put/patch/delete`, which return a cold `Observable` — nothing is sent until something subscribes (the `async` pipe, `subscribe()`, `toSignal()` or `httpResource()`). Keep the calls in a service and type the response with a generic, e.g. `http.get<User[]>(url)`.',
     details: [
@@ -696,29 +694,28 @@ export class PostsComponent {
     ],
   },
 
-  'How do you design API calling from the UI? When do you use the async pipe, and when should you unsubscribe manually?':
-    {
-      summary:
-        'Layer it: components never call `HttpClient` directly — they call a data service (or a store/facade) that owns URLs, typing, mapping and caching, while interceptors handle auth, errors and loading. For consumption, prefer the `async` pipe or `toSignal()` because they subscribe and unsubscribe automatically. Manual subscriptions are for side effects (submitting a form, navigation after save) and should be cleaned up with `takeUntilDestroyed()`.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Good API design in the UI is about separation of concerns: components describe what to show, services know how to get it, and cross-cutting rules live in one place. That keeps components small, testable, and lets you change an endpoint without touching templates.',
-        },
-        {
-          type: 'flow',
-          title: 'Layered API access',
-          code: `flowchart LR
+  'async-pipe-vs-manual-unsubscribe': {
+    summary:
+      'Layer it: components never call `HttpClient` directly — they call a data service (or a store/facade) that owns URLs, typing, mapping and caching, while interceptors handle auth, errors and loading. For consumption, prefer the `async` pipe or `toSignal()` because they subscribe and unsubscribe automatically. Manual subscriptions are for side effects (submitting a form, navigation after save) and should be cleaned up with `takeUntilDestroyed()`.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Good API design in the UI is about separation of concerns: components describe what to show, services know how to get it, and cross-cutting rules live in one place. That keeps components small, testable, and lets you change an endpoint without touching templates.',
+      },
+      {
+        type: 'flow',
+        title: 'Layered API access',
+        code: `flowchart LR
   CMP["Component<br/>signals / async pipe"]:::client --> F["Facade or Store<br/>state + caching"]:::highlight
   F --> API["Data service<br/>typed HttpClient calls"]:::server
   API --> INT["Interceptors<br/>auth, errors, retry, loading"]:::security
   INT --> BE[("Backend API")]:::external`,
-        },
-        { type: 'heading3', text: 'Reading data: async pipe or toSignal' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+      },
+      { type: 'heading3', text: 'Reading data: async pipe or toSignal' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-user-list',
   imports: [AsyncPipe],
   template: \`
@@ -733,12 +730,12 @@ export class UserListComponent {
   users$ = this.api.list();                                     // async pipe subscribes/unsubscribes
   users = toSignal(this.api.list(), { initialValue: [] });      // signal version, auto-cleanup on destroy
 }`,
-        },
-        { type: 'heading3', text: 'Side effects: manual subscribe with cleanup' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export class EditUserComponent {
+      },
+      { type: 'heading3', text: 'Side effects: manual subscribe with cleanup' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export class EditUserComponent {
   private api = inject(UserApi);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
@@ -756,47 +753,46 @@ export class UserListComponent {
       .subscribe(list => this.cache.set(list));
   }
 }`,
-        },
-        { type: 'heading3', text: 'When do you need to unsubscribe?' },
-        {
-          type: 'bullets',
-          items: [
-            '**async pipe / toSignal** — never; Angular handles it.',
-            '**A single HttpClient call** — it completes after one response, so it will not leak. Still unsubscribe (via `takeUntilDestroyed`) if the callback should not run after the component is gone, e.g. navigation or setting state; unsubscribing also cancels the in-flight request.',
-            '**Infinite streams** — `interval`, `fromEvent`, `valueChanges`, router events, store selects, WebSockets, Subjects: always unsubscribe.',
-            'Old patterns you may still see: `Subscription` + `ngOnDestroy`, or a `destroy$` Subject with `takeUntil`. `takeUntilDestroyed()` replaces both.',
-          ],
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Expose state as `loading` / `data` / `error` so every screen handles all three.',
-            'Map API DTOs to UI models in the service so backend renames do not ripple through templates.',
-            'Use `switchMap` for search/filters (cancel stale requests), `exhaustMap` for submit buttons, `shareReplay` for shared reference data.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: the strongest answer is "declarative by default (async pipe / signals), imperative only for user-triggered side effects, and every manual subscription has a `takeUntilDestroyed`". Then explain why one-shot HTTP calls do not leak but may still run callbacks too late.',
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'When do you need to unsubscribe?' },
+      {
+        type: 'bullets',
+        items: [
+          '**async pipe / toSignal** — never; Angular handles it.',
+          '**A single HttpClient call** — it completes after one response, so it will not leak. Still unsubscribe (via `takeUntilDestroyed`) if the callback should not run after the component is gone, e.g. navigation or setting state; unsubscribing also cancels the in-flight request.',
+          '**Infinite streams** — `interval`, `fromEvent`, `valueChanges`, router events, store selects, WebSockets, Subjects: always unsubscribe.',
+          'Old patterns you may still see: `Subscription` + `ngOnDestroy`, or a `destroy$` Subject with `takeUntil`. `takeUntilDestroyed()` replaces both.',
+        ],
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Expose state as `loading` / `data` / `error` so every screen handles all three.',
+          'Map API DTOs to UI models in the service so backend renames do not ripple through templates.',
+          'Use `switchMap` for search/filters (cancel stale requests), `exhaustMap` for submit buttons, `shareReplay` for shared reference data.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: the strongest answer is "declarative by default (async pipe / signals), imperative only for user-triggered side effects, and every manual subscription has a `takeUntilDestroyed`". Then explain why one-shot HTTP calls do not leak but may still run callbacks too late.',
+      },
+    ],
+  },
 
-  'What is an HTTP Interceptor (`HttpInterceptorFn`) in Angular and how does it intercept outgoing requests and incoming responses?':
-    {
-      summary:
-        '`HttpInterceptorFn` is a function `(req: HttpRequest, next: HttpHandlerFn) => Observable<HttpEvent>`. For outgoing requests you clone and modify `req` before calling `next(req)`; for incoming responses you pipe RxJS operators onto the Observable that `next` returns (`map`, `tap`, `catchError`, `retry`, `finalize`). Interceptors run in registration order on the way out and reverse order on the way back.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Calling `next(req)` hands the request to the next interceptor, and finally to `HttpBackend`, which actually performs the network call. Whatever you do before `next` affects the request; whatever you `pipe` after it affects the response. If you never call `next`, the request never leaves (useful for caching or mocking).',
-        },
-        { type: 'heading3', text: 'Modifying the outgoing request' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  'how-an-http-interceptor-works': {
+    summary:
+      '`HttpInterceptorFn` is a function `(req: HttpRequest, next: HttpHandlerFn) => Observable<HttpEvent>`. For outgoing requests you clone and modify `req` before calling `next(req)`; for incoming responses you pipe RxJS operators onto the Observable that `next` returns (`map`, `tap`, `catchError`, `retry`, `finalize`). Interceptors run in registration order on the way out and reverse order on the way back.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Calling `next(req)` hands the request to the next interceptor, and finally to `HttpBackend`, which actually performs the network call. Whatever you do before `next` affects the request; whatever you `pipe` after it affects the response. If you never call `next`, the request never leaves (useful for caching or mocking).',
+      },
+      { type: 'heading3', text: 'Modifying the outgoing request' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const token = inject(AuthService).token();          // inject() works in interceptors
 
   // Only attach the token to our own API, never to third-party URLs
@@ -810,12 +806,12 @@ export class UserListComponent {
   });
   return next(authReq);
 };`,
-        },
-        { type: 'heading3', text: 'Inspecting the incoming response' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export const timingInterceptor: HttpInterceptorFn = (req, next) => {
+      },
+      { type: 'heading3', text: 'Inspecting the incoming response' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export const timingInterceptor: HttpInterceptorFn = (req, next) => {
   const start = Date.now();
   return next(req).pipe(
     tap(event => {
@@ -832,12 +828,12 @@ export class UserListComponent {
     ),
   );
 };`,
-        },
-        { type: 'heading3', text: 'Passing per-request options with HttpContext' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export const SKIP_LOADER = new HttpContextToken<boolean>(() => false);
+      },
+      { type: 'heading3', text: 'Passing per-request options with HttpContext' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export const SKIP_LOADER = new HttpContextToken<boolean>(() => false);
 
 export const loaderInterceptor: HttpInterceptorFn = (req, next) => {
   if (req.context.get(SKIP_LOADER)) return next(req);
@@ -848,11 +844,11 @@ export const loaderInterceptor: HttpInterceptorFn = (req, next) => {
 
 // Caller opts out for a background poll
 this.http.get('/api/notifications', { context: new HttpContext().set(SKIP_LOADER, true) });`,
-        },
-        {
-          type: 'flow',
-          title: 'Request and response path',
-          code: `sequenceDiagram
+      },
+      {
+        type: 'flow',
+        title: 'Request and response path',
+        code: `sequenceDiagram
   participant S as Service
   participant A as authInterceptor
   participant T as timingInterceptor
@@ -863,31 +859,31 @@ this.http.get('/api/notifications', { context: new HttpContext().set(SKIP_LOADER
   B-->>T: HttpResponse
   T-->>A: tap / map response
   A-->>S: final response`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Register: `provideHttpClient(withInterceptors([authInterceptor, timingInterceptor]))` — the array order is the request order.',
-            'Class-based equivalent: `intercept(req: HttpRequest<any>, next: HttpHandler) { return next.handle(req); }` provided via `HTTP_INTERCEPTORS` with `multi: true`.',
-            'Interceptors must return an Observable; returning `of(new HttpResponse({ body }))` short-circuits the request (cache hit or mock).',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Common pitfall: injecting `HttpClient` inside an interceptor and making a call through it (e.g. for token refresh) re-enters the same interceptor chain. Guard against loops — skip the refresh URL or use an `HttpContextToken` flag.',
-        },
-        { type: 'divider' },
-        { type: 'heading3', text: 'Follow-up: What are Interceptors?' },
-        {
-          type: 'paragraph',
-          text: 'Interceptors are middleware for `HttpClient`: functions that sit in a chain between your code and the network, so every request and response passes through them. They are used for cross-cutting concerns — adding auth tokens, global error handling, retries, loading spinners, logging and caching — written once instead of in every service.',
-        },
-        { type: 'heading3', text: 'A minimal interceptor' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// logging.interceptor.ts
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Register: `provideHttpClient(withInterceptors([authInterceptor, timingInterceptor]))` — the array order is the request order.',
+          'Class-based equivalent: `intercept(req: HttpRequest<any>, next: HttpHandler) { return next.handle(req); }` provided via `HTTP_INTERCEPTORS` with `multi: true`.',
+          'Interceptors must return an Observable; returning `of(new HttpResponse({ body }))` short-circuits the request (cache hit or mock).',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common pitfall: injecting `HttpClient` inside an interceptor and making a call through it (e.g. for token refresh) re-enters the same interceptor chain. Guard against loops — skip the refresh URL or use an `HttpContextToken` flag.',
+      },
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: What are Interceptors?' },
+      {
+        type: 'paragraph',
+        text: 'Interceptors are middleware for `HttpClient`: functions that sit in a chain between your code and the network, so every request and response passes through them. They are used for cross-cutting concerns — adding auth tokens, global error handling, retries, loading spinners, logging and caching — written once instead of in every service.',
+      },
+      { type: 'heading3', text: 'A minimal interceptor' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// logging.interceptor.ts
 export const loggingInterceptor: HttpInterceptorFn = (req, next) => {
   const started = performance.now();
   return next(req).pipe(
@@ -900,42 +896,42 @@ export const loggingInterceptor: HttpInterceptorFn = (req, next) => {
 
 // app.config.ts
 provideHttpClient(withInterceptors([loggingInterceptor]));`,
-        },
-        { type: 'heading3', text: 'Typical uses' },
-        {
-          type: 'bullets',
-          items: [
-            '**Auth**: attach `Authorization: Bearer <token>`; refresh the token on 401 and replay the request.',
-            '**Errors**: map HTTP errors to user-friendly toasts, redirect to login on 401.',
-            '**Loading indicator**: increment a counter on request, decrement in `finalize`.',
-            '**Base URL / API versioning**: prefix relative URLs with `environment.apiUrl`.',
-            '**Retry & timeout** for idempotent requests.',
-            '**Caching** GET responses, **mocking** in development, **correlation ids** for tracing.',
-          ],
-        },
-        {
-          type: 'flow',
-          title: 'Interceptors form a chain',
-          code: `flowchart LR
+      },
+      { type: 'heading3', text: 'Typical uses' },
+      {
+        type: 'bullets',
+        items: [
+          '**Auth**: attach `Authorization: Bearer <token>`; refresh the token on 401 and replay the request.',
+          '**Errors**: map HTTP errors to user-friendly toasts, redirect to login on 401.',
+          '**Loading indicator**: increment a counter on request, decrement in `finalize`.',
+          '**Base URL / API versioning**: prefix relative URLs with `environment.apiUrl`.',
+          '**Retry & timeout** for idempotent requests.',
+          '**Caching** GET responses, **mocking** in development, **correlation ids** for tracing.',
+        ],
+      },
+      {
+        type: 'flow',
+        title: 'Interceptors form a chain',
+        code: `flowchart LR
   S["Service<br/>http.get()"]:::client --> A["authInterceptor"]:::security
   A --> L["loadingInterceptor"]:::highlight
   L --> E["errorInterceptor"]:::server
   E --> B["HttpBackend"]:::network
   B --> API[("API")]:::external`,
-          text: 'Requests flow left to right in the order you register them; responses flow back right to left.',
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Modern Angular: functional `HttpInterceptorFn` registered with `withInterceptors([...])`; can use `inject()` inside.',
-            'Legacy: class implementing `HttpInterceptor` registered with the `HTTP_INTERCEPTORS` multi-provider (and `withInterceptorsFromDi()` if you mix them with `provideHttpClient`).',
-            'They only see requests made via `HttpClient` — not `fetch()` calls you write yourself, or `<img>`/script loads.',
-          ],
-        },
-      ],
-    },
+        text: 'Requests flow left to right in the order you register them; responses flow back right to left.',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Modern Angular: functional `HttpInterceptorFn` registered with `withInterceptors([...])`; can use `inject()` inside.',
+          'Legacy: class implementing `HttpInterceptor` registered with the `HTTP_INTERCEPTORS` multi-provider (and `withInterceptorsFromDi()` if you mix them with `provideHttpClient`).',
+          'They only see requests made via `HttpClient` — not `fetch()` calls you write yourself, or `<img>`/script loads.',
+        ],
+      },
+    ],
+  },
 
-  'How to write an HTTP interceptor to handle common error responses?': {
+  'interceptor-for-common-error-responses': {
     summary:
       'Write an `HttpInterceptorFn` that pipes `catchError` onto `next(req)`, switches on `error.status` (0 network, 401, 403, 404, 422, 5xx), performs the global reaction — redirect to login, show a toast, log — and then re-throws with `throwError(() => err)` so the calling code can still react. Optionally `retry` transient failures for idempotent requests first.',
     details: [
@@ -1032,7 +1028,7 @@ this.http.get('/api/optional-banner', { context: new HttpContext().set(SILENT_ER
     ],
   },
 
-  'Global error handling vs component-level error handling': {
+  'global-vs-component-level-error-handling': {
     summary:
       'Global handling (an HTTP error interceptor plus a custom `ErrorHandler`) deals with concerns that are the same everywhere — 401 redirect, offline/5xx toasts, logging to Sentry. Component-level handling (`catchError` or the `error` callback) deals with what only that screen knows — showing field validation errors, a fallback UI, or a retry button. Good apps use both: global for consistency, local for context, and the interceptor re-throws so the component can still react.',
     details: [
@@ -1122,7 +1118,7 @@ providers: [
     ],
   },
 
-  'How do you prevent duplicate API requests in Angular?': {
+  'preventing-duplicate-api-requests': {
     summary:
       'It depends on where duplicates come from. For user actions use `exhaustMap` (ignore clicks while a request is running) or disable the button; for search/filter use `debounceTime` + `distinctUntilChanged` + `switchMap` (cancel stale requests); for the same data needed in many places share one request with `shareReplay` or a cached service/signal store; and for concurrent identical GETs, an interceptor can de-duplicate in-flight requests.',
     details: [
@@ -1208,7 +1204,7 @@ export const dedupeInterceptor: HttpInterceptorFn = (req, next) => {
     ],
   },
 
-  'An API response is required by multiple components. How would you avoid repeated API calls?': {
+  'sharing-one-api-response-across-components': {
     summary:
       'Move the data into a shared singleton service (or store) that fetches once and caches the result, and let all components read from it. The simplest RxJS version is `shareReplay(1)` on the HTTP observable; the modern signal version is a service that loads into a `signal` once and exposes it read-only. For larger apps use NgRx / SignalStore, and add an invalidation strategy (TTL, manual refresh, clearing on logout).',
     details: [

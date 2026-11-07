@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What are Signals in Angular?': {
+  'what-signals-are': {
     summary:
       'A signal is a reactive wrapper around a value that notifies its consumers when the value changes. You read it by calling it (`count()`), write with `set()`/`update()`, derive values with `computed()`, and run side effects with `effect()`. Angular tracks which signals a template reads, so it knows exactly which views to update — the foundation of fine-grained, zoneless change detection.',
     details: [
@@ -74,7 +74,7 @@ export class CartComponent {
     ],
   },
 
-  'Explain different types of Signals and the use case of computed().': {
+  'signal-types-and-computed': {
     summary:
       'Main kinds: writable signals (`signal()` — state you set), computed signals (`computed()` — read-only values derived from other signals, lazy and memoized), and effects (`effect()` — side effects, not signals themselves). Plus specialised ones: `input()`/`model()` for component inputs, `linkedSignal()` for writable state that resets from a source, `toSignal()` from observables, query signals (`viewChild()`), and `resource()` for async data. Use `computed()` for any value that can be calculated from other state.',
     details: [
@@ -145,7 +145,7 @@ label = computed(() => this.showDiscount() ? \`\${this.discounted()} (sale)\` : 
     ],
   },
 
-  'Difference between Computed Signal and Effect': {
+  'computed-vs-effect': {
     summary:
       '`computed()` produces a new read-only signal whose value is derived purely from other signals — lazy, memoized, no side effects. `effect()` produces no value; it runs a function for its side effects (DOM, storage, logging, calling non-signal APIs) whenever the signals it reads change, scheduled asynchronously. Use computed for derivation, effect for syncing with the outside world.',
     details: [
@@ -221,7 +221,7 @@ fullName = computed(() => \`\${this.first()} \${this.last()}\`);`,
     ],
   },
 
-  'Difference between Signals and RxJS': {
+  'signals-vs-rxjs': {
     summary:
       'Signals model **values that change over time** — synchronous, always have a current value, automatically tracked, no subscriptions. RxJS models **streams of events** — push-based, can be async, may have no current value, with powerful operators for timing, cancellation and composition. Signals are best for UI/application state; RxJS for async workflows (HTTP races, debouncing, websockets). They complement each other via `toSignal`/`toObservable`.',
     details: [
@@ -415,7 +415,7 @@ a.set(2);              // sum() → 22, never an intermediate mixed value
     ],
   },
 
-  'Signals vs NgRx': {
+  'signals-vs-ngrx': {
     summary:
       'Not really either/or: signals are a reactive primitive; NgRx is a state-management library with conventions. Plain signals in services are enough for local and modest shared state. NgRx Store adds a single global store, actions, reducers, effects and DevTools time-travel — useful for large teams and complex flows. NgRx itself now embraces signals: `store.selectSignal()` and the lightweight `@ngrx/signals` SignalStore.',
     details: [

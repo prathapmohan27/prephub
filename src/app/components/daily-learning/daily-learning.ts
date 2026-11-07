@@ -204,7 +204,7 @@ type ViewState = 'setup' | 'session';
 
             <!-- Question cards -->
             <div class="questions-list">
-              @for (q of session()!.questions; track q.text; let i = $index) {
+              @for (q of session()!.questions; track $index; let i = $index) {
                 <div class="q-card" [class.q-card--done]="session()!.completed[i]">
                   <!-- Card header (click to expand) -->
                   <div
@@ -263,7 +263,7 @@ type ViewState = 'setup' | 'session';
 
                       @if (revealed().has(i)) {
                         <div class="q-answer">
-                          <app-answer [categoryId]="q.categoryId" [question]="q.text" />
+                          <app-answer [categoryId]="q.categoryId" [questionId]="q.id ?? ''" />
                         </div>
                       }
 

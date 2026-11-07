@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'Check if a string is a palindrome': {
+  'check-for-a-palindrome': {
     summary:
       'A palindrome reads the same forwards and backwards. The clean solution uses two pointers — one at each end moving inward and comparing characters — which is O(n) time and O(1) extra space. The one-liner `str.split("").reverse().join("") === str` also works but allocates extra arrays. Always clarify whether case, spaces and punctuation should be ignored.',
     details: [
@@ -89,7 +89,7 @@ isPalindrome('');                   // true  (empty string reads the same both w
     ],
   },
 
-  'Find the first non-repeating character in a string': {
+  'first-non-repeating-character': {
     summary:
       'Do two passes: first count every character in a `Map`, then walk the string again in order and return the first character whose count is 1. That is O(n) time and O(k) space (k = distinct characters). The naive approach with `indexOf === lastIndexOf` is O(n²).',
     details: [
@@ -178,7 +178,7 @@ firstUniqueIndex('sTreSS'); // 3  ('e' — 's' and 'S' count as the same)`,
     ],
   },
 
-  'Remove duplicate elements from an array [1,2,2,3,4,4,5] using built-in method and for loop': {
+  'remove-duplicates-from-an-array': {
     summary:
       'Built-in: `[...new Set(arr)]` (or `Array.from(new Set(arr))`) returns `[1, 2, 3, 4, 5]` in O(n), preserving first-occurrence order. With a for loop: iterate once, keep a lookup of values already added, and push only unseen values into a result array. Avoid the `includes`-inside-a-loop version for large arrays — it is O(n²).',
     details: [
@@ -390,7 +390,7 @@ function duplicateEmails(users: User[]): string[] {
     ],
   },
 
-  'Flatten a nested array': {
+  'flatten-a-nested-array': {
     summary:
       'Use the built-in `arr.flat(Infinity)` to flatten any depth. To implement it yourself, recurse: for each element, if it is an array, flatten it and spread the result, otherwise push it. For very deep nesting, an iterative stack-based version avoids call-stack overflow.',
     details: [
@@ -503,7 +503,7 @@ flattenIterative([1, [2, [3, [4]], 5]]); // [1, 2, 3, 4, 5]`,
     ],
   },
 
-  'Group an array of objects by property': {
+  'group-objects-by-property': {
     summary:
       'Loop once and push each item into a bucket keyed by the property: `(groups[key] ??= []).push(item)`. `reduce` is the classic one-liner, and modern runtimes (ES2024, Node 21+, current browsers) provide `Object.groupBy(arr, fn)` and `Map.groupBy(arr, fn)`. All are O(n).',
     details: [
@@ -612,7 +612,7 @@ const totals = orders.reduce<Record<string, number>>((acc, o) => {
     ],
   },
 
-  'Implement a debounce() function': {
+  'implement-debounce': {
     summary:
       'Debounce delays calling a function until it has not been called again for `wait` ms. Implementation: keep a timer in a closure; every call clears the previous timer and sets a new one; when the timer finally fires, call the original function with the latest arguments and the correct `this`. Typical use: search-as-you-type, resize and autosave handlers.',
     details: [
@@ -751,6 +751,865 @@ this.searchControl.valueChanges
         type: 'callout',
         variant: 'warning',
         text: 'Common pitfall: using a regular `function` inside `setTimeout` loses `this`. Use an arrow function inside the returned wrapper (as above), or capture `const ctx = this` first.',
+      },
+    ],
+  },
+
+  'implement-deep-clone-with-cycles': {
+    summary:
+      'I recurse through the value and copy each container by its real type (Date, RegExp, Map, Set, array, plain object), returning primitives and functions as they are. A `WeakMap` from original to copy handles circular and shared references: I register each copy before recursing, so a cycle finds the copy instead of looping forever. In production I would first check whether `structuredClone` already does the job.',
+    details: [
+      {
+        type: 'heading3',
+        text: 'Clarify first',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Which types must be supported? Plain data only, or also `Date`, `Map`, `Set`, class instances?',
+          'Can the input contain cycles or the same object referenced twice, and should shared references stay shared in the copy?',
+          'What should happen to functions, DOM nodes and symbols: copy by reference, skip, or throw?',
+          'Should class instances keep their prototype (so methods still work)?',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Solution',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: "function deepClone<T>(value: T, seen = new WeakMap<object, unknown>()): T {\n  // Primitives and functions are returned as they are (functions are shared, not copied)\n  if (value === null || typeof value !== 'object') return value;\n  if (seen.has(value)) return seen.get(value) as T; // circular or shared reference\n\n  if (value instanceof Date) return new Date(value.getTime()) as T;\n  if (value instanceof RegExp) return new RegExp(value.source, value.flags) as T;\n\n  if (value instanceof Map) {\n    const copy = new Map();\n    seen.set(value, copy); // register BEFORE recursing, so cycles find it\n    value.forEach((v, k) => copy.set(deepClone(k, seen), deepClone(v, seen)));\n    return copy as T;\n  }\n\n  if (value instanceof Set) {\n    const copy = new Set();\n    seen.set(value, copy);\n    value.forEach((v) => copy.add(deepClone(v, seen)));\n    return copy as T;\n  }\n\n  if (Array.isArray(value)) {\n    const copy: unknown[] = [];\n    seen.set(value, copy);\n    value.forEach((item, i) => (copy[i] = deepClone(item, seen)));\n    return copy as T;\n  }\n\n  // Plain objects and class instances: keep the prototype, copy own enumerable keys\n  const copy = Object.create(Object.getPrototypeOf(value)) as Record<PropertyKey, unknown>;\n  seen.set(value, copy);\n  const source = value as Record<PropertyKey, unknown>;\n  for (const key of [...Object.keys(source), ...Object.getOwnPropertySymbols(source)]) {\n    copy[key] = deepClone(source[key], seen);\n  }\n  return copy as T;\n}",
+      },
+      {
+        type: 'heading3',
+        text: 'How it works',
+      },
+      {
+        type: 'numbered',
+        items: [
+          'Primitives (and functions) are immutable from our point of view, so they are returned directly.',
+          'The `seen` WeakMap maps each original object to its copy. If we meet an object again (a cycle or a shared child), we return the existing copy.',
+          'Each container type is rebuilt with its own constructor, and the copy is registered in `seen` **before** its children are cloned. That ordering is what makes cycles terminate.',
+          'Plain objects and class instances are created with `Object.create(prototype)` so methods keep working, then own enumerable string and symbol keys are copied recursively.',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Complexity and edge cases',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Time O(n) and extra space O(n) for n reachable values; recursion depth equals nesting depth, so a very deep structure could hit the stack limit (an explicit stack fixes that).',
+          '**`structuredClone(value)`** is built into browsers and Node 17+ and handles Date, Map, Set, RegExp, typed arrays and cycles natively. It is the right answer for plain data. It throws on functions and DOM nodes and drops prototypes, so class instances come back as plain objects.',
+          '`JSON.parse(JSON.stringify(x))` is not a deep clone: it loses `Date` (becomes a string), `Map`/`Set` (become `{}`), `undefined`, and throws on cycles.',
+          'Getters/setters are evaluated and copied as values, non-enumerable properties are skipped, and functions are shared, not copied. Say so rather than pretend they are handled.',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Tests',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: "import assert from 'node:assert/strict';\n\nconst original: Record<string, any> = {\n  n: 1,\n  when: new Date('2024-01-01'),\n  list: [1, { x: 2 }],\n  byId: new Map([['a', { y: 3 }]]),\n  tags: new Set(['x', 'y']),\n};\noriginal.self = original; // circular reference\n\nconst copy = deepClone(original);\nassert.notEqual(copy, original);\nassert.equal(copy.self, copy); // the cycle points at the copy, not the original\nassert.notEqual(copy.list[1], original.list[1]); // nested objects are new\nassert.deepEqual(copy.list, original.list);\nassert.ok(copy.when instanceof Date && copy.when.getTime() === original.when.getTime());\nassert.notEqual(copy.byId.get('a'), original.byId.get('a'));\nassert.deepEqual([...copy.tags], ['x', 'y']);\nassert.equal(deepClone(42), 42);\nconsole.log('deepClone: all tests passed');",
+      },
+      {
+        type: 'heading3',
+        text: 'Follow-up questions interviewers ask',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'When is `structuredClone` not enough? (Class instances lose their prototype; functions and DOM nodes throw.)',
+          'How would you avoid a stack overflow on deeply nested input? (Iterate with an explicit stack of [source, target] pairs.)',
+          'Why a `WeakMap` and not a `Map` for `seen`? (Keys are objects and the map is short-lived; WeakMap also cannot leak if the function is reused.)',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Common mistakes',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Registering the copy in `seen` after recursing, so cycles still recurse forever.',
+          'Using `typeof value === "object"` and forgetting that `null` is also `"object"`.',
+          'Copying a `Date` or `Map` as a plain object, which silently produces `{}`.',
+          'Reaching for `JSON.parse(JSON.stringify())` without stating what it loses.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you start with "can we use `structuredClone`?", then show you know exactly where it falls short, handle cycles with a WeakMap registered before recursion, and name the remaining trade-offs (prototypes, functions, getters, stack depth) instead of claiming a perfect clone.',
+      },
+    ],
+  },
+  'implement-deep-equality': {
+    summary:
+      'I compare with `Object.is` first, then require both sides to be objects with the same prototype, and recurse by type: arrays by length and index, Maps and Sets by size and membership, plain objects by the same set of own keys. A `WeakMap` of pairs already being compared lets it terminate on circular structures.',
+    details: [
+      {
+        type: 'heading3',
+        text: 'Clarify first',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Should `NaN` equal `NaN`, and should `0` equal `-0`? (`Object.is` says yes and no.)',
+          'Is `{ a: undefined }` equal to `{}`? Most test libraries say no; some loose comparisons say yes.',
+          'Does key order matter? (Usually not for objects; it does for arrays.)',
+          'Which types are in scope: plain data only, or also Date, Map, Set and class instances?',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Solution',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: "function deepEqual(a: unknown, b: unknown, seen = new WeakMap<object, object>()): boolean {\n  if (Object.is(a, b)) return true; // same reference, equal primitives, NaN === NaN\n  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false;\n  if (Object.getPrototypeOf(a) !== Object.getPrototypeOf(b)) return false; // [] vs {}, Date vs {}\n\n  // Cycles: if this pair is already being compared higher up, don't recurse forever\n  if (seen.get(a) === b) return true;\n  seen.set(a, b);\n\n  if (a instanceof Date) return a.getTime() === (b as Date).getTime();\n  if (a instanceof RegExp) return String(a) === String(b);\n\n  if (Array.isArray(a)) {\n    const other = b as unknown[];\n    return a.length === other.length && a.every((item, i) => deepEqual(item, other[i], seen));\n  }\n\n  if (a instanceof Map) {\n    const other = b as Map<unknown, unknown>;\n    if (a.size !== other.size) return false;\n    for (const [key, value] of a) {\n      if (!other.has(key) || !deepEqual(value, other.get(key), seen)) return false;\n    }\n    return true;\n  }\n\n  if (a instanceof Set) {\n    const other = b as Set<unknown>;\n    return a.size === other.size && [...a].every((value) => other.has(value));\n  }\n\n  const objA = a as Record<string, unknown>;\n  const objB = b as Record<string, unknown>;\n  const keysA = Object.keys(objA);\n  if (keysA.length !== Object.keys(objB).length) return false;\n  return keysA.every(\n    (key) => Object.prototype.hasOwnProperty.call(objB, key) && deepEqual(objA[key], objB[key], seen),\n  );\n}",
+      },
+      {
+        type: 'heading3',
+        text: 'How it works',
+      },
+      {
+        type: 'numbered',
+        items: [
+          '`Object.is(a, b)` covers identical references and equal primitives, including `NaN`.',
+          'If either side is not an object, or the prototypes differ (an array vs an object, a Date vs a plain object), they are not equal.',
+          'The `seen` map records "a is being compared with b". If the same pair comes back through a cycle, we treat that branch as equal instead of recursing forever.',
+          'Each type is compared on its meaningful content: time for Dates, source and flags for RegExps, index by index for arrays, key by key for Maps and objects.',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Complexity and edge cases',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'O(n) time over all nested values, O(d) stack for depth d plus the `seen` map.',
+          'Set comparison uses `has`, which is reference equality for objects inside Sets; deep-comparing Set members needs an O(n²) search. Mention it rather than hide it.',
+          "Only own enumerable string keys are compared; symbols and non-enumerable properties are ignored. Node's `assert.deepStrictEqual` and Vitest's `toEqual` make slightly different choices, which is worth knowing.",
+          'Comparing prototypes means two different classes with the same fields are not equal, which is usually what you want.',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Tests',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: "import assert from 'node:assert/strict';\n\nassert.ok(deepEqual({ a: [1, { b: 2 }] }, { a: [1, { b: 2 }] }));\nassert.ok(deepEqual({ x: 1, y: 2 }, { y: 2, x: 1 })); // key order does not matter\nassert.ok(!deepEqual([1, 2], { 0: 1, 1: 2 })); // array vs object\nassert.ok(!deepEqual({ a: undefined }, {})); // missing key is not the same as undefined\nassert.ok(deepEqual(NaN, NaN));\nassert.ok(deepEqual(new Date(0), new Date(0)));\nassert.ok(deepEqual(new Map([['k', [1]]]), new Map([['k', [1]]])));\nassert.ok(!deepEqual(new Set([1, 2]), new Set([1, 3])));\n\nconst left: Record<string, unknown> = { name: 'a' };\nleft.self = left;\nconst right: Record<string, unknown> = { name: 'a' };\nright.self = right;\nassert.ok(deepEqual(left, right)); // terminates on cycles\nconsole.log('deepEqual: all tests passed');",
+      },
+      {
+        type: 'heading3',
+        text: 'Follow-up questions interviewers ask',
+      },
+      {
+        type: 'bullets',
+        items: [
+          "How does this differ from React's shallow equality? (One level only, by reference; much cheaper, used for memoization.)",
+          'How would you make it report *where* the values differ? (Track the path and return it on the first mismatch.)',
+          "Why can't you just compare `JSON.stringify` output? (Key order, `undefined`, Dates and cycles break it.)",
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Common mistakes',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Comparing only `Object.keys(a)` against `b`, so extra keys in `b` are missed.',
+          'Treating `[1, 2]` and `{ 0: 1, 1: 2 }` as equal because their keys match.',
+          'Using `===` first, which makes `NaN` unequal to itself.',
+          'No cycle handling, so self-referencing objects crash with a stack overflow.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you ask about the semantic choices (NaN, -0, undefined keys, prototypes) before coding, make them explicit in the implementation, and can compare your choices with what `assert.deepStrictEqual` or a test framework does.',
+      },
+    ],
+  },
+  'implement-memoize-with-an-lru-limit': {
+    summary:
+      'I wrap the function with a `Map` keyed by a string built from the arguments, using `JSON.stringify(args)` by default and a caller-supplied `key` function when that is wrong or slow. A `maxSize` option turns the Map into a small LRU: a hit is moved to the end, and when the cache is too big the oldest entry (the first key) is evicted.',
+    details: [
+      {
+        type: 'heading3',
+        text: 'Clarify first',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Is the function pure? Memoizing something that reads time, randomness or external state gives stale answers.',
+          'What do the arguments look like? Primitives, objects, functions? That decides the key strategy.',
+          'Is memory bounded? An unbounded cache on user input is a memory leak.',
+          'Does it return promises? Then I need to decide what happens to rejected results.',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Solution',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: 'interface MemoizeOptions<A extends unknown[]> {\n  /** Builds the cache key from the arguments. Default: JSON of the arguments. */\n  key?: (...args: A) => string;\n  /** Keep at most this many results; the least recently used is evicted first. */\n  maxSize?: number;\n}\n\nfunction memoize<A extends unknown[], R>(\n  fn: (...args: A) => R,\n  { key = (...args: A) => JSON.stringify(args), maxSize = Infinity }: MemoizeOptions<A> = {},\n) {\n  const cache = new Map<string, R>(); // Map keeps insertion order, which gives us LRU cheaply\n\n  function memoized(this: unknown, ...args: A): R {\n    const k = key(...args);\n    if (cache.has(k)) {\n      const hit = cache.get(k) as R;\n      cache.delete(k); // move to the "most recently used" end\n      cache.set(k, hit);\n      return hit;\n    }\n    const result = fn.apply(this, args);\n    cache.set(k, result);\n    if (cache.size > maxSize) {\n      cache.delete(cache.keys().next().value as string); // oldest entry\n    }\n    return result;\n  }\n\n  memoized.clear = () => cache.clear();\n  memoized.size = () => cache.size;\n  return memoized;\n}',
+      },
+      {
+        type: 'heading3',
+        text: 'How it works',
+      },
+      {
+        type: 'numbered',
+        items: [
+          'Build a key from the arguments. JSON works for plain data; objects with identity (DOM nodes, class instances) need a custom key such as an id.',
+          'On a hit, delete and re-insert the entry so the Map\'s insertion order becomes "least recently used first".',
+          'On a miss, call the original with the same `this` and arguments, store the result, and evict the first key if the cache is over `maxSize`.',
+          'Expose `clear()` so callers can invalidate after the underlying data changes.',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Complexity and edge cases',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'O(1) average per lookup and eviction (Map operations), plus the cost of building the key. `JSON.stringify` on large arguments can cost more than the function you are caching.',
+          'JSON keys treat `{a:1,b:2}` and `{b:2,a:1}` as different, and turn `undefined`, functions and Dates into lossy strings.',
+          '**Promises:** the cache stores the promise, which nicely dedupes concurrent calls, but a rejected promise stays cached. Delete the key in a `.catch` so failures can be retried.',
+          'For a single object argument, a `WeakMap` keyed by the object avoids both key building and leaks.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: "// Don't cache failures: remove the entry when the promise rejects\nconst getUser = memoize(async (id: string) => {\n  const res = await fetch(`/api/users/${id}`);\n  if (!res.ok) throw new Error(`HTTP ${res.status}`);\n  return res.json();\n});\n// inside memoized(): if (result instanceof Promise) result.catch(() => cache.delete(k));",
+      },
+      {
+        type: 'heading3',
+        text: 'Tests',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: "import assert from 'node:assert/strict';\n\nlet calls = 0;\nconst slowSquare = (n: number) => {\n  calls++;\n  return n * n;\n};\nconst square = memoize(slowSquare, { maxSize: 2 });\n\nassert.equal(square(3), 9);\nassert.equal(square(3), 9);\nassert.equal(calls, 1); // second call came from the cache\n\nsquare(4);\nsquare(5); // cache holds at most 2: 3 is evicted (least recently used)\nassert.equal(square.size(), 2);\nsquare(3);\nassert.equal(calls, 4); // 3 had to be computed again\n\n// Custom key: only the id matters, not the whole object\nlet fetches = 0;\nconst loadUser = memoize((user: { id: number; name: string }) => ++fetches, {\n  key: (user) => String(user.id),\n});\nloadUser({ id: 1, name: 'a' });\nloadUser({ id: 1, name: 'renamed' });\nassert.equal(fetches, 1);\nconsole.log('memoize: all tests passed');",
+      },
+      {
+        type: 'heading3',
+        text: 'Follow-up questions interviewers ask',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'How would you add a TTL? (Store `{ value, expiresAt }` and treat expired entries as misses.)',
+          'How is this different from `computed()` or a pure pipe in Angular? (Those cache only the last input; this caches many.)',
+          'How would you share the cache across server instances? (Move it to Redis; then you need invalidation and serialization.)',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Common mistakes',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Using only the first argument as the key, so `f(1, 2)` and `f(1, 3)` collide.',
+          'An unbounded Map on user-controlled input: a slow memory leak.',
+          'Caching rejected promises forever.',
+          'Memoizing impure functions and getting stale results.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you treat the key strategy and memory bound as the real design decisions, handle promise rejection, and say when memoization is not worth it (cheap functions, rarely repeated inputs, impure functions).',
+      },
+    ],
+  },
+  'implement-throttle-leading-and-trailing': {
+    summary:
+      'I model it as a time window: the first call opens a window and runs immediately if `leading` is on; calls inside the window only remember the latest arguments; when the window ends I run once more with those arguments if `trailing` is on, and that trailing call opens a new window. A `cancel()` clears the timer and any pending call.',
+    details: [
+      {
+        type: 'heading3',
+        text: 'Clarify first',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Default behaviour: lodash runs on both the leading and trailing edge. Is that what we want?',
+          'Should the trailing call use the latest arguments or the first ones? (Usually the latest.)',
+          'Do we need `cancel()` (component destroyed) or `flush()` (run the pending call now)?',
+          'Throttle or debounce? Throttle guarantees a call at most every `wait` ms during continuous activity; debounce waits for a pause.',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Solution',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: 'interface ThrottleOptions {\n  /** Call on the first invocation of a window. Default true. */\n  leading?: boolean;\n  /** Call once more at the end of the window with the latest arguments. Default true. */\n  trailing?: boolean;\n}\n\nfunction throttle<A extends unknown[]>(\n  fn: (...args: A) => void,\n  wait: number,\n  { leading = true, trailing = true }: ThrottleOptions = {},\n) {\n  let timer: ReturnType<typeof setTimeout> | null = null; // non-null = inside a window\n  let pending: { self: unknown; args: A } | null = null; // latest call made during the window\n\n  const startWindow = () => {\n    timer = setTimeout(endWindow, wait);\n  };\n\n  const endWindow = () => {\n    timer = null;\n    if (trailing && pending) {\n      const { self, args } = pending;\n      pending = null;\n      fn.apply(self, args);\n      startWindow(); // a trailing call opens a new window, so calls stay spaced out\n    } else {\n      pending = null;\n    }\n  };\n\n  function throttled(this: unknown, ...args: A) {\n    if (timer === null) {\n      if (leading) fn.apply(this, args);\n      else pending = { self: this, args };\n      startWindow();\n    } else {\n      pending = { self: this, args }; // remember only the latest\n    }\n  }\n\n  throttled.cancel = () => {\n    if (timer !== null) clearTimeout(timer);\n    timer = null;\n    pending = null;\n  };\n\n  return throttled;\n}',
+      },
+      {
+        type: 'heading3',
+        text: 'How it works',
+      },
+      {
+        type: 'numbered',
+        items: [
+          '`timer === null` means "not in a window". The first call either runs (`leading`) or is stored as pending, and starts a `wait` timer.',
+          'Calls during the window overwrite `pending`, so only the newest arguments and `this` are kept.',
+          'When the timer fires, a pending call runs if `trailing` is on, and a new window starts so the next burst is still spaced out.',
+          'If nothing is pending, the window simply closes, and the next call is a leading call again.',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Complexity and edge cases',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'O(1) per call, one timer at a time.',
+          '`{ leading: false, trailing: false }` never calls the function, same as lodash. Validate or document it.',
+          'Uses `setTimeout`, so the gap is "at least `wait`", never exact; under heavy load it drifts.',
+          'For scroll or resize visual updates, `requestAnimationFrame` throttling is usually better than a time-based throttle.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Tests use `node:test` mock timers (`mock.timers.tick`) so they are instant and deterministic. In Vitest the equivalent is `vi.useFakeTimers()` and `vi.advanceTimersByTime(100)`.',
+      },
+      {
+        type: 'heading3',
+        text: 'Tests',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: "import assert from 'node:assert/strict';\nimport { mock } from 'node:test';\n\nmock.timers.enable({ apis: ['setTimeout'] });\n\nconst seen: number[] = [];\nconst log = throttle((n: number) => seen.push(n), 100);\nlog(1); // leading: runs now\nlog(2);\nlog(3); // replaces 2 as the pending call\nassert.deepEqual(seen, [1]);\nmock.timers.tick(100); // window ends: trailing call with the latest args\nassert.deepEqual(seen, [1, 3]);\nmock.timers.tick(100); // nothing pending, window closes quietly\nlog(4); // new window, leading again\nassert.deepEqual(seen, [1, 3, 4]);\n\nconst trailingOnly: number[] = [];\nconst t = throttle((n: number) => trailingOnly.push(n), 100, { leading: false });\nt(1);\nt(2);\nassert.deepEqual(trailingOnly, []);\nmock.timers.tick(100);\nassert.deepEqual(trailingOnly, [2]);\n\nconst leadingOnly: number[] = [];\nconst l = throttle((n: number) => leadingOnly.push(n), 100, { trailing: false });\nl(1);\nl(2);\nmock.timers.tick(100);\nassert.deepEqual(leadingOnly, [1]);\n\nmock.timers.reset();\nconsole.log('throttle: all tests passed');",
+      },
+      {
+        type: 'heading3',
+        text: 'Follow-up questions interviewers ask',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'When do you pick throttle over debounce? (Scroll position, drag, rate-limiting a stream of events: throttle. Search box: debounce.)',
+          'How would you implement this with RxJS? (`throttleTime(100, undefined, { leading: true, trailing: true })`.)',
+          'How do you test timer code without real waiting? (Fake timers; never `await sleep` in unit tests.)',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Common mistakes',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Dropping the trailing call, so the final value (the last scroll position) is never handled.',
+          'Running the trailing call with the first arguments instead of the latest.',
+          'Losing `this` by calling `fn(...args)` instead of `fn.apply(this, args)`.',
+          'No `cancel()`, so a destroyed component still receives a delayed call.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you define the edge semantics precisely before coding, keep the state machine small (window open or closed, latest pending call), test it with fake timers, and know when `requestAnimationFrame` or RxJS is the better tool.',
+      },
+    ],
+  },
+  'implement-curry': {
+    summary:
+      'For fixed-arity functions I collect arguments across calls until I have `fn.length` of them (or an explicit `arity`), then call the original. For truly variadic functions there is no length to wait for, so I use a terminating call instead: keep collecting until the function is called with no arguments.',
+    details: [
+      {
+        type: 'heading3',
+        text: 'Clarify first',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Fixed arity or variadic? `fn.length` is 0 for rest parameters and stops counting at the first default parameter.',
+          'Should one call accept several arguments at once (`f(1, 2)(3)`) or exactly one per call?',
+          'Do we need placeholders (`f(_, 2)(1)`) like lodash? That is a bigger feature; ask before building it.',
+          'Does `this` matter? (Usually not for curried utilities, but preserving it is cheap.)',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Solution',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: '/** Curry a fixed-arity function. Pass `arity` when fn.length is wrong (defaults, rest params). */\nfunction curry(fn: (...args: any[]) => unknown, arity = fn.length) {\n  return function curried(this: unknown, ...args: unknown[]): unknown {\n    if (args.length >= arity) return fn.apply(this, args);\n    return (...more: unknown[]) => curried.apply(this, [...args, ...more]);\n  };\n}\n\n/** Curry a variadic function: keep collecting arguments until it is called with none. */\nfunction curryVariadic<T, R>(fn: (...args: T[]) => R) {\n  const collect =\n    (collected: T[]) =>\n    (...more: T[]): any =>\n      more.length === 0 ? fn(...collected) : collect([...collected, ...more]);\n  return collect([]);\n}',
+      },
+      {
+        type: 'heading3',
+        text: 'How it works',
+      },
+      {
+        type: 'numbered',
+        items: [
+          '`curried` checks whether enough arguments have arrived. If yes, it calls `fn` with all of them.',
+          'If not, it returns a new function that appends the next arguments and calls `curried` again, so partial applications can be reused independently.',
+          'An explicit `arity` parameter fixes the `fn.length` cases (default parameters, rest parameters).',
+          'The variadic version accumulates arguments in a closure and finishes on an empty call `()`.',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Complexity and edge cases',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Each step copies the collected arguments: O(k) per call, O(k²) for k one-at-a-time calls, which is irrelevant for normal arities.',
+          'Extra arguments beyond the arity are passed through on the final call.',
+          'Typing a fully generic `curry` in TypeScript needs recursive conditional types; most codebases type a few overloads or avoid curry entirely.',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Tests',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: "import assert from 'node:assert/strict';\n\nconst add3 = (a: number, b: number, c: number) => a + b + c;\nconst curriedAdd: any = curry(add3);\nassert.equal(curriedAdd(1)(2)(3), 6);\nassert.equal(curriedAdd(1, 2)(3), 6);\nassert.equal(curriedAdd(1)(2, 3), 6);\nassert.equal(curriedAdd(1, 2, 3), 6);\n\n// fn.length stops at the first default parameter, so pass the arity explicitly\nconst greet = (greeting: string, name = 'there') => `${greeting}, ${name}`;\nassert.equal(greet.length, 1);\nconst curriedGreet: any = curry(greet, 2);\nassert.equal(curriedGreet('Hi')('Asha'), 'Hi, Asha');\n\nconst sum = curryVariadic((...nums: number[]) => nums.reduce((a, b) => a + b, 0));\nassert.equal(sum(1)(2, 3)(4)(), 10);\nconsole.log('curry: all tests passed');",
+      },
+      {
+        type: 'heading3',
+        text: 'Follow-up questions interviewers ask',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Currying vs partial application? (Curry transforms an n-ary function into a chain; `fn.bind(null, a)` is partial application.)',
+          'Where is currying actually useful? (Config-first helpers like `formatCurrency(locale)(amount)`, point-free pipelines.)',
+          'How would you support placeholders? (A sentinel value and filling holes from later calls.)',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Common mistakes',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Relying on `fn.length` without handling default and rest parameters.',
+          'Mutating one shared `args` array, so two partial applications interfere with each other.',
+          'Building an infinite curry with no way to finish, or relying on `valueOf` tricks that confuse readers.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you know exactly when `fn.length` lies, keep partial applications independent (no shared mutable arguments), and can say honestly that in application code a small named helper is often clearer than a curried chain.',
+      },
+    ],
+  },
+  'implement-promise-allsettled-and-race': {
+    summary:
+      '`allSettled` waits for every input, records `{ status: "fulfilled", value }` or `{ status: "rejected", reason }` at the input\'s index, and resolves once a counter reaches zero; it never rejects. `race` subscribes to every input and settles with whichever settles first, using the fact that a promise ignores later `resolve`/`reject` calls.',
+    details: [
+      {
+        type: 'heading3',
+        text: 'Clarify first',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Should inputs be any iterable (as in the spec) or only arrays?',
+          'Plain values in the input: wrap them with `Promise.resolve`, which also adopts thenables.',
+          'Empty input: `allSettled([])` resolves to `[]` immediately; `race([])` stays pending forever, as the built-in does.',
+          'Is ordering by input position required? (Yes for allSettled.)',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Solution',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: "function allSettled<T>(\n  values: Iterable<T | PromiseLike<T>>,\n): Promise<PromiseSettledResult<Awaited<T>>[]> {\n  const items = Array.from(values);\n  return new Promise((resolve) => {\n    const results: PromiseSettledResult<Awaited<T>>[] = new Array(items.length);\n    let remaining = items.length;\n    if (remaining === 0) {\n      resolve(results); // empty input settles immediately\n      return;\n    }\n    items.forEach((item, i) => {\n      // Promise.resolve wraps plain values and adopts thenables\n      Promise.resolve(item)\n        .then(\n          (value) => {\n            results[i] = { status: 'fulfilled', value }; // keep input order, not finish order\n          },\n          (reason: unknown) => {\n            results[i] = { status: 'rejected', reason };\n          },\n        )\n        .then(() => {\n          if (--remaining === 0) resolve(results);\n        });\n    });\n  });\n}\n\nfunction race<T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>> {\n  return new Promise((resolve, reject) => {\n    // The first one to settle wins; later resolve/reject calls are ignored by the promise\n    for (const item of values) {\n      Promise.resolve(item).then(resolve, reject);\n    }\n    // An empty iterable never settles, exactly like the built-in Promise.race\n  });\n}",
+      },
+      {
+        type: 'heading3',
+        text: 'How it works',
+      },
+      {
+        type: 'numbered',
+        items: [
+          'Convert the iterable to an array once so it can be counted and indexed.',
+          'For each item, `Promise.resolve(item)` normalizes values, promises and thenables.',
+          'allSettled writes each outcome into `results[i]` (input order, not completion order), and decrements `remaining`; at zero it resolves the whole array.',
+          'race passes the outer `resolve` and `reject` straight to every input. The first call wins and later ones are no-ops.',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Complexity and edge cases',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'O(n) time and space; all inputs run concurrently because the promises already exist when passed in.',
+          '`race` does not cancel the losers: their work continues. Real cancellation needs `AbortController`.',
+          'A plain value in `race` wins against any pending promise because it resolves in the next microtask.',
+          'See the existing `Promise.all` answer in the Node.js coding round for the fail-fast variant; `Promise.any` is the mirror image of `all` (first fulfilment wins, `AggregateError` if all reject).',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Tests',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: "import assert from 'node:assert/strict';\n\nconst delay = <T>(ms: number, value: T, fail = false) =>\n  new Promise<T>((resolve, reject) => setTimeout(() => (fail ? reject(value) : resolve(value)), ms));\n\nconst settled = await allSettled<string | number>([delay(20, 'a'), delay(5, 'boom', true), 42]);\nassert.deepEqual(settled, [\n  { status: 'fulfilled', value: 'a' },\n  { status: 'rejected', reason: 'boom' },\n  { status: 'fulfilled', value: 42 },\n]);\nassert.deepEqual(await allSettled([]), []);\n\nassert.equal(await race([delay(30, 'slow'), delay(5, 'fast')]), 'fast');\nawait assert.rejects(race([delay(30, 'slow'), delay(5, 'nope', true)]));\nassert.equal(await race([delay(10, 'later'), 'now']), 'now'); // a plain value wins next tick\nconsole.log('allSettled / race: all tests passed');",
+      },
+      {
+        type: 'heading3',
+        text: 'Follow-up questions interviewers ask',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'How would you implement a timeout with `race`? (Race the work against a promise that rejects after N ms, then abort the work.)',
+          'Why does `allSettled` never reject? (It reports outcomes; the caller decides what a failure means.)',
+          'What does `Promise.any` do on empty input? (Rejects immediately with an `AggregateError`.)',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Common mistakes',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Pushing results in completion order instead of writing by index.',
+          'Resolving when `results.length === items.length` (sparse arrays make `length` wrong early).',
+          'Forgetting the empty-input case, so `allSettled([])` never resolves.',
+          'Assuming `race` stops the slower promises.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you handle iterables, plain values, thenables and empty input like the spec does, and you point out that racing does not cancel work, then show how `AbortController` fixes that in real code.',
+      },
+    ],
+  },
+  'implement-flatten-and-unflatten-dot-keys': {
+    summary:
+      'Flatten walks plain objects and arrays recursively, joining keys with dots, and stores everything else (including empty objects and arrays, Dates and class instances) as a leaf so the round trip is lossless. Unflatten splits each path and creates objects or arrays on the way, choosing an array when the next segment is numeric, and refuses `__proto__`-style keys to prevent prototype pollution.',
+    details: [
+      {
+        type: 'heading3',
+        text: 'Clarify first',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'How should arrays be represented: `tags.0` or `tags[0]`?',
+          'What about empty objects and arrays: keep them as leaves (lossless) or drop them?',
+          'Can keys contain dots? Then the format is ambiguous and we need escaping or a different separator.',
+          'Is the input trusted? Unflatten on user input (query strings, form data) must guard against prototype pollution.',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Solution',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: "const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype']);\n\nfunction isPlainContainer(value: unknown): value is Record<string, unknown> {\n  return (\n    value !== null &&\n    typeof value === 'object' &&\n    (Array.isArray(value) || Object.getPrototypeOf(value) === Object.prototype)\n  );\n}\n\nfunction flatten(\n  obj: Record<string, unknown>,\n  prefix = '',\n  out: Record<string, unknown> = {},\n): Record<string, unknown> {\n  for (const [key, value] of Object.entries(obj)) {\n    const path = prefix ? `${prefix}.${key}` : key;\n    // Recurse into non-empty plain objects and arrays; everything else is a leaf\n    if (isPlainContainer(value) && Object.keys(value).length > 0) {\n      flatten(value, path, out);\n    } else {\n      out[path] = value; // includes {}, [], Dates and class instances as-is\n    }\n  }\n  return out;\n}\n\nfunction unflatten(flat: Record<string, unknown>): Record<string, unknown> {\n  const result: Record<string, unknown> = {};\n  for (const [path, value] of Object.entries(flat)) {\n    const keys = path.split('.');\n    if (keys.some((k) => UNSAFE_KEYS.has(k))) {\n      throw new Error(`Refusing unsafe key in \"${path}\"`); // prototype pollution guard\n    }\n    let node: Record<string, unknown> = result;\n    keys.forEach((key, i) => {\n      if (i === keys.length - 1) {\n        node[key] = value;\n        return;\n      }\n      if (!isPlainContainer(node[key])) {\n        // Numeric next segment means this level was an array\n        node[key] = /^\\d+$/.test(keys[i + 1]) ? [] : {};\n      }\n      node = node[key] as Record<string, unknown>;\n    });\n  }\n  return result;\n}",
+      },
+      {
+        type: 'heading3',
+        text: 'How it works',
+      },
+      {
+        type: 'numbered',
+        items: [
+          'Flatten builds the path as it recurses (`user` → `user.address` → `user.address.city`) and writes leaves into one output object.',
+          'Only non-empty plain objects and arrays are walked; anything else is copied as a value, so Dates and `{}` survive.',
+          'Unflatten creates each missing intermediate container. A numeric next segment means the container is an array.',
+          'Any path containing `__proto__`, `constructor` or `prototype` is rejected before touching the object.',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Complexity and edge cases',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'O(total number of keys × path length) for both directions.',
+          '**Prototype pollution:** without the guard, `unflatten({ "__proto__.isAdmin": true })` would set `isAdmin` on every object in the process. This is a real class of CVEs in query-string and merge libraries.',
+          'Keys containing dots are ambiguous; escape them or use a separator that cannot appear in keys.',
+          'Deep recursion is bounded by nesting depth; for untrusted input also cap depth and total keys.',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Tests',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: "import assert from 'node:assert/strict';\n\nconst nested = {\n  user: { name: 'Asha', address: { city: 'Pune' } },\n  tags: ['a', 'b'],\n  empty: {},\n  active: true,\n};\nconst flat = flatten(nested);\nassert.deepEqual(flat, {\n  'user.name': 'Asha',\n  'user.address.city': 'Pune',\n  'tags.0': 'a',\n  'tags.1': 'b',\n  empty: {},\n  active: true,\n});\nassert.deepEqual(unflatten(flat), nested); // round trip\nassert.throws(() => unflatten({ '__proto__.polluted': true }));\nassert.equal(({} as Record<string, unknown>).polluted, undefined);\nconsole.log('flatten / unflatten: all tests passed');",
+      },
+      {
+        type: 'heading3',
+        text: 'Follow-up questions interviewers ask',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Where is this used in practice? (Form libraries, translation files, MongoDB `$set` with dotted paths, env-var config.)',
+          'How would you diff two objects with this? (Flatten both and compare key sets and values.)',
+          'How would you type `flatten` in TypeScript? (Template literal types can produce the key union for known shapes.)',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Common mistakes',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Dropping empty objects and arrays, so the round trip is lossy.',
+          'Always creating objects in unflatten, turning arrays into `{ "0": ..., "1": ... }`.',
+          'Recursing into Dates or class instances and producing nonsense keys.',
+          'No prototype-pollution guard on input that may come from users.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you make the round trip lossless on purpose, spot the prototype-pollution risk in unflatten without being prompted, and mention the ambiguity of dotted keys.',
+      },
+    ],
+  },
+  'implement-sync-and-async-pipe-compose': {
+    summary:
+      '`pipe` runs functions left to right and `compose` right to left; both are a single `reduce` (or `reduceRight`) that feeds each result into the next function. The async versions start from `Promise.resolve(input)` and chain with `.then`, so each step may return a value or a promise and a rejection skips the remaining steps.',
+    details: [
+      {
+        type: 'heading3',
+        text: 'Clarify first',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Left-to-right (`pipe`) or right-to-left (`compose`)? Teams usually prefer `pipe` because it reads in execution order.',
+          'Can steps be async? Then the result is always a promise.',
+          'Single argument per step, or should the first step accept several?',
+          'How strict should the TypeScript types be?',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Solution',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: 'type Fn = (arg: any) => any;\n\n/** Left to right: pipe(f, g)(x) === g(f(x)) */\nconst pipe =\n  (...fns: Fn[]) =>\n  (input: unknown) =>\n    fns.reduce((acc, fn) => fn(acc), input);\n\n/** Right to left: compose(f, g)(x) === f(g(x)) */\nconst compose =\n  (...fns: Fn[]) =>\n  (input: unknown) =>\n    fns.reduceRight((acc, fn) => fn(acc), input);\n\n/** Async-aware: each step may return a value or a promise; the result is always a promise. */\nconst pipeAsync =\n  (...fns: Fn[]) =>\n  (input: unknown): Promise<unknown> =>\n    fns.reduce<Promise<unknown>>((acc, fn) => acc.then(fn), Promise.resolve(input));\n\nconst composeAsync =\n  (...fns: Fn[]) =>\n  (input: unknown): Promise<unknown> =>\n    fns.reduceRight<Promise<unknown>>((acc, fn) => acc.then(fn), Promise.resolve(input));',
+      },
+      {
+        type: 'heading3',
+        text: 'How it works',
+      },
+      {
+        type: 'numbered',
+        items: [
+          '`pipe(f, g, h)(x)` is `h(g(f(x)))`: `reduce` starts with `x` and applies each function in turn.',
+          '`compose` is the same with `reduceRight`, matching mathematical composition.',
+          'The async versions start from a resolved promise and use `.then(fn)`, which accepts both plain values and promises from each step.',
+          'A thrown error or rejected promise short-circuits: later `.then` callbacks are skipped and the returned promise rejects.',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Complexity and edge cases',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'O(n) for n functions; no extra allocation beyond the promise chain in the async case.',
+          'With no functions, both return the input (identity), which keeps composition safe for empty lists.',
+          'Typing: a variadic `pipe` cannot infer a chain of different types without overloads. Libraries like fp-ts and RxJS declare overloads for up to about nine steps.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: '// Typed overloads for the common lengths\nfunction pipeTyped<A, B>(ab: (a: A) => B): (a: A) => B;\nfunction pipeTyped<A, B, C>(ab: (a: A) => B, bc: (b: B) => C): (a: A) => C;\nfunction pipeTyped<A, B, C, D>(ab: (a: A) => B, bc: (b: B) => C, cd: (c: C) => D): (a: A) => D;\nfunction pipeTyped(...fns: Fn[]) {\n  return (input: unknown) => fns.reduce((acc, fn) => fn(acc), input);\n}',
+      },
+      {
+        type: 'heading3',
+        text: 'Tests',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: "import assert from 'node:assert/strict';\n\nconst add1 = (n: number) => n + 1;\nconst double = (n: number) => n * 2;\n\nassert.equal(pipe(add1, double)(3), 8); // (3 + 1) * 2\nassert.equal(compose(add1, double)(3), 7); // (3 * 2) + 1\nassert.equal(pipe()(5), 5); // no functions: identity\n\nconst fetchUser = async (id: number) => ({ id, name: 'Asha' });\nconst toName = (user: { name: string }) => user.name;\nconst shout = async (s: string) => s.toUpperCase();\n\nassert.equal(await pipeAsync(fetchUser, toName, shout)(1), 'ASHA');\nassert.equal(await composeAsync(shout, toName, fetchUser)(1), 'ASHA');\n\nconst fail = async () => {\n  throw new Error('step failed');\n};\nawait assert.rejects(pipeAsync(add1, fail, double)(1), /step failed/); // later steps are skipped\nconsole.log('pipe / compose: all tests passed');",
+      },
+      {
+        type: 'heading3',
+        text: 'Follow-up questions interviewers ask',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Where have you seen `pipe` in Angular? (RxJS `observable.pipe(map(...), filter(...))`, same idea over streams.)',
+          'How would you add logging between steps? (Wrap each function in a `tap`-style decorator.)',
+          'How do you run independent async steps in parallel instead? (`Promise.all`, not a pipe.)',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Common mistakes',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Mixing up the order: `compose` applies the last function first.',
+          'Using `async` inside a sync `reduce` and accidentally passing a promise into the next sync step.',
+          'Catching errors inside the pipe and continuing with `undefined`.',
+          'Typing everything as `any` without saying why typed overloads are needed.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you keep the implementation to one reduce, explain error propagation in the async chain, and are honest about the TypeScript limits (overloads) and readability (a pipe of anonymous lambdas is worse than named steps).',
+      },
+    ],
+  },
+  'implement-a-type-safe-event-bus': {
+    summary:
+      'I make the bus generic over an event map type (`{ "user:login": { userId: string } }`) and use `K extends keyof Events` on every method, so the event name picks the payload type and a wrong name or payload is a compile error. Handlers are stored in a `Set` per event, `on` returns an unsubscribe function, and `emit` iterates over a copy so handlers can unsubscribe safely.',
+    details: [
+      {
+        type: 'heading3',
+        text: 'Clarify first',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Is it in-process only (one app or one Node process), or must it cross tabs or services?',
+          'Synchronous or asynchronous delivery? (Sync is simpler and keeps ordering obvious.)',
+          'What happens when a handler throws: stop, or keep notifying the others?',
+          'Do some events have no payload?',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Solution',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: "type Handler<P> = (payload: P) => void;\n\n/** Events with an `undefined` payload are emitted without one. */\ntype EmitArgs<P> = [P] extends [undefined] ? [] : [payload: P];\n\nclass EventBus<Events extends Record<string, unknown>> {\n  private handlers: { [K in keyof Events]?: Set<Handler<Events[K]>> } = {};\n\n  /** Subscribe; returns an unsubscribe function so callers can't forget to clean up. */\n  on<K extends keyof Events>(event: K, handler: Handler<Events[K]>): () => void {\n    const set = this.handlers[event] ?? new Set<Handler<Events[K]>>();\n    set.add(handler);\n    this.handlers[event] = set;\n    return () => this.off(event, handler);\n  }\n\n  off<K extends keyof Events>(event: K, handler: Handler<Events[K]>): void {\n    this.handlers[event]?.delete(handler);\n  }\n\n  emit<K extends keyof Events>(event: K, ...args: EmitArgs<Events[K]>): void {\n    const payload = args[0] as Events[K];\n    // Copy first: a handler may unsubscribe itself while we are iterating\n    for (const handler of [...(this.handlers[event] ?? [])]) {\n      handler(payload);\n    }\n  }\n}\n\n// A `type`, not an `interface`: interfaces don't satisfy the Record index signature\ntype AppEvents = {\n  'user:login': { userId: string };\n  'cart:updated': { items: number };\n  'app:ready': undefined;\n};",
+      },
+      {
+        type: 'heading3',
+        text: 'How it works',
+      },
+      {
+        type: 'numbered',
+        items: [
+          'The `Events` type parameter maps each event name to its payload type. `on`, `off` and `emit` are generic in `K extends keyof Events`, so the payload type is looked up per call.',
+          '`EmitArgs` uses a conditional tuple type so events whose payload is `undefined` are emitted with no argument.',
+          'Handlers live in a `Set` per event: no duplicates, O(1) removal.',
+          '`on` returns an unsubscribe function, which is easier to use correctly than remembering to call `off` with the same reference.',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Complexity and edge cases',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'O(1) to subscribe and unsubscribe, O(h) to emit to h handlers.',
+          'Iterating over a copy (`[...set]`) makes "unsubscribe during emit" safe; otherwise a handler removing itself can make the loop skip or repeat.',
+          'One throwing handler stops the rest. For a production bus, wrap each call in try/catch and report the error.',
+          'The event map must be a `type`, not an `interface`, because interfaces do not satisfy `Record<string, unknown>`.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'The `// @ts-expect-error` lines in the tests are part of the test: the file only compiles if each of those calls is rejected by the type checker.',
+      },
+      {
+        type: 'paragraph',
+        text: 'See the existing EventEmitter answer in the Node.js coding round for an untyped version with `once`; this one focuses on compile-time safety.',
+      },
+      {
+        type: 'heading3',
+        text: 'Tests',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: "import assert from 'node:assert/strict';\n\nconst bus = new EventBus<AppEvents>();\nconst logins: string[] = [];\nconst offLogin = bus.on('user:login', ({ userId }) => logins.push(userId)); // payload is typed\nlet ready = 0;\nbus.on('app:ready', () => ready++);\n\nbus.emit('user:login', { userId: 'u1' });\nbus.emit('app:ready'); // no payload needed\noffLogin();\nbus.emit('user:login', { userId: 'u2' }); // no longer listening\nassert.deepEqual(logins, ['u1']);\nassert.equal(ready, 1);\n\n// @ts-expect-error: items must be a number\nbus.emit('cart:updated', { items: '3' });\n// @ts-expect-error: unknown event name\nbus.emit('user:logout', {});\n// @ts-expect-error: missing payload\nbus.emit('user:login');\n\nconst once = bus.on('cart:updated', () => once()); // unsubscribing during emit is safe\nbus.emit('cart:updated', { items: 1 });\nconsole.log('EventBus: all tests passed');",
+      },
+      {
+        type: 'heading3',
+        text: 'Follow-up questions interviewers ask',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'How would you add `once`? (Wrap the handler in a function that unsubscribes itself before calling it.)',
+          'When is a global event bus a bad idea in Angular? (Hidden coupling; prefer a service with typed signals or a store.)',
+          'How would you make it work across browser tabs? (`BroadcastChannel`; payloads must be structured-cloneable.)',
+        ],
+      },
+      {
+        type: 'heading3',
+        text: 'Common mistakes',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Typing the payload as `any` or `unknown`, which loses the whole point.',
+          'Mutating the handler set while iterating over it.',
+          'No unsubscribe, so components that subscribe in `ngOnInit` leak handlers.',
+          'Using an `interface` for the event map and fighting a confusing constraint error.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you design the types first (event map, generic keys, payload-less events), prove the type safety with `@ts-expect-error` tests, and discuss the operational edges (unsubscribing during emit, throwing handlers, leaks) and when a typed service is better than a bus.',
       },
     ],
   },

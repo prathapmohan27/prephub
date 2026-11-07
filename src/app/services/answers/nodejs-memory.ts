@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'How does garbage collection work in Node.js?': {
+  'how-garbage-collection-works': {
     summary:
       "Node uses V8's generational, tracing garbage collector. Objects are allocated in the **young generation** and cleaned by a fast **Scavenge** (semi-space copying) collection; objects that survive two scavenges are promoted to the **old generation**, which is collected by **Mark-Sweep-Compact** — done mostly incrementally and concurrently on helper threads to keep pauses short. Anything still reachable from a root (globals, the stack, closures, handles) is kept; everything else is freed.",
     details: [
@@ -74,7 +74,7 @@ node --max-old-space-size=3072 app.js`,
     ],
   },
 
-  'What are common causes of memory leaks in Node.js applications?': {
+  'common-causes-of-memory-leaks': {
     summary:
       'A leak in a GC language is memory that stays **reachable** when you no longer need it. Common causes: unbounded in-memory caches/maps, global variables, event listeners that are never removed, timers/intervals that are never cleared, closures capturing large objects, and growing collections of pending promises or requests. Long-running servers turn small per-request leaks into OOM crashes.',
     details: [
@@ -158,7 +158,7 @@ function handler() {
     ],
   },
 
-  'How do you detect and diagnose memory leaks in a production Node.js app?': {
+  'diagnose-a-leak-in-production': {
     summary:
       'First **detect** it from metrics: heap used / RSS growing steadily across GC cycles (a sawtooth whose floor keeps rising), increasing GC time, and eventual OOM restarts. Then **diagnose** by taking heap snapshots at intervals (via `--heapsnapshot-signal`, `v8.writeHeapSnapshot()` or the inspector), comparing them in Chrome DevTools to find which object types grow and following their retainer chain back to the code holding them.',
     details: [
@@ -252,7 +252,7 @@ adminRouter.post('/debug/heap', (req, res) => {
     ],
   },
 
-  'How do you test for memory leaks in Node.js?': {
+  'test-for-memory-leaks': {
     summary:
       "Run the suspect operation many times in a loop, force GC (`node --expose-gc` + `global.gc()`), and assert that heap usage after GC stays within a small bound — or use a `WeakRef`/`FinalizationRegistry` to assert a specific object gets collected. Complement unit-level checks with soak/load tests (autocannon, k6) while monitoring the post-GC heap trend, and Jest's `--detectLeaks` / `--detectOpenHandles` for test-suite leaks.",
     details: [
@@ -335,7 +335,7 @@ npx autocannon -c 50 -d 1800 http://localhost:3000/api/orders
     ],
   },
 
-  'What tools can you use to monitor Node.js memory usage?': {
+  'tools-to-monitor-memory-usage': {
     summary:
       "Built-ins: `process.memoryUsage()`, `v8.getHeapStatistics()`/`getHeapSpaceStatistics()`, `--trace-gc`, `perf_hooks` GC entries, heap snapshots (`v8.writeHeapSnapshot`, `--heapsnapshot-signal`) and the inspector with Chrome DevTools. In production: Prometheus via `prom-client` + Grafana, APM agents (Datadog, New Relic, Elastic, Dynatrace), container metrics, and PM2's monitoring. For deep analysis: Clinic.js and memlab.",
     details: [

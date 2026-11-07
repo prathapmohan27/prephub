@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'Have you used Angular testing frameworks?': {
+  'angular-testing-frameworks-you-have-used': {
     summary:
       "Yes — structure the answer around the testing pyramid: unit/component tests with Angular's `TestBed` (run by Vitest in new Angular CLI projects, Jasmine + Karma in older ones, or Jest), HTTP tests with `HttpTestingController`, and end-to-end tests with Playwright or Cypress. Then give one concrete example of what you tested and why it mattered.",
     details: [
@@ -96,7 +96,7 @@ it('loads users', () => {
     ],
   },
 
-  'How will you mock a service?': {
+  'mocking-a-service': {
     summary:
       "Replace the real service in the test's DI container with a fake: `providers: [{ provide: UserService, useValue: mockUserService }]`, where the mock is an object of spies (`vi.fn()`, `jasmine.createSpyObj`, `jest.fn()`) returning controlled data such as `of(users)`. The component under test then gets the mock injected without any code changes.",
     details: [
@@ -184,32 +184,31 @@ vi.spyOn(service, 'checkout').mockReturnValue(of({ orderId: 'A1' }));
     ],
   },
 
-  'Your UI development is complete but backend APIs are still under development and API contracts are available. How will you test the application?':
-    {
-      summary:
-        'Use the API contract (OpenAPI/Swagger or agreed JSON samples) as the source of truth and mock the backend at the network boundary: typed models generated from the contract, `HttpTestingController` in unit tests, a mock server such as MSW (Mock Service Worker) or json-server — or an Angular mock interceptor behind an environment flag — for running the app, and Playwright route mocking for E2E. Then add contract tests so drift is caught when the real API arrives.',
-      details: [
-        {
-          type: 'paragraph',
-          text: "The key idea: the frontend shouldn't be blocked by the backend. Because the contract defines URLs, request bodies, response shapes and error codes, you can build a faithful fake of the backend and test every UI state — success, empty, slow, 4xx, 5xx — today. When the real API is ready you swap the fake out with zero component changes.",
-        },
-        { type: 'heading3', text: 'Step 1 — generate types (or mocks) from the contract' },
-        {
-          type: 'code',
-          lang: 'bash',
-          code: `# Generate TypeScript models / API clients from OpenAPI
+  'testing-before-the-backend-is-ready': {
+    summary:
+      'Use the API contract (OpenAPI/Swagger or agreed JSON samples) as the source of truth and mock the backend at the network boundary: typed models generated from the contract, `HttpTestingController` in unit tests, a mock server such as MSW (Mock Service Worker) or json-server — or an Angular mock interceptor behind an environment flag — for running the app, and Playwright route mocking for E2E. Then add contract tests so drift is caught when the real API arrives.',
+    details: [
+      {
+        type: 'paragraph',
+        text: "The key idea: the frontend shouldn't be blocked by the backend. Because the contract defines URLs, request bodies, response shapes and error codes, you can build a faithful fake of the backend and test every UI state — success, empty, slow, 4xx, 5xx — today. When the real API is ready you swap the fake out with zero component changes.",
+      },
+      { type: 'heading3', text: 'Step 1 — generate types (or mocks) from the contract' },
+      {
+        type: 'code',
+        lang: 'bash',
+        code: `# Generate TypeScript models / API clients from OpenAPI
 npx openapi-typescript ./contracts/orders.yaml -o src/app/api/orders.types.ts
 # or a full Angular client:
 npx @openapitools/openapi-generator-cli generate -i contracts/orders.yaml -g typescript-angular -o src/app/api
 
 # Optional: instant mock server straight from the contract
 npx @stoplight/prism-cli mock contracts/orders.yaml   # serves example responses on :4010`,
-        },
-        { type: 'heading3', text: 'Step 2 — run the app against mocks (dev mode)' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// mock-backend.interceptor.ts — only registered when environment.useMocks is true
+      },
+      { type: 'heading3', text: 'Step 2 — run the app against mocks (dev mode)' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// mock-backend.interceptor.ts — only registered when environment.useMocks is true
 export const mockBackendInterceptor: HttpInterceptorFn = (req, next) => {
   if (req.method === 'GET' && req.url.endsWith('/api/orders')) {
     return of(new HttpResponse({ status: 200, body: ORDERS_FIXTURE })).pipe(delay(400));
@@ -224,16 +223,16 @@ export const mockBackendInterceptor: HttpInterceptorFn = (req, next) => {
 provideHttpClient(
   withInterceptors(environment.useMocks ? [mockBackendInterceptor, authInterceptor] : [authInterceptor]),
 );`,
-        },
-        {
-          type: 'paragraph',
-          text: 'Alternatives: **MSW** intercepts `fetch`/XHR in the browser via a service worker and the same handlers can be reused in unit tests; **json-server** or **Prism** give you a real HTTP server; or the Angular dev-server `proxy.conf.json` can point to a mock server.',
-        },
-        { type: 'heading3', text: 'Step 3 — unit/component tests with HttpTestingController' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `it('shows a validation message on 422', async () => {
+      },
+      {
+        type: 'paragraph',
+        text: 'Alternatives: **MSW** intercepts `fetch`/XHR in the browser via a service worker and the same handlers can be reused in unit tests; **json-server** or **Prism** give you a real HTTP server; or the Angular dev-server `proxy.conf.json` can point to a mock server.',
+      },
+      { type: 'heading3', text: 'Step 3 — unit/component tests with HttpTestingController' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `it('shows a validation message on 422', async () => {
   const fixture = TestBed.createComponent(CheckoutComponent);
   const http = TestBed.inject(HttpTestingController);
 
@@ -244,12 +243,12 @@ provideHttpClient(
 
   expect(fixture.nativeElement.textContent).toContain('Your cart is empty');
 });`,
-        },
-        { type: 'heading3', text: 'Step 4 — E2E with mocked network' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Playwright: stub the API at the browser level
+      },
+      { type: 'heading3', text: 'Step 4 — E2E with mocked network' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Playwright: stub the API at the browser level
 test('order history renders', async ({ page }) => {
   await page.route('**/api/orders', (route) =>
     route.fulfill({ status: 200, json: ordersFixture }),   // fixture taken from the contract examples
@@ -257,11 +256,11 @@ test('order history renders', async ({ page }) => {
   await page.goto('/orders');
   await expect(page.getByRole('row')).toHaveCount(ordersFixture.length + 1);
 });`,
-        },
-        {
-          type: 'flow',
-          title: 'Contract-first frontend testing',
-          code: `flowchart LR
+      },
+      {
+        type: 'flow',
+        title: 'Contract-first frontend testing',
+        code: `flowchart LR
   C["API contract<br/>(OpenAPI)"]:::highlight --> T["Generated TS types"]:::server
   C --> F["Fixtures / mock handlers"]:::cache
   T --> APP["Angular app"]:::client
@@ -270,26 +269,26 @@ test('order history renders', async ({ page }) => {
   F --> E["E2E<br/>Playwright route mocks"]:::client
   M --> APP
   C --> CT["Contract tests when<br/>real API is ready"]:::security`,
-        },
-        { type: 'heading3', text: 'Step 5 — when the real API arrives' },
-        {
-          type: 'bullets',
-          items: [
-            "Flip the environment flag / remove the mock interceptor — components and services don't change.",
-            'Run a smoke/integration suite against the real dev environment.',
-            'Add **contract tests** (e.g. Pact consumer-driven contracts, or schema validation of real responses against the OpenAPI spec) so a backend change that breaks the agreed shape fails CI instead of production.',
-            'Test the non-happy paths the contract defines: 401 (redirect to login), 403, 404, 422 validation, 500, timeouts and empty lists.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: stress that mocks live at the **network boundary** and are driven by the **contract**, so nothing in components is "fake-aware". Mentioning error/empty/loading states and contract tests for drift is what separates a senior answer from "I\'d use dummy JSON".',
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'Step 5 — when the real API arrives' },
+      {
+        type: 'bullets',
+        items: [
+          "Flip the environment flag / remove the mock interceptor — components and services don't change.",
+          'Run a smoke/integration suite against the real dev environment.',
+          'Add **contract tests** (e.g. Pact consumer-driven contracts, or schema validation of real responses against the OpenAPI spec) so a backend change that breaks the agreed shape fails CI instead of production.',
+          'Test the non-happy paths the contract defines: 401 (redirect to login), 403, 404, 422 validation, 500, timeouts and empty lists.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: stress that mocks live at the **network boundary** and are driven by the **contract**, so nothing in components is "fake-aware". Mentioning error/empty/loading states and contract tests for drift is what separates a senior answer from "I\'d use dummy JSON".',
+      },
+    ],
+  },
 
-  'How do you set up a component test with `TestBed` and `ComponentFixture`?': {
+  'testbed-and-componentfixture-setup': {
     summary:
       '`TestBed.configureTestingModule()` builds a small DI environment for the test — you import the standalone component and override its dependencies with fakes. `TestBed.createComponent()` returns a `ComponentFixture`, which gives you the component instance, its host DOM (`nativeElement` / `debugElement`) and control over change detection (`await fixture.whenStable()` or `detectChanges()`). Then you act on the DOM and assert on what the user would see.',
     details: [
@@ -386,7 +385,7 @@ describe('ProductListComponent', () => {
     ],
   },
 
-  'How do you test a component that uses signal inputs (`input()`) and outputs (`output()`)?': {
+  'testing-signal-inputs-and-outputs': {
     summary:
       "Set signal inputs through the fixture with `fixture.componentRef.setInput('name', value)` — you can't assign to an `input()` signal directly because it is read-only. For outputs, subscribe to the `OutputEmitterRef` (`component.addToCart.subscribe(...)`), trigger the UI action, and assert on what was emitted. For realistic binding tests, render the component inside a small test host component.",
     details: [
@@ -481,7 +480,7 @@ it('works through real template bindings', async () => {
     ],
   },
 
-  'How do you test HTTP calls with `HttpTestingController`?': {
+  'testing-http-with-httptestingcontroller': {
     summary:
       'Provide the real `HttpClient` with `provideHttpClient()` followed by `provideHttpClientTesting()`, which swaps the backend for an in-memory mock. Call the service, use `HttpTestingController.expectOne()` to assert that exactly one matching request was made (URL, method, params, body, headers), answer it with `req.flush(data)` or an error, and finish with `verify()` to fail on any unexpected or unhandled requests.',
     details: [
@@ -587,7 +586,7 @@ describe('ProductService', () => {
     ],
   },
 
-  'How do you test asynchronous code such as timers and debounced search in Angular tests?': {
+  'testing-timers-and-debounced-search': {
     summary:
       "Control time instead of waiting for it. In zone.js projects the classic tools are `fakeAsync()` with `tick()` / `flush()`. In zoneless projects — the default for new Angular apps — those don't work, so you use the test runner's fake timers: `vi.useFakeTimers()`, then `await vi.advanceTimersByTimeAsync(300)` to move past a debounce, and `await vi.runAllTimersAsync()` to let rendering finish. Promises and observables that resolve immediately can simply be awaited.",
     details: [
@@ -696,7 +695,7 @@ it('debounces (zone-based)', fakeAsync(() => {
     ],
   },
 
-  'How do you test OnPush and zoneless components, and what does `fixture.whenStable()` do?': {
+  'testing-onpush-and-zoneless-components': {
     summary:
       '`fixture.whenStable()` returns a promise that resolves when Angular has no pending work — scheduled change detection and other registered pending tasks — so after `await fixture.whenStable()` the DOM reflects the latest state. In zoneless apps the fixture auto-detects changes, so you change state the Angular way (signals, `setInput()`, DOM events), then `await fixture.whenStable()`. For OnPush, remember that a plain field mutation is not a notification — use signals or `markForCheck()`, exactly as in production.',
     details: [
@@ -769,7 +768,7 @@ it('does NOT update for a plain field mutation (OnPush)', async () => {
     ],
   },
 
-  'How do you test a functional route guard or HTTP interceptor?': {
+  'testing-a-functional-guard-or-interceptor': {
     summary:
       "Functional guards and interceptors are plain functions that call `inject()`, so run them inside `TestBed.runInInjectionContext(() => authGuard(route, state))` with mocked dependencies and assert on the return value (`true` or a `UrlTree`). For an end-to-end check of the routing config use `RouterTestingHarness`. Test interceptors through the real pipeline: `provideHttpClient(withInterceptors([authTokenInterceptor]))` plus `provideHttpClientTesting()`, then inspect the captured request's headers.",
     details: [
@@ -884,7 +883,7 @@ it('does not send the token to third-party URLs', () => {
     ],
   },
 
-  'What are component harnesses (`ComponentHarness`) and why use them?': {
+  'component-harnesses': {
     summary:
       "A component harness is a test-only class from `@angular/cdk/testing` that exposes a component's behaviour through a high-level API — `button.click()`, `select.open()`, `input.setValue('x')` — instead of raw CSS selectors. Angular Material ships harnesses for its components (`MatButtonHarness`, `MatInputHarness`, …) and you can write your own by extending `ComponentHarness`. They make tests readable, resistant to DOM refactors, and automatically wait for Angular to stabilise.",
     details: [
@@ -973,19 +972,18 @@ await laptop.addToCart();`,
     ],
   },
 
-  'What is the default test runner in modern Angular, and how does Vitest compare with Karma/Jasmine and Jest?':
-    {
-      summary:
-        'New Angular CLI projects use **Vitest** through the `@angular/build:unit-test` builder, running in Node with jsdom by default (a real browser is optional). Karma + Jasmine was the long-time default but Karma is deprecated, though the builder can still run it via `runner: "karma"`. Jest was only ever supported experimentally by the CLI and is usually used via community presets. The `TestBed` API is identical across all of them — what changes is speed, the environment (real browser vs simulated DOM) and the mocking/assertion syntax.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'A modern project looks like this — the builder is the only thing in `angular.json`; no `karma.conf.js`, no `test.ts`, no separate Vitest config is needed:',
-        },
-        {
-          type: 'code',
-          lang: 'json',
-          code: `// angular.json → projects.<app>.architect
+  'vitest-vs-karma-jasmine-vs-jest': {
+    summary:
+      'New Angular CLI projects use **Vitest** through the `@angular/build:unit-test` builder, running in Node with jsdom by default (a real browser is optional). Karma + Jasmine was the long-time default but Karma is deprecated, though the builder can still run it via `runner: "karma"`. Jest was only ever supported experimentally by the CLI and is usually used via community presets. The `TestBed` API is identical across all of them — what changes is speed, the environment (real browser vs simulated DOM) and the mocking/assertion syntax.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'A modern project looks like this — the builder is the only thing in `angular.json`; no `karma.conf.js`, no `test.ts`, no separate Vitest config is needed:',
+      },
+      {
+        type: 'code',
+        lang: 'json',
+        code: `// angular.json → projects.<app>.architect
 "test": {
   "builder": "@angular/build:unit-test"
   // optional "options": {
@@ -998,65 +996,65 @@ await laptop.addToCart();`,
   //   "runnerConfig": true             // opt into a custom vitest config file
   // }
 }`,
-        },
-        {
-          type: 'code',
-          lang: 'json',
-          code: `// tsconfig.spec.json — gives describe/it/expect/vi as globals
+      },
+      {
+        type: 'code',
+        lang: 'json',
+        code: `// tsconfig.spec.json — gives describe/it/expect/vi as globals
 {
   "extends": "./tsconfig.json",
   "compilerOptions": { "types": ["vitest/globals"] },
   "include": ["src/**/*.d.ts", "src/**/*.spec.ts"]
 }`,
-        },
-        {
-          type: 'code',
-          lang: 'bash',
-          code: `ng test                                   # watch mode in a terminal
+      },
+      {
+        type: 'code',
+        lang: 'bash',
+        code: `ng test                                   # watch mode in a terminal
 ng test --watch=false                     # CI
 ng test --include src/app/cart            # only specs in a folder
 ng test --filter "CartService"            # only matching suite/test names
 ng test --coverage`,
-        },
-        { type: 'heading3', text: 'Comparison' },
-        {
-          type: 'bullets',
-          items: [
-            '**Vitest (default)** — fast startup and watch mode, Jest-compatible API (`vi.fn()`, `vi.spyOn`, `vi.useFakeTimers()`, snapshots), Node + jsdom by default or a real browser via Vitest browser mode. The Angular builder compiles specs with the same esbuild pipeline as the app.',
-            '**Karma + Jasmine (legacy)** — runs in a real browser, so DOM/CSS behaviour is authentic, but it is slower and heavier to set up in CI. Jasmine uses `jasmine.createSpyObj`, `spyOn(...).and.returnValue`, `toHaveBeenCalledWith`. Karma is deprecated; existing projects keep working while they migrate.',
-            '**Jest** — very popular through `jest-preset-angular`; jsdom environment, huge ecosystem, snapshots. The CLI only had experimental Jest support, so Jest setups are mostly community-maintained.',
-            '**What stays the same**: `TestBed`, `ComponentFixture`, `HttpTestingController`, `RouterTestingHarness`, CDK harnesses — your Angular knowledge transfers between runners.',
-          ],
-        },
-        { type: 'heading3', text: 'Syntax differences you will notice when migrating' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Jasmine                                     // Vitest
+      },
+      { type: 'heading3', text: 'Comparison' },
+      {
+        type: 'bullets',
+        items: [
+          '**Vitest (default)** — fast startup and watch mode, Jest-compatible API (`vi.fn()`, `vi.spyOn`, `vi.useFakeTimers()`, snapshots), Node + jsdom by default or a real browser via Vitest browser mode. The Angular builder compiles specs with the same esbuild pipeline as the app.',
+          '**Karma + Jasmine (legacy)** — runs in a real browser, so DOM/CSS behaviour is authentic, but it is slower and heavier to set up in CI. Jasmine uses `jasmine.createSpyObj`, `spyOn(...).and.returnValue`, `toHaveBeenCalledWith`. Karma is deprecated; existing projects keep working while they migrate.',
+          '**Jest** — very popular through `jest-preset-angular`; jsdom environment, huge ecosystem, snapshots. The CLI only had experimental Jest support, so Jest setups are mostly community-maintained.',
+          '**What stays the same**: `TestBed`, `ComponentFixture`, `HttpTestingController`, `RouterTestingHarness`, CDK harnesses — your Angular knowledge transfers between runners.',
+        ],
+      },
+      { type: 'heading3', text: 'Syntax differences you will notice when migrating' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Jasmine                                     // Vitest
 const api = jasmine.createSpyObj('Api', ['get']);  const api = { get: vi.fn() };
 api.get.and.returnValue(of([]));                   api.get.mockReturnValue(of([]));
 spyOn(cart, 'add').and.callThrough();              vi.spyOn(cart, 'add');
 jasmine.clock().install(); jasmine.clock().tick(300);
                                                    vi.useFakeTimers(); await vi.advanceTimersByTimeAsync(300);
 expect(x).toBeTrue();                              expect(x).toBe(true);`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            "jsdom is not a real browser: no layout (`getBoundingClientRect` returns zeros), limited CSS. For layout-sensitive components, enable Vitest's browser mode via the `browsers` option or cover them with E2E tests.",
-            "Zoneless apps (the default for new projects) do not load zone.js in tests, so `fakeAsync`/`tick` are replaced by the runner's fake timers.",
-            'Migrating? The CLI ships a schematic that rewrites common Jasmine APIs to Vitest: `ng g @schematics/angular:refactor-jasmine-vitest` — review the result, it does not cover every pattern.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: answer in one line first — "Vitest via `@angular/build:unit-test`; Karma is deprecated" — then compare on three axes: speed, environment (jsdom vs real browser) and syntax. Emphasise that `TestBed` skills transfer, so the runner is a tooling choice, not a rewrite.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          "jsdom is not a real browser: no layout (`getBoundingClientRect` returns zeros), limited CSS. For layout-sensitive components, enable Vitest's browser mode via the `browsers` option or cover them with E2E tests.",
+          "Zoneless apps (the default for new projects) do not load zone.js in tests, so `fakeAsync`/`tick` are replaced by the runner's fake timers.",
+          'Migrating? The CLI ships a schematic that rewrites common Jasmine APIs to Vitest: `ng g @schematics/angular:refactor-jasmine-vitest` — review the result, it does not cover every pattern.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: answer in one line first — "Vitest via `@angular/build:unit-test`; Karma is deprecated" — then compare on three axes: speed, environment (jsdom vs real browser) and syntax. Emphasise that `TestBed` skills transfer, so the runner is a tooling choice, not a rewrite.',
+      },
+    ],
+  },
 
-  'What should you cover with unit tests versus end-to-end tests (Playwright or Cypress)?': {
+  'unit-vs-end-to-end-test-coverage': {
     summary:
       'Unit and component tests cover logic and every state of a single unit — services, pipes, signals/computed, guards, interceptors, and component rendering with mocked dependencies — because they are fast and pinpoint failures. End-to-end tests with Playwright or Cypress cover a handful of critical user journeys through the real app in a real browser: login, search → add to cart → checkout, permissions. Push each check to the lowest level that can catch the bug.',
     details: [
@@ -1117,7 +1115,7 @@ test('customer can search and add a product to the cart', async ({ page }) => {
     ],
   },
 
-  'What makes a test flaky, and how do you avoid flaky Angular tests?': {
+  'avoiding-flaky-tests': {
     summary:
       "A flaky test passes or fails without any code change. The usual causes are timing (real timers, `setTimeout` waits, not awaiting `whenStable()`), shared state leaking between tests (module-level mocks, fake timers or `localStorage` not reset), order dependence, real network or dates, and brittle selectors. Fix them by making the test deterministic: fake the clock, await Angular's stability, reset state in `beforeEach`/`afterEach`, mock the network and `Date`, and query by stable, user-facing attributes.",
     details: [

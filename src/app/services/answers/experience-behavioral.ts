@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'Why did you choose Angular when most developers are learning React?': {
+  'why-angular-over-react': {
     summary:
       "Frame it as a deliberate engineering choice, not a default: Angular is a complete, opinionated platform — routing, forms, HTTP, DI, testing and a CLI in one consistent package with TypeScript first — which suits large, long-lived enterprise apps and big teams. Then show you are not dogmatic: you know React's strengths and could work in it.",
     details: [
@@ -114,7 +114,7 @@ list.addEventListener('click', (event) => {
     ],
   },
 
-  'Which third-party Angular libraries have you used in your projects, and why?': {
+  'third-party-angular-libraries-you-use': {
     summary:
       'Name the libraries by purpose and give the reason each was chosen — e.g. Angular Material/CDK or PrimeNG for UI components, NgRx (Store or SignalStore) for state, ngx-translate or Transloco for runtime i18n, a charting library, and testing tools. The strongest answers also mention how you evaluate a library (maintenance, bundle size, Angular-version compatibility) and when you chose not to add one.',
     details: [
@@ -178,51 +178,50 @@ export const TodoStore = signalStore(
     ],
   },
 
-  'What is the most challenging technical or performance bug you have solved in an Angular frontend application and how did you resolve it?':
-    {
-      summary:
-        'Use STAR: set the context and impact briefly, then spend most of the time on how you **diagnosed** it (profiling, measurements, narrowing down), the root cause, the fix, and the measurable result. Good Angular examples: excessive change detection, memory leaks from un-unsubscribed observables, huge lists without virtualisation, or a large initial bundle.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'This is the most important behavioral question for a senior frontend role. The interviewer evaluates your **debugging process** — hypotheses, tools, data — far more than the bug itself. A vague "the app was slow so I optimised it" fails; numbers and tools pass.',
-        },
-        { type: 'heading3', text: 'STAR structure (with time split)' },
-        {
-          type: 'bullets',
-          items: [
-            '**Situation (10%):** app, scale, who was affected. "Our trading dashboard with [N] live widgets…"',
-            '**Task (10%):** your responsibility and the goal. "I owned fixing the freeze before the [release]."',
-            '**Action (60%):** how you investigated, what you found, why the fix works, alternatives you rejected.',
-            '**Result (20%):** before/after numbers and what you changed in the process (lint rule, guideline, monitoring).',
-          ],
-        },
-        {
-          type: 'flow',
-          title: 'A credible debugging process',
-          code: `flowchart LR
+  'hardest-angular-bug-you-solved': {
+    summary:
+      'Use STAR: set the context and impact briefly, then spend most of the time on how you **diagnosed** it (profiling, measurements, narrowing down), the root cause, the fix, and the measurable result. Good Angular examples: excessive change detection, memory leaks from un-unsubscribed observables, huge lists without virtualisation, or a large initial bundle.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'This is the most important behavioral question for a senior frontend role. The interviewer evaluates your **debugging process** — hypotheses, tools, data — far more than the bug itself. A vague "the app was slow so I optimised it" fails; numbers and tools pass.',
+      },
+      { type: 'heading3', text: 'STAR structure (with time split)' },
+      {
+        type: 'bullets',
+        items: [
+          '**Situation (10%):** app, scale, who was affected. "Our trading dashboard with [N] live widgets…"',
+          '**Task (10%):** your responsibility and the goal. "I owned fixing the freeze before the [release]."',
+          '**Action (60%):** how you investigated, what you found, why the fix works, alternatives you rejected.',
+          '**Result (20%):** before/after numbers and what you changed in the process (lint rule, guideline, monitoring).',
+        ],
+      },
+      {
+        type: 'flow',
+        title: 'A credible debugging process',
+        code: `flowchart LR
   R["Reproduce reliably<br/>prod-like data"]:::client --> M["Measure<br/>DevTools, Angular profiler"]:::server
   M --> H["Form hypothesis<br/>CD, leak, bundle, API"]:::highlight
   H --> I["Isolate<br/>disable parts, bisect"]:::server
   I --> F["Fix root cause"]:::db
   F --> V["Verify with numbers<br/>+ add guard rail"]:::security
   V -.->|"not fixed"| H`,
-        },
-        { type: 'heading3', text: 'Tools to mention' },
-        {
-          type: 'bullets',
-          items: [
-            'Chrome DevTools Performance panel (long tasks, scripting time) and Memory panel (heap snapshots, detached DOM nodes).',
-            'Angular DevTools profiler — shows which components ran change detection and how long it took.',
-            'Lighthouse / Web Vitals (LCP, INP, CLS) and bundle analysis (`source-map-explorer`, build stats).',
-            '`git bisect` to find the commit that introduced a regression.',
-          ],
-        },
-        { type: 'heading3', text: 'Typical root causes and fixes' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// BEFORE: function call in template runs on every change detection cycle,
+      },
+      { type: 'heading3', text: 'Tools to mention' },
+      {
+        type: 'bullets',
+        items: [
+          'Chrome DevTools Performance panel (long tasks, scripting time) and Memory panel (heap snapshots, detached DOM nodes).',
+          'Angular DevTools profiler — shows which components ran change detection and how long it took.',
+          'Lighthouse / Web Vitals (LCP, INP, CLS) and bundle analysis (`source-map-explorer`, build stats).',
+          '`git bisect` to find the commit that introduced a regression.',
+        ],
+      },
+      { type: 'heading3', text: 'Typical root causes and fixes' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// BEFORE: function call in template runs on every change detection cycle,
 // plus a manual subscription that is never cleaned up (memory leak)
 @Component({
   template: \`@for (row of rows; track $index) { <td>{{ formatPrice(row) }}</td> }\`,
@@ -244,21 +243,21 @@ export class GridComponent {
   private rows = toSignal(inject(PriceService).stream$, { initialValue: [] }); // auto-unsubscribes
   formatted = computed(() => this.rows().map((r) => ({ ...r, price: fmt.format(r.price) })));
 }`,
-        },
-        { type: 'heading3', text: 'Sample answer' },
-        {
-          type: 'paragraph',
-          text: '"**S:** On [project], a [real-time monitoring dashboard] froze for 2–3 seconds whenever [a filter changed], and memory grew until the tab crashed after [~1 hour]. **T:** I was asked to find the cause before [the client demo]. **A:** I reproduced it with production-size data, then used the Angular DevTools profiler and saw every one of [200] widgets running change detection on each WebSocket message. Heap snapshots showed thousands of detached components — subscriptions created in `ngOnInit` were never unsubscribed. I switched the widgets to OnPush, moved the stream into signals via `toSignal`, replaced template method calls with `computed()`, added `track row.id` to the list, and virtualised the table with CDK virtual scroll. **R:** Interaction time dropped from [~2.5 s] to [under 100 ms], memory stayed flat over [8 hours], and I added a lint rule and a PR checklist item for subscription cleanup so it would not come back."',
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Pitfall: describing a team effort as "we" throughout. Interviewers need to know what **you** did — say "I profiled…", "I proposed…", and credit others specifically where they helped.',
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'Sample answer' },
+      {
+        type: 'paragraph',
+        text: '"**S:** On [project], a [real-time monitoring dashboard] froze for 2–3 seconds whenever [a filter changed], and memory grew until the tab crashed after [~1 hour]. **T:** I was asked to find the cause before [the client demo]. **A:** I reproduced it with production-size data, then used the Angular DevTools profiler and saw every one of [200] widgets running change detection on each WebSocket message. Heap snapshots showed thousands of detached components — subscriptions created in `ngOnInit` were never unsubscribed. I switched the widgets to OnPush, moved the stream into signals via `toSignal`, replaced template method calls with `computed()`, added `track row.id` to the list, and virtualised the table with CDK virtual scroll. **R:** Interaction time dropped from [~2.5 s] to [under 100 ms], memory stayed flat over [8 hours], and I added a lint rule and a PR checklist item for subscription cleanup so it would not come back."',
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Pitfall: describing a team effort as "we" throughout. Interviewers need to know what **you** did — say "I profiled…", "I proposed…", and credit others specifically where they helped.',
+      },
+    ],
+  },
 
-  'Have you created any proof of concept (POC)? Explain one.': {
+  'proof-of-concept-you-built': {
     summary:
       'Yes — describe one POC with a clear question it had to answer, the time-box, what you built (deliberately minimal), the success criteria you measured, and the decision it led to. A POC is valuable because it reduces risk before a big investment, so the outcome — even "we decided not to do it" — is the most important part.',
     details: [
@@ -312,7 +311,7 @@ export class GridComponent {
     ],
   },
 
-  'What deployment activities have you handled?': {
+  'deployment-activities-you-handled': {
     summary:
       'Walk through the deployment lifecycle you have actually owned: building production artifacts (`ng build`), environment configuration, deploying to [hosting — e.g. S3 + CloudFront, Azure Static Web Apps, Nginx/Docker, Firebase], cache and CDN invalidation, release verification (smoke tests, monitoring) and rollback. Be explicit about which parts you did hands-on versus which a DevOps team owned.',
     details: [
@@ -539,40 +538,39 @@ jobs:
     ],
   },
 
-  'Have you worked with teams from different organizations where your module depended on parallel development teams? How did you manage communication and dependencies?':
-    {
-      summary:
-        'Yes — explain how you decoupled your work from the other team: agree an API contract early (OpenAPI or shared TypeScript types), build against mocks so you are not blocked, set up a regular sync and a single point of contact, track dependencies and risks visibly, and integrate early and often. Then give a STAR example with a concrete outcome.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'This tests collaboration, ownership and risk management across boundaries — vendors, client teams, or other companies with different time zones, priorities and processes. The interviewer wants proof that you proactively remove blockers instead of waiting and escalating late.',
-        },
-        { type: 'heading3', text: 'What the interviewer is looking for' },
-        {
-          type: 'bullets',
-          items: [
-            'You make dependencies **explicit** (contract, dates, owners) early.',
-            'You find ways to keep working in parallel (mocks, feature flags, adapters).',
-            'You communicate in writing and over-communicate status and risks.',
-            'You escalate constructively with options, not blame.',
-          ],
-        },
-        { type: 'heading3', text: 'Practical techniques' },
-        {
-          type: 'numbered',
-          items: [
-            '**Contract first:** agree the API in an OpenAPI/Swagger spec or shared interface definitions, versioned and reviewed by both teams.',
-            '**Mock the dependency:** an HTTP interceptor, MSW (Mock Service Worker) or json-server returns contract-shaped data so the UI is built and tested before the real API exists.',
-            '**Adapter layer:** map external DTOs to your own models so their changes touch one file.',
-            '**Cadence:** a weekly cross-team sync, a shared channel, a dependency/RAID log with owners and dates.',
-            '**Integrate early:** connect to their dev environment as soon as any endpoint exists; contract tests to detect breaking changes.',
-          ],
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Build against the agreed contract while the partner team is still coding
+  'working-across-teams-and-dependencies': {
+    summary:
+      'Yes — explain how you decoupled your work from the other team: agree an API contract early (OpenAPI or shared TypeScript types), build against mocks so you are not blocked, set up a regular sync and a single point of contact, track dependencies and risks visibly, and integrate early and often. Then give a STAR example with a concrete outcome.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'This tests collaboration, ownership and risk management across boundaries — vendors, client teams, or other companies with different time zones, priorities and processes. The interviewer wants proof that you proactively remove blockers instead of waiting and escalating late.',
+      },
+      { type: 'heading3', text: 'What the interviewer is looking for' },
+      {
+        type: 'bullets',
+        items: [
+          'You make dependencies **explicit** (contract, dates, owners) early.',
+          'You find ways to keep working in parallel (mocks, feature flags, adapters).',
+          'You communicate in writing and over-communicate status and risks.',
+          'You escalate constructively with options, not blame.',
+        ],
+      },
+      { type: 'heading3', text: 'Practical techniques' },
+      {
+        type: 'numbered',
+        items: [
+          '**Contract first:** agree the API in an OpenAPI/Swagger spec or shared interface definitions, versioned and reviewed by both teams.',
+          '**Mock the dependency:** an HTTP interceptor, MSW (Mock Service Worker) or json-server returns contract-shaped data so the UI is built and tested before the real API exists.',
+          '**Adapter layer:** map external DTOs to your own models so their changes touch one file.',
+          '**Cadence:** a weekly cross-team sync, a shared channel, a dependency/RAID log with owners and dates.',
+          '**Integrate early:** connect to their dev environment as soon as any endpoint exists; contract tests to detect breaking changes.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Build against the agreed contract while the partner team is still coding
 export interface OrderDto { orderId: string; total_amount: number; status: 'NEW' | 'PAID' }
 
 // Functional interceptor that serves mocks only in the mock environment
@@ -586,11 +584,11 @@ export const mockOrdersInterceptor: HttpInterceptorFn = (req, next) => {
 
 // Adapter: their naming stays out of our components
 export const toOrder = (d: OrderDto): Order => ({ id: d.orderId, total: d.total_amount, paid: d.status === 'PAID' });`,
-        },
-        {
-          type: 'flow',
-          title: 'Working in parallel without blocking',
-          code: `sequenceDiagram
+      },
+      {
+        type: 'flow',
+        title: 'Working in parallel without blocking',
+        code: `sequenceDiagram
   participant FE as Our team (UI)
   participant BE as Partner team (API)
   FE->>BE: Agree OpenAPI contract + dates
@@ -603,21 +601,21 @@ export const toOrder = (d: OrderDto): Order => ({ id: d.orderId, total: d.total_
   BE-->>FE: Fixes / version bump
   FE->>BE: Joint UAT sign-off
 `,
-        },
-        { type: 'heading3', text: 'Sample answer (STAR)' },
-        {
-          type: 'paragraph',
-          text: '"**S:** On [project] my team built the [customer portal] in Angular, while the payments API was built by [a vendor / client\'s internal team] in [another country], [5.5] hours offset. **T:** We had to launch together in [12 weeks], and their API would only be ready in week [8]. **A:** In week one I set up a call to agree an OpenAPI contract and put it in a shared repo where changes required approval from both sides. I built the UI against an interceptor-based mock, wrapped their DTOs in an adapter, and kept a shared dependency tracker with owners and dates. We held a 30-minute weekly sync in our overlapping hours and used a shared Slack channel for everything else. When their auth flow slipped by two weeks, I raised it immediately with two options and we agreed to integrate the non-auth endpoints first. **R:** We integrated in [4 days] instead of the planned [2 weeks], launched on time, and the contract-first process was reused for [the next two vendor integrations]."',
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: mention one moment where something slipped and how you handled it. Smooth stories sound rehearsed; a recovered risk shows real ownership.',
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'Sample answer (STAR)' },
+      {
+        type: 'paragraph',
+        text: '"**S:** On [project] my team built the [customer portal] in Angular, while the payments API was built by [a vendor / client\'s internal team] in [another country], [5.5] hours offset. **T:** We had to launch together in [12 weeks], and their API would only be ready in week [8]. **A:** In week one I set up a call to agree an OpenAPI contract and put it in a shared repo where changes required approval from both sides. I built the UI against an interceptor-based mock, wrapped their DTOs in an adapter, and kept a shared dependency tracker with owners and dates. We held a 30-minute weekly sync in our overlapping hours and used a shared Slack channel for everything else. When their auth flow slipped by two weeks, I raised it immediately with two options and we agreed to integrate the non-auth endpoints first. **R:** We integrated in [4 days] instead of the planned [2 weeks], launched on time, and the contract-first process was reused for [the next two vendor integrations]."',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: mention one moment where something slipped and how you handled it. Smooth stories sound rehearsed; a recovered risk shows real ownership.',
+      },
+    ],
+  },
 
-  'Have you used any AI tools?': {
+  'ai-tools-you-use': {
     summary:
       'Yes — name the tools you actually use (e.g. GitHub Copilot, ChatGPT, Claude, Cursor) and, more importantly, **how**: for boilerplate, tests, refactoring, explaining unfamiliar code and drafting documentation — while you review every suggestion, never paste secrets or proprietary code into unapproved tools, and verify output against docs and tests. Mention a concrete productivity win.',
     details: [
@@ -744,7 +742,7 @@ Use TestBed with a mocked UserService. Do not use deprecated APIs."`,
     ],
   },
 
-  'Tell me about yourself.': {
+  'tell-me-about-yourself': {
     summary:
       'Give a 60–90 second pitch in three parts: **present** (your current role, stack and one result you are proud of), **past** (the two or three experiences that explain how you got here), and **future** (why this role is the logical next step). Tailor every sentence to the job description — this is a pitch for the role, not your life story or a reading of your CV.',
     details: [
@@ -808,7 +806,7 @@ Use TestBed with a mocked UserService. Do not use deprecated APIs."`,
     ],
   },
 
-  'How do you structure answers to behavioral questions using the STAR method?': {
+  'star-method-for-behavioral-answers': {
     summary:
       'STAR stands for **Situation, Task, Action, Result**: set the context briefly, state what you were responsible for, spend most of the time on what **you** did and why, then give a measurable result — and finish with what you learned. Aim for about 2 minutes, use "I" rather than "we", and prepare a story bank of 5–6 real stories you can adapt to most behavioral questions.',
     details: [
@@ -880,7 +878,7 @@ Use TestBed with a mocked UserService. Do not use deprecated APIs."`,
     ],
   },
 
-  'Tell me about a time you disagreed with a teammate or reviewer on a technical decision.': {
+  'disagreeing-on-a-technical-decision': {
     summary:
       "Pick a real, professional disagreement about a technical trade-off — not a personality clash — and show that you listened, understood the other person's reasoning, used data or a small experiment instead of opinion, and committed to the final decision even if it was not yours. The result should include both the technical outcome and the working relationship staying healthy.",
     details: [
@@ -945,7 +943,7 @@ Use TestBed with a mocked UserService. Do not use deprecated APIs."`,
     ],
   },
 
-  'Tell me about a time you missed a deadline or a project went off track.': {
+  'missed-deadline-or-derailed-project': {
     summary:
       'Choose a real slip where you owned part of the cause, then show how you noticed early, communicated with options (cut scope, move the date, add help), recovered as much as possible, and changed your process afterwards. The interviewer cares less about the miss and more about transparency, ownership and what you learned.',
     details: [
@@ -1011,7 +1009,7 @@ Use TestBed with a mocked UserService. Do not use deprecated APIs."`,
     ],
   },
 
-  'Tell me about a production bug you caused and how you handled it.': {
+  'production-bug-you-caused': {
     summary:
       'Own it clearly ("I shipped a change that…"), then walk through the incident response: immediate mitigation (rollback, feature flag, hotfix), clear communication with the team and stakeholders, root-cause analysis, and the prevention you added — tests, alerts, review checklist. Keep the tone blameless and factual, and finish with what you learned.',
     details: [
@@ -1080,7 +1078,7 @@ Use TestBed with a mocked UserService. Do not use deprecated APIs."`,
     ],
   },
 
-  'How do you give and receive code review feedback?': {
+  'giving-and-receiving-code-review-feedback': {
     summary:
       'When giving feedback, be kind and specific: comment on the code, not the person, explain the why, ask questions rather than issue commands, and clearly separate blocking issues from nits. When receiving it, assume good intent, do not get defensive, ask for clarification, and either change the code or explain your reasoning — then take larger debates to a quick call.',
     details: [
@@ -1150,7 +1148,7 @@ Use TestBed with a mocked UserService. Do not use deprecated APIs."`,
     ],
   },
 
-  'Tell me about a time you mentored or helped a junior developer.': {
+  'mentoring-a-junior-developer': {
     summary:
       'Describe a specific person and situation, how you understood what they needed, and how you helped them grow rather than doing the work for them — pairing, guided questions, small ownership, regular feedback. End with a measurable outcome for them and the team (they shipped a feature independently, onboarding time dropped) and what mentoring taught you.',
     details: [
@@ -1218,7 +1216,7 @@ Use TestBed with a mocked UserService. Do not use deprecated APIs."`,
     ],
   },
 
-  'How do you estimate a feature, and what do you do when your estimate turns out to be wrong?': {
+  'estimating-and-when-estimates-are-wrong': {
     summary:
       'Break the feature into small tasks, estimate each with a range (or a three-point optimistic / likely / pessimistic estimate), and explicitly include testing, code review, integration, deployment and a buffer for unknowns — spiking anything risky first. When you discover the estimate is wrong, communicate immediately with a revised estimate and options (cut scope, move the date, add help), then feed what you learned back into the next estimate.',
     details: [
@@ -1282,7 +1280,7 @@ Use TestBed with a mocked UserService. Do not use deprecated APIs."`,
     ],
   },
 
-  'Why are you looking for a change, and why do you want to join this company?': {
+  'why-change-jobs-why-this-company': {
     summary:
       'Frame the move positively as moving **towards** something — bigger technical challenges, a product you care about, more ownership — rather than running **away** from your current employer. Then show you have researched this company: name something specific about its product, engineering practices or challenges, and connect it directly to your experience and to what the role needs.',
     details: [
@@ -1348,7 +1346,7 @@ Use TestBed with a mocked UserService. Do not use deprecated APIs."`,
     ],
   },
 
-  'What questions should you ask the interviewer at the end of an interview?': {
+  'questions-to-ask-the-interviewer': {
     summary:
       'Always ask 2–3 thoughtful questions — it shows genuine interest and helps you decide whether the job is right for you. Good topics are the team and how it works, engineering practices (reviews, testing, releases), what success looks like in the first 90 days, and the biggest current challenges. Avoid opening with salary, leave or remote-work perks in early rounds; save those for HR or the offer stage.',
     details: [
@@ -1430,6 +1428,637 @@ Use TestBed with a mocked UserService. Do not use deprecated APIs."`,
         type: 'callout',
         variant: 'tip',
         text: 'Interview tip: "What would success look like in the first 90 days?" is one of the best questions you can ask — it shows you are already thinking about delivering, and the answer tells you exactly what to emphasise in any remaining rounds.',
+      },
+    ],
+  },
+
+  'tech-debt-vs-new-features': {
+    summary:
+      'Show that you treat tech debt as a business decision, not a matter of taste. Explain how you make the cost of the debt visible (slower delivery, incidents, onboarding pain), tie the fix to an outcome product cares about, and negotiate a sustainable rhythm instead of a big-bang rewrite. Back it with a real example where you got debt work prioritised.',
+    details: [
+      { type: 'heading3', text: 'What the interviewer is assessing' },
+      {
+        type: 'bullets',
+        items: [
+          'Whether you can **quantify** debt in terms the business understands: lead time, incident count, on-call load, time to onboard.',
+          'Whether you balance both sides, rather than always wanting to refactor or always shipping features.',
+          'How you **negotiate** with product: trade-offs, options, small increments, not ultimatums.',
+          'Whether you can tell harmful debt (in code that changes often or breaks often) from harmless debt (ugly but stable code nobody touches).',
+        ],
+      },
+      { type: 'heading3', text: 'A strong answer, step by step' },
+      {
+        type: 'numbered',
+        items: [
+          '**Situation:** a codebase where debt was slowing a specific area down, with a concrete symptom.',
+          '**Task:** you needed to keep delivering features and fix the root cause.',
+          "**Action:** how you measured the cost, which debt you picked (high change frequency × high pain), how you sold it (attached to a roadmap item, a budget such as one engineer-week per sprint, or the 'boy scout rule' within feature work), and how you kept it incremental.",
+          '**Result:** a measured improvement (cycle time, bug count, deploy frequency) and what product gained.',
+          '**Reflection:** the rule of thumb you now use.',
+        ],
+      },
+      { type: 'heading3', text: 'Example answer (adapt it to your own story)' },
+      {
+        type: 'paragraph',
+        text: '"On our order-management platform (Angular front end, Node/Express API, MongoDB), every change to pricing took about two weeks and caused a regression roughly every other release. The pricing logic was duplicated in three Express services and the Angular checkout, with no tests. Product wanted three new discount types that quarter.',
+      },
+      {
+        type: 'paragraph',
+        text: "Instead of asking for a 'refactoring sprint', I pulled the numbers from Jira and our incident log: six pricing incidents in two quarters and an average of nine days of lead time for pricing tickets, against three for the rest of the system. I proposed to product that we build the first new discount type on top of a single, tested pricing module, and migrate the old rules into it as part of that same feature. It added about a week to the first discount and nothing to the next two. We shipped all three discount types that quarter, pricing lead time dropped to about four days, and we had no pricing incidents in the following two releases. Since then I always attach debt work to a feature that touches the same code, and I keep a small debt register with the cost of each item so the conversation with product starts from data.\"",
+      },
+      { type: 'heading3', text: 'Weak vs strong' },
+      {
+        type: 'bullets',
+        items: [
+          '**Weak:** "The code was messy, so I convinced the team to rewrite it." **Strong:** "Pricing changes took three times longer than anything else and caused six incidents, so I attached the fix to the next pricing feature."',
+          '**Weak:** treating product as the obstacle. **Strong:** giving product options with costs, and letting them choose.',
+          '**Weak:** a big-bang rewrite with no checkpoint. **Strong:** incremental migration with something shippable every sprint.',
+        ],
+      },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          '"What if product says no?" — Accept it, record the risk and its cost, revisit with new data after the next incident or slowdown; escalate only when the risk is serious.',
+          '"How do you stop debt building up again?" — Definition of done includes tests, lint rules for known anti-patterns, a small budget per sprint, and reviews that flag new shortcuts.',
+          '"Which debt do you leave alone?" — Stable code that rarely changes, even if it is ugly.',
+          '"How do you track it?" — A visible register with impact and rough cost, reviewed in planning.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          'Arguing from code aesthetics instead of delivery or reliability impact.',
+          'Proposing a full rewrite as the first option.',
+          'Framing it as engineering versus product.',
+          'No measurable result at the end of the story.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you talk about debt as interest the business is already paying, pick the debt with the highest change frequency and pain, and fold the fix into feature work so product never has to choose between the two.',
+      },
+    ],
+  },
+  'pushing-back-on-product': {
+    summary:
+      'Pick a story where you disagreed with a date or a requirement for a concrete reason (risk, user harm, hidden cost), raised it early, and came with options instead of a flat no. Show that you understood the business goal behind the request and that the outcome served it better. End with how the relationship with product stayed strong.',
+    details: [
+      { type: 'heading3', text: 'What the interviewer is assessing' },
+      {
+        type: 'bullets',
+        items: [
+          'Courage to say no, combined with **business understanding**: why did product want this, and by when?',
+          'Whether you bring **options** (cut scope, phase it, add people, accept a risk explicitly) rather than complaints.',
+          'Timing: you raised it as soon as you knew, not the day before the deadline.',
+          'Whether you commit fully once a decision is made, even if it went against you.',
+        ],
+      },
+      { type: 'heading3', text: 'A strong answer, step by step' },
+      {
+        type: 'numbered',
+        items: [
+          '**Situation:** the request, the date and who asked for it.',
+          '**Task:** what made it unrealistic or risky, with evidence (estimate, dependency, security or compliance risk).',
+          '**Action:** how you found the goal behind the request, the options you proposed with their trade-offs, and how the decision was made.',
+          '**Result:** what shipped, when, and the outcome for users or the business.',
+          '**Reflection:** what you now do earlier to avoid the situation.',
+        ],
+      },
+      { type: 'heading3', text: 'Example answer (adapt it to your own story)' },
+      {
+        type: 'paragraph',
+        text: '"Our product manager committed to a partner that we would launch a public REST API for order status within three weeks, including API-key management and webhooks. When I broke it down with the team, the full scope was closer to seven weeks, mostly because of webhook delivery with retries and signing, which we had never built.',
+      },
+      {
+        type: 'paragraph',
+        text: 'I asked what the partner actually needed on day one. It turned out they only needed to poll order status; webhooks were a nice-to-have for later. I proposed three options in a one-page doc: the full scope in seven weeks; read-only polling endpoints with API keys in three weeks and webhooks four weeks later; or the full scope in three weeks without signed webhooks, which I recommended against because it would expose partners to spoofed events. Product chose the second option and told the partner. We shipped polling on time with rate limiting and keys, and webhooks five weeks later with signatures and retries. The partner integration went live on the original date, and the PM later asked me to review estimates before external commitments. Now I ask to be in the room before dates are promised externally."',
+      },
+      { type: 'heading3', text: 'Weak vs strong' },
+      {
+        type: 'bullets',
+        items: [
+          '**Weak:** "I told them the deadline was impossible." **Strong:** "I found what the partner needed on day one and offered three options with costs."',
+          '**Weak:** pushing back late, after quietly trying to hit the date. **Strong:** raising the risk within days, with a breakdown.',
+          '**Weak:** the story ends with you being right. **Strong:** it ends with the user or business outcome and a better process.',
+        ],
+      },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          '"What if product had insisted on the full scope?" — Make the risk explicit in writing, agree what would be cut if it slipped, then commit and execute.',
+          '"Have you ever pushed back and been wrong?" — A good follow-up story: show you updated quickly.',
+          '"How do you push back on a senior stakeholder?" — Same approach, with more preparation and data, and in private first.',
+          '"How do you avoid this happening again?" — Engineering input before external commitments, and rough sizing early.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          'Presenting product or management as unreasonable.',
+          'Saying no without alternatives.',
+          'A story where you simply worked overtime to hit the date; that shows effort, not judgement.',
+          'No business outcome in the result.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you separate the goal from the requested solution, offer phased options with their risks, and make the trade-off a shared decision with product rather than a fight.',
+      },
+    ],
+  },
+  'leading-a-migration-or-big-refactor': {
+    summary:
+      'Pick a migration you owned end to end, such as AngularJS to Angular, a module to standalone components, Express to NestJS, a database move, or a monolith split. Show how you planned it in safe increments, kept shipping features during it, measured progress, and handled what went wrong. The interviewer wants evidence that you can run long, risky technical work without stopping the business.',
+    details: [
+      { type: 'heading3', text: 'What the interviewer is assessing' },
+      {
+        type: 'bullets',
+        items: [
+          'Planning: inventory, sequencing, and a clear definition of done.',
+          '**Risk management:** incremental steps, feature flags, dual-running, rollback paths, and tests before changes.',
+          'Leadership: how you brought the team along, split the work, and kept momentum over months.',
+          'Communication with stakeholders: progress, trade-offs, and what users would notice.',
+        ],
+      },
+      { type: 'heading3', text: 'A strong answer, step by step' },
+      {
+        type: 'numbered',
+        items: [
+          '**Situation:** what was being migrated and why it mattered (support ending, performance, delivery speed).',
+          '**Task:** your role and constraints (no feature freeze, a deadline, team size).',
+          '**Action:** the plan (strangler approach, codemods, the order of modules), safety nets (characterisation tests, canary releases, metrics), and how you tracked progress.',
+          '**Result:** completion, measured improvements, and incidents avoided or handled.',
+          '**Reflection:** what you would do differently.',
+        ],
+      },
+      { type: 'heading3', text: 'Example answer (adapt it to your own story)' },
+      {
+        type: 'paragraph',
+        text: '"I led the migration of our admin portal from AngularJS to Angular, about 140 screens, with a team of five, without freezing feature work. We used the hybrid approach with ngUpgrade so both frameworks ran in one app, and migrated route by route, starting with low-traffic leaf screens to prove the pattern and the build pipeline.',
+      },
+      {
+        type: 'paragraph',
+        text: 'Before touching a screen, we added Cypress smoke tests for its main flows. Each migrated route shipped behind a feature flag and was enabled for internal users first, then everyone. I kept a dashboard of migrated routes, bundle size and error rate per route, and reviewed it in every sprint review so stakeholders could see progress. Halfway through we found that two shared directives held most of the remaining complexity; I paused new screens for one sprint so two of us could rewrite them properly, which unblocked the rest. The migration took nine months, two fewer than planned. We had one production issue, a date-format regression on a single screen, caught within an hour and fixed by switching its flag back. In hindsight I would have built the shared component library first."',
+      },
+      { type: 'heading3', text: 'Weak vs strong' },
+      {
+        type: 'bullets',
+        items: [
+          '**Weak:** "We rewrote it from scratch over six months." **Strong:** "We migrated route by route behind flags, so users always had a working app."',
+          '**Weak:** no measure of progress. **Strong:** a dashboard of routes done, error rate and bundle size.',
+          '**Weak:** everything went perfectly. **Strong:** a real problem, how you spotted it, and how you adjusted the plan.',
+        ],
+      },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          '"How did you decide the order?" — Low risk first to prove the pattern, then by business value or dependency.',
+          '"How did you keep shipping features?" — New features built in the new stack only; a migration budget each sprint.',
+          '"How did you know you were done?" — A clear exit criterion: the old dependency fully removed and its build step deleted.',
+          '"What would you do differently?" — Name one real lesson.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          'Describing a big-bang rewrite with a cut-over date and no fallback.',
+          'No tests before the refactor, so no way to prove behaviour stayed the same.',
+          'Leaving out the people side: how work was shared and momentum kept.',
+          'Ending without removing the old system, so you are left running two stacks indefinitely.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: "Senior signal: you migrate in small, reversible steps with tests first and measurable progress, keep the business shipping throughout, and define 'done' as the old system actually deleted.",
+      },
+    ],
+  },
+  'running-an-incident-and-post-mortem': {
+    summary:
+      "Choose an incident where you were the one coordinating, not only fixing. Walk through how you stabilised first (rollback or mitigation), communicated clearly, found the root cause afterwards, and ran a blameless post-mortem whose action items actually got done. This differs from 'a bug you caused': the focus is how you led the response.",
+    details: [
+      { type: 'heading3', text: 'What the interviewer is assessing' },
+      {
+        type: 'bullets',
+        items: [
+          'Calm prioritisation: **mitigate first, investigate later**.',
+          'Clear roles and communication: who leads, who fixes, who updates stakeholders and customers.',
+          'Root-cause thinking that goes past the trigger to the contributing factors.',
+          'A **blameless** post-mortem with owned, tracked action items.',
+        ],
+      },
+      { type: 'heading3', text: 'A strong answer, step by step' },
+      {
+        type: 'numbered',
+        items: [
+          '**Situation:** what broke, the impact (users, revenue, duration), and how it was detected.',
+          '**Task:** your role in the response (incident lead, on-call engineer).',
+          '**Action:** triage, mitigation (rollback, feature flag, scaling), communication rhythm, then the investigation and the post-mortem.',
+          '**Result:** time to mitigate, time to resolve, and the follow-up changes and their effect.',
+          '**Reflection:** what changed in how the team works.',
+        ],
+      },
+      { type: 'heading3', text: 'Example answer (adapt it to your own story)' },
+      {
+        type: 'paragraph',
+        text: '"I was on call when checkout error rates jumped to about 30% on a Friday evening. I declared an incident in Slack, took the lead role, asked a colleague to handle customer-support updates every fifteen minutes, and focused on mitigation. The error spike lined up with a deploy forty minutes earlier, so I rolled it back; errors stayed high, which told us the deploy was not the cause. Our traces showed Node API calls to MongoDB timing out. A scheduled analytics aggregation had been moved to run on the primary instead of a secondary, and it was saturating the database. We stopped the job, and checkout recovered twenty-five minutes after detection.',
+      },
+      {
+        type: 'paragraph',
+        text: "On Monday I ran a blameless post-mortem. The trigger was a config change, but the contributing factors were that analytics jobs could target the primary at all, that we had no alert on MongoDB queue length, and that the change skipped review because it was 'just config'. We agreed on three actions with owners and dates: a read-preference guard in the job runner, an alert on operation latency, and config changes going through the same pull-request review as code. All three shipped within two weeks, and the latency alert later caught a similar issue before customers noticed.\"",
+      },
+      { type: 'heading3', text: 'Weak vs strong' },
+      {
+        type: 'bullets',
+        items: [
+          '**Weak:** "I found the bug and fixed it." **Strong:** "I led the response, mitigated in twenty-five minutes, and ran the post-mortem."',
+          '**Weak:** naming the person who made the change. **Strong:** focusing on why the system allowed the change.',
+          '**Weak:** action items listed but never followed up. **Strong:** owners, dates, and proof that they worked.',
+        ],
+      },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          '"Why roll back if the deploy was not the cause?" — It is the fastest safe check; ruling it out narrows the search.',
+          '"How do you communicate during an incident?" — A single channel, regular updates with status, impact and next update time, even when there is no news.',
+          '"What does blameless mean in practice?" — Ask why the system allowed the mistake, not who made it; nobody is punished for honest errors.',
+          '"How do you make sure action items happen?" — Track them like product work, with owners and a review date.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          'Debugging for an hour before trying a rollback or other mitigation.',
+          'Everyone fixing at once with nobody coordinating or communicating.',
+          "Stopping at the trigger ('someone changed a config') instead of the contributing factors.",
+          'Blaming an individual, which teaches people to hide mistakes.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you separate mitigation from root cause, run communication as deliberately as the fix, and judge the post-mortem by whether its action items shipped and prevented the next incident.',
+      },
+    ],
+  },
+  'deciding-with-incomplete-information': {
+    summary:
+      'Pick a real technical or delivery decision where waiting for certainty was not an option. Show how you separated what you knew from what you assumed, judged whether the decision was reversible, limited the risk (a time-boxed spike, a feature flag, an exit plan), and decided on a date. Then explain how it turned out and what signal you watched to confirm or reverse it.',
+    details: [
+      { type: 'heading3', text: 'What the interviewer is assessing' },
+      {
+        type: 'bullets',
+        items: [
+          'Judgement under uncertainty: you neither freeze nor gamble.',
+          'Whether you distinguish **reversible** decisions (decide fast) from **one-way doors** (slow down).',
+          'How you reduce uncertainty cheaply: spikes, prototypes, asking the right person.',
+          'Whether you set checkpoints and accept being wrong.',
+        ],
+      },
+      { type: 'heading3', text: 'A strong answer, step by step' },
+      {
+        type: 'numbered',
+        items: [
+          '**Situation:** the decision and why it could not wait.',
+          '**Task:** what was unknown and what was at stake.',
+          '**Action:** what you did to learn quickly, how you framed the options and assumptions, how you made it reversible, and who you consulted.',
+          '**Result:** the outcome, and whether your assumptions held.',
+          '**Reflection:** your general approach to similar decisions.',
+        ],
+      },
+      { type: 'heading3', text: 'Example answer (adapt it to your own story)' },
+      {
+        type: 'paragraph',
+        text: '"We had to choose a real-time approach for a live delivery-tracking screen before we knew how many concurrent users to expect: marketing\'s estimate ranged from five hundred to fifty thousand. Building for the high end meant a dedicated WebSocket service with Redis pub/sub; the low end needed only polling.',
+      },
+      {
+        type: 'paragraph',
+        text: 'I listed the assumptions and asked which ones we could test cheaply. In two days I prototyped Server-Sent Events from our existing Node API behind a feature flag and load-tested it to about eight thousand connections per instance. I proposed SSE for launch, because it reused our auth and infrastructure, with a written trigger for revisiting: if concurrent connections passed half of our tested capacity, we would add Redis-backed fan-out. I put the connection count on our dashboard. Launch peaked at around three thousand connections, well within limits. Six months later, when a partner integration pushed us past the trigger, we added Redis pub/sub in a sprint, which was easy because the client contract had not changed. I now write down the assumption and the trigger for revisiting next to any decision made with gaps."',
+      },
+      { type: 'heading3', text: 'Weak vs strong' },
+      {
+        type: 'bullets',
+        items: [
+          '**Weak:** "I went with my gut and it worked." **Strong:** "I tested the riskiest assumption in two days and set a trigger to revisit."',
+          '**Weak:** waiting weeks for perfect data. **Strong:** deciding on a date with a reversible design.',
+          '**Weak:** no follow-up. **Strong:** a metric watched after the decision.',
+        ],
+      },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          '"What would have made you choose differently?" — Name the threshold or fact.',
+          '"How do you decide when you have enough information?" — When more data would not change the decision, or when the cost of waiting is higher than the cost of being wrong.',
+          '"Tell me about a time it turned out wrong." — Show how quickly you noticed and reversed it.',
+          '"Who did you involve?" — The people who own the risk or hold the missing knowledge.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          'A story with no real uncertainty.',
+          'Presenting a lucky guess as a strategy.',
+          'Not mentioning reversibility or a fallback.',
+          'Making the decision alone when others owned part of the risk.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you sort decisions by reversibility, buy information cheaply with spikes, write down assumptions and the trigger for revisiting, and decide on time.',
+      },
+    ],
+  },
+  'influencing-a-team-you-don-t-manage': {
+    summary:
+      "Show that you influence through understanding, evidence and making adoption easy, not through authority. Explain how you learned the other team's constraints, proved the approach on a small scale, reduced their cost to adopt (a library, docs, pairing), and accepted their feedback. Use a concrete story, such as a shared API contract, a logging standard or a component library.",
+    details: [
+      { type: 'heading3', text: 'What the interviewer is assessing' },
+      {
+        type: 'bullets',
+        items: [
+          'Influence without authority, one of the clearest senior and staff-level signals.',
+          'Empathy: do you understand why the other team works the way it does?',
+          'Whether you lower the cost of adoption instead of just recommending.',
+          'Patience and pragmatism: partial adoption, and changing your proposal based on feedback.',
+        ],
+      },
+      { type: 'heading3', text: 'A strong answer, step by step' },
+      {
+        type: 'numbered',
+        items: [
+          '**Situation:** the approach, the other team or teams, and why alignment mattered.',
+          '**Task:** what you wanted to change, and the resistance you met.',
+          '**Action:** listening sessions, a pilot with one willing team, evidence from the pilot, tooling or docs that made it easy, and changes you made to your proposal.',
+          '**Result:** how many teams adopted it, and the measurable effect.',
+          '**Reflection:** what you learned about influence.',
+        ],
+      },
+      { type: 'heading3', text: 'Example answer (adapt it to your own story)' },
+      {
+        type: 'paragraph',
+        text: '"Our five product teams each logged differently in their Node services, so tracing a customer issue across services meant hours of grepping. I wanted every service to use structured JSON logs with a shared request ID and OpenTelemetry tracing. I did not manage any of those teams, and two were sceptical because they had just finished their own logging setup.',
+      },
+      {
+        type: 'paragraph',
+        text: 'I started by asking each team lead what slowed their debugging and what they would hate to lose. The main worry was migration effort and losing their existing dashboards. So I built a small internal package, an Express and NestJS middleware with a pino logger preconfigured, that could be added in under an hour, and I wrote a mapping so their existing dashboards kept working. I paired with the most interested team to roll it out first, then showed the before and after at the engineering guild: an incident that had taken half a day to trace took fifteen minutes. Within two quarters four of the five teams had adopted it; the fifth adopted only the request-ID part, which was enough for cross-service tracing. That team\'s feedback led us to make log sampling configurable."',
+      },
+      { type: 'heading3', text: 'Weak vs strong' },
+      {
+        type: 'bullets',
+        items: [
+          '**Weak:** "I wrote a standard and asked everyone to follow it." **Strong:** "I built a package that took under an hour to adopt and proved it with one team."',
+          '**Weak:** escalating to management as the first move. **Strong:** escalating only when there is a real business risk.',
+          '**Weak:** all or nothing. **Strong:** accepting partial adoption that delivers most of the value.',
+        ],
+      },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          '"What if a team still refuses?" — Understand the cost they see; accept partial adoption; escalate only if there is a real business or compliance risk.',
+          '"How do you keep it from drifting later?" — Templates, lint rules or CI checks, and ownership of the shared package.',
+          '"Have you ever changed your proposal because of pushback?" — Give the concrete change.',
+          '"Who should own a cross-team standard?" — A named owner or guild with a clear way to propose changes.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          "Relying on a manager's authority instead of persuasion.",
+          'Treating sceptics as obstacles rather than a source of requirements.',
+          'Making adoption expensive: a long document and no tooling.',
+          'Claiming every team adopted it instantly.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you treat other teams as customers: you learn their constraints, make the right path the easy path with tooling, prove value with a pilot, and accept partial adoption.',
+      },
+    ],
+  },
+  'teammate-who-keeps-missing-commitments': {
+    summary:
+      'Show that you start with curiosity and a private conversation, not judgement or escalation. Explain how you found the cause (unclear expectations, skills, personal circumstances, overload), agreed concrete support and expectations, followed up, and involved their manager appropriately if it did not improve. Keep the story respectful; never make the colleague look bad.',
+    details: [
+      { type: 'heading3', text: 'What the interviewer is assessing' },
+      {
+        type: 'bullets',
+        items: [
+          'Empathy combined with accountability: you neither ignore the problem nor blame.',
+          'Whether you talk to the person **directly and early**, in private.',
+          'Whether you look for causes in the system (unclear tickets, too much work in progress) as well as in the person.',
+          'Judgement about when and how to involve their manager.',
+        ],
+      },
+      { type: 'heading3', text: 'A strong answer, step by step' },
+      {
+        type: 'numbered',
+        items: [
+          '**Situation:** the pattern you noticed, with facts rather than impressions.',
+          '**Task:** your role (peer, tech lead) and why it mattered to the team.',
+          '**Action:** the private conversation, what you learned, the agreed changes (smaller tasks, pairing, clearer acceptance criteria), regular check-ins, and escalation if needed.',
+          '**Result:** what changed for the person and the team.',
+          '**Reflection:** what you learned about giving feedback.',
+        ],
+      },
+      { type: 'heading3', text: 'Example answer (adapt it to your own story)' },
+      {
+        type: 'paragraph',
+        text: "\"As tech lead on a team of six, I noticed one engineer had carried over his tickets in four sprints in a row, and his pull requests were large and arrived on the last day. Rather than raising it in the retro, I asked him for a one-to-one coffee and described what I had seen without judging: 'Your last four stories carried over; what's getting in the way?'",
+      },
+      {
+        type: 'paragraph',
+        text: 'It turned out he was new to RxJS-heavy Angular code and was spending days stuck without asking, because he did not want to look slow. We agreed on three things: he would split stories into pull requests of a day or less, we would pair for an hour twice a week on the reactive code, and he would flag any blocker that lasted more than half a day in stand-up. I also changed how we wrote tickets, adding acceptance criteria and a technical note, which helped everyone. I kept his manager informed in our regular one-to-one, framed as support rather than complaint. Within six weeks he was finishing his sprint commitments, and a few months later he ran our RxJS brown-bag session."',
+      },
+      { type: 'heading3', text: 'Weak vs strong' },
+      {
+        type: 'bullets',
+        items: [
+          '**Weak:** "I told his manager he wasn\'t pulling his weight." **Strong:** "I asked him privately what was getting in the way, and we agreed on concrete changes."',
+          '**Weak:** quietly doing his work for him. **Strong:** making the problem visible and fixing its cause.',
+          "**Weak:** vague feedback ('be more proactive'). **Strong:** specific, observable behaviour and agreed next steps.",
+        ],
+      },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          '"What if it had not improved?" — Involve the manager with documented facts and the support already tried; it is the manager\'s job to handle performance formally.',
+          '"How do you give hard feedback?" — In private, soon, about specific behaviour and its impact, then ask for their view.',
+          '"What if the reason is personal?" — Respect privacy, adjust workload where possible, and point to the manager or HR support.',
+          '"How do you protect the team\'s delivery meanwhile?" — Re-plan transparently; do not hide the gap.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          'Escalating before ever talking to the person.',
+          'Discussing their performance with other teammates.',
+          'Rescuing them by silently doing their work.',
+          'Telling the story in a way that belittles the colleague.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you look for the cause before the blame, give specific feedback privately and early, fix team processes that contribute, and involve the manager with facts rather than frustration.',
+      },
+    ],
+  },
+  'decision-you-would-now-reverse': {
+    summary:
+      'Pick a real decision that was reasonable at the time but turned out wrong as the context changed: a library, an architecture, a data model. Explain why it made sense then, what signals showed it was wrong, its cost, and what you did about it. The interviewer is looking for self-awareness and learning, not perfection.',
+    details: [
+      { type: 'heading3', text: 'What the interviewer is assessing' },
+      {
+        type: 'bullets',
+        items: [
+          'Honesty and self-awareness: can you own a mistake without excuses or self-blame?',
+          'Whether you judge past decisions fairly, given what was known at the time.',
+          'How quickly you noticed and what you did about it.',
+          'The lesson, and whether it changed how you decide now.',
+        ],
+      },
+      { type: 'heading3', text: 'A strong answer, step by step' },
+      {
+        type: 'numbered',
+        items: [
+          '**Situation:** the decision and the context (team, constraints, timeline).',
+          '**Task:** why you made it; it should sound reasonable.',
+          '**Action:** the signals that it was wrong, the cost, and what you did (reversed it, contained it, or accepted it with a plan).',
+          '**Result:** where it ended up.',
+          '**Reflection:** what you now do differently, such as decision records, spikes or reversibility checks.',
+        ],
+      },
+      { type: 'heading3', text: 'Example answer (adapt it to your own story)' },
+      {
+        type: 'paragraph',
+        text: '"Three years ago I chose to split a small product into four Node microservices from day one: users, catalog, orders and notifications, each with its own MongoDB database. The team expected to grow quickly and I wanted clear boundaries. The growth never came: we stayed at four engineers, and almost every feature touched two or three services. We spent a lot of time on cross-service calls, keeping data consistent with events, and four deployment pipelines.',
+      },
+      {
+        type: 'paragraph',
+        text: 'After a year, I measured that about 40% of our pull requests needed coordinated releases across services, and two incidents came from events arriving out of order. I proposed merging catalog and orders back into one service with modules, keeping only notifications separate because it really did scale differently. We merged them over two sprints behind the same API, and coordinated releases became rare. Today I would start with a modular monolith with clear module boundaries and split out services only when a specific scaling or team-ownership need appears. I also write a short decision record for big choices, including what would make us revisit them."',
+      },
+      { type: 'heading3', text: 'Weak vs strong' },
+      {
+        type: 'bullets',
+        items: [
+          '**Weak:** "I can\'t think of one." **Strong:** a real decision, with its cost and what you changed.',
+          '**Weak:** blaming the team or management for the decision. **Strong:** owning your part.',
+          '**Weak:** a trivial choice (variable naming). **Strong:** an architectural or tooling decision with real consequences.',
+        ],
+      },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          '"Why did it make sense at the time?" — Show the reasoning was sound given what you knew.',
+          '"How did you convince people to reverse it?" — With data on its cost, and a safe, incremental plan.',
+          '"How do you avoid this kind of mistake now?" — Decision records, a check on reversibility, smaller bets.',
+          '"Is there anything you would still keep from the original decision?" — Shows balanced judgement.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          'Choosing a fake weakness or a decision that was actually right.',
+          'Excessive self-criticism; the decision should have been reasonable at the time.',
+          'No action taken after realising the mistake.',
+          "A lesson that is too vague, like 'communicate more'.",
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you judge the decision by what was known at the time, quantify its cost, reverse it safely, and turn the lesson into a lasting practice such as decision records or reversibility checks.',
+      },
+    ],
+  },
+  'setting-code-review-standards': {
+    summary:
+      "Explain how you make review standards explicit, automate everything a machine can check, and keep human review for design, correctness and readability. Show how you agreed the standards with the team instead of imposing them, kept reviews fast, and adjusted them over time. A concrete example of improving a team's review culture makes it convincing.",
+    details: [
+      { type: 'heading3', text: 'What the interviewer is assessing' },
+      {
+        type: 'bullets',
+        items: [
+          'Whether you can turn taste into **written, agreed standards** that the team owns.',
+          'Use of automation (formatter, linter, type checks, tests in CI) so humans focus on what matters.',
+          'Attention to **speed and tone**: review turnaround, pull request size, kind and specific comments.',
+          'How you handle disagreement in reviews and how the standards evolve.',
+        ],
+      },
+      { type: 'heading3', text: 'A strong answer, step by step' },
+      {
+        type: 'numbered',
+        items: [
+          '**Situation:** the problem with reviews (slow, inconsistent, nitpicky, rubber-stamped).',
+          '**Task:** your role in improving it.',
+          '**Action:** a short written guide built with the team, automation in CI, a pull request template, size and turnaround norms, comment conventions (nit, suggestion, blocking), and a regular review of the guide.',
+          '**Result:** measurable change: turnaround time, pull request size, escaped defects, how people felt.',
+          '**Reflection:** what you would add next.',
+        ],
+      },
+      { type: 'heading3', text: 'Example answer (adapt it to your own story)' },
+      {
+        type: 'paragraph',
+        text: "\"When I joined as tech lead, reviews on our Angular and Node monorepo took on average two days, and most comments were about formatting or import order. People also approved large pull requests without really reading them. I ran a retro on reviews and we agreed a one-page guide together: what reviewers must check (correctness, tests, security, naming, design fit), what is the author's job, and comment prefixes so 'nit' never blocks a merge.",
+      },
+      {
+        type: 'paragraph',
+        text: 'Then we automated the rest: Prettier and ESLint in pre-commit hooks and CI, strict TypeScript, Angular template checks, and a pull request template asking for screenshots and a test plan. We set two norms: aim for pull requests under about 400 changed lines, and a first review within one working day, which we made visible on a small dashboard. Within two months the median time to first review fell to around four hours and formatting comments almost disappeared. We review the guide every quarter; the last change added a checklist item for database index changes after an incident."',
+      },
+      { type: 'heading3', text: 'Weak vs strong' },
+      {
+        type: 'bullets',
+        items: [
+          '**Weak:** "I make sure everyone follows my style." **Strong:** "We wrote the guide together and automated everything mechanical."',
+          '**Weak:** reviews as gatekeeping. **Strong:** reviews as knowledge sharing, with fast turnaround.',
+          '**Weak:** standards set once and forgotten. **Strong:** a short guide that evolves after incidents and retros.',
+        ],
+      },
+      { type: 'heading3', text: 'Follow-up questions interviewers ask' },
+      {
+        type: 'bullets',
+        items: [
+          '"What do you look for first in a review?" — Correctness and design fit, then tests, security and readability; style is the tooling\'s job.',
+          '"How do you handle a reviewer who blocks on preferences?" — Point to the guide; non-blocking \'nit\'; discuss recurring disagreements in a retro and update the guide.',
+          '"How do you review a 2,000-line pull request?" — Ask for it to be split, or review it together in a call; prevent it next time with smaller tasks.',
+          '"Should juniors review seniors\' code?" — Yes; it spreads knowledge and catches real issues.',
+        ],
+      },
+      { type: 'heading3', text: 'Common mistakes' },
+      {
+        type: 'bullets',
+        items: [
+          'Using human review for things a formatter or linter could enforce.',
+          "Standards that live only in one person's head.",
+          'Slow reviews, which push people towards larger, riskier pull requests.',
+          'Harsh or vague comments with no explanation.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Senior signal: you automate the mechanical checks, agree a short written guide with the team, measure review speed and size, and update the standards from real incidents rather than personal taste.',
       },
     ],
   },

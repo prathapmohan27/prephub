@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What are the most common security vulnerabilities in Node.js applications?': {
+  'common-node-js-vulnerabilities': {
     summary:
       'Mostly the OWASP Top 10 applied to Node: **injection** (SQL, NoSQL, command, path traversal), **broken authentication/authorization** (weak JWT handling, missing ownership checks — IDOR), **vulnerable dependencies** (npm supply chain), **XSS**, **SSRF**, **insecure configuration** (missing headers, verbose errors, permissive CORS, secrets in code), **prototype pollution**, and **denial of service** — including ReDoS and event-loop blocking, which hit Node especially hard because of its single thread.',
     details: [
@@ -92,7 +92,7 @@ merge({}, JSON.parse('{"__proto__": {"isAdmin": true}}'));
     ],
   },
 
-  'What is the difference between authentication and authorization?': {
+  'authentication-vs-authorization': {
     summary:
       '**Authentication** (AuthN) verifies **who** you are — password, OAuth/OIDC login, API key, certificate, MFA. **Authorization** (AuthZ) decides **what** an authenticated identity is allowed to do — roles, permissions, resource ownership, policies. Authentication always comes first; failing it is HTTP 401, failing authorization is HTTP 403.',
     details: [
@@ -160,7 +160,7 @@ app.delete('/users/:id', authenticate, requireRole('admin'), deleteUser);`,
     ],
   },
 
-  'What is JWT and how does authentication work with it?': {
+  'how-jwt-authentication-works': {
     summary:
       'A JSON Web Token is a compact, URL-safe token of three base64url parts — `header.payload.signature`. The server signs claims (user id `sub`, roles, `exp`) with a secret (HS256) or private key (RS256/ES256); later, any service holding the key can verify the signature and expiry **without a database lookup**, making auth stateless. The payload is only encoded, not encrypted, so never put secrets in it.',
     details: [
@@ -259,7 +259,7 @@ function requireAuth(req, res, next) {
     ],
   },
 
-  'What is OAuth 2.0 and how does it work?': {
+  'how-oauth-2-0-works': {
     summary:
       "OAuth 2.0 is a **delegated authorization** framework: it lets an application obtain a limited-scope **access token** to act on a user's behalf at another service, without ever seeing the user's password. The user authenticates with the **authorization server** and consents; the app gets a code that it exchanges for tokens. The recommended flow for web, SPA and mobile apps is **Authorization Code with PKCE**; **Client Credentials** is for machine-to-machine. For login (identity) you use **OpenID Connect**, built on top of OAuth.",
     details: [
@@ -362,7 +362,7 @@ app.get('/callback', async (req, res) => {
     ],
   },
 
-  'How do you store passwords securely in Node.js?': {
+  'store-passwords-securely': {
     summary:
       "Never store passwords or reversible encryptions of them — store a **slow, salted, one-way hash** made with a password hashing function: **Argon2id** (preferred), **scrypt** (built into `node:crypto`) or **bcrypt** (cost ≥ 10–12). Each hash includes a unique random salt; verify with the library's compare function, which is constant-time. Never use fast hashes like MD5, SHA-1 or plain SHA-256.",
     details: [
@@ -456,7 +456,7 @@ export async function verifyPassword(password, stored) {
     ],
   },
 
-  'What is SQL injection and how do you prevent it?': {
+  'prevent-sql-injection': {
     summary:
       'SQL injection happens when user input is concatenated into a SQL string, so the input is executed as SQL — letting an attacker read or modify any data, bypass login, or even run commands. The fix is to never build SQL from strings: use **parameterised queries / prepared statements** (or an ORM/query builder that does it for you), **allow-list** anything that cannot be a parameter (column names, sort direction), validate input, and run the app with a **least-privilege** DB user.',
     details: [
@@ -538,7 +538,7 @@ await pool.query(\`SELECT * FROM products ORDER BY \${column} \${dir} LIMIT $1\`
     ],
   },
 
-  'How do you prevent NoSQL injection in MongoDB?': {
+  'prevent-nosql-injection-in-mongodb': {
     summary:
       'NoSQL injection in MongoDB usually means **operator injection**: a client sends an object such as `{"$ne": null}` or `{"$gt": ""}` where you expected a string, changing the meaning of the query (e.g. bypassing login). Prevent it by **validating types with a schema** (Zod/Joi/class-validator) so fields are plain strings, casting values (`String(x)`), stripping keys starting with `$` or containing `.`, enabling Mongoose\'s `sanitizeFilter`, and never using `$where`/`$function`/`$accumulator` with user input.',
     details: [
@@ -635,7 +635,7 @@ function hasOperators(value) {
     ],
   },
 
-  'What is CORS and how do you configure it in Node.js?': {
+  'configure-cors-in-node-js': {
     summary:
       'CORS (Cross-Origin Resource Sharing) is a browser mechanism that relaxes the **Same-Origin Policy**: by default, JavaScript on `https://app.com` cannot read responses from `https://api.com`. The API opts in by sending headers such as `Access-Control-Allow-Origin`, and for "non-simple" requests the browser first sends a **preflight** `OPTIONS` request. In Node, use the `cors` middleware (or `app.enableCors()` in NestJS) with an explicit allow-list of origins.',
     details: [
@@ -728,7 +728,7 @@ app.enableCors({
     ],
   },
 
-  'What is helmet.js and what security headers does it set?': {
+  'helmet-js-and-security-headers': {
     summary:
       'Helmet is Express middleware (also usable in NestJS, and as `@fastify/helmet`) that sets a collection of HTTP **security response headers** with sensible defaults in one line, `app.use(helmet())`. By default it sets `Content-Security-Policy`, `Strict-Transport-Security`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy: no-referrer`, `Cross-Origin-Opener-Policy`, `Cross-Origin-Resource-Policy`, `Origin-Agent-Cluster` and a few legacy headers, and removes `X-Powered-By`.',
     details: [

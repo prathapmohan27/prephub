@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What is your understanding of the DOM? Explain with a real-time example.': {
+  'dom-with-a-real-example': {
     summary:
       "The DOM (Document Object Model) is the browser's in-memory, tree-shaped representation of an HTML page, exposed as objects that JavaScript can read and change. The browser parses HTML into DOM nodes, combines them with CSS to render the page, and whenever the DOM changes it updates what you see. Frameworks like Angular update the DOM for you based on component state.",
     details: [
@@ -193,7 +193,7 @@ export class PanelComponent {
     ],
   },
 
-  'What is Event Delegation?': {
+  'event-delegation': {
     summary:
       'Event delegation means attaching ONE listener to a common parent instead of a listener on every child. Thanks to event bubbling, a click on a child travels up to the parent, where you use `event.target` (usually with `closest()`) to work out which child was clicked. It saves memory and automatically works for children added later.',
     details: [
@@ -286,7 +286,7 @@ export class TodosComponent {
     ],
   },
 
-  'Explain event bubbling and event capturing in JavaScript': {
+  'event-bubbling-vs-capturing': {
     summary:
       "In the DOM, an event travels in three phases: **capturing** (from `window` down through ancestors to the target), **target**, then **bubbling** (from the target back up to `window`). Listeners run in the bubbling phase by default; pass `{ capture: true }` to run during capturing. `stopPropagation()` halts the journey. Node's `EventEmitter` has no propagation at all — events go only to listeners on that emitter.",
     details: [

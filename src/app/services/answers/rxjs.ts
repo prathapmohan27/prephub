@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What is an Observable in RxJS?': {
+  'what-an-observable-is': {
     summary:
       'An Observable is a lazy stream of values over time. It does nothing until someone subscribes; then it can emit zero or more values with `next`, and finish with either `error` or `complete`. Subscribing returns a `Subscription` you can `unsubscribe()` from to stop it and run its teardown logic.',
     details: [
@@ -80,7 +80,7 @@ this.http.get<User[]>('/api/users');  // Angular HttpClient → one value, then 
     ],
   },
 
-  'Why do we use Observables in Angular?': {
+  'why-angular-uses-observables': {
     summary:
       'Because much of Angular is built on them: `HttpClient` returns Observables, as do the Router (`events`, `paramMap`), reactive forms (`valueChanges`) and `@angular/core` APIs like `outputToObservable`. They model async events over time, are cancellable (switching routes aborts HTTP calls), and RxJS operators make complex async flows — debouncing, retrying, combining requests — declarative. Since Angular 16+, signals handle synchronous UI state, and RxJS remains the tool for async event streams.',
     details: [
@@ -149,16 +149,15 @@ export class ProductPage {
     ],
   },
 
-  'What are the key differences between a Promise and an Observable (`eager vs lazy, single vs multiple values, cancellation`)?':
-    {
-      summary:
-        "A Promise is **eager** (starts immediately when created), resolves **one value** once, can't be cancelled, and always delivers asynchronously. An Observable is **lazy** (runs only on subscribe, and again for each subscriber), can emit **many values** over time, is **cancellable** via `unsubscribe()`, can be sync or async, and has a rich operator library.",
-      details: [
-        { type: 'heading3', text: 'Eager vs lazy' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `const p = new Promise((resolve) => {
+  'promise-vs-observable': {
+    summary:
+      "A Promise is **eager** (starts immediately when created), resolves **one value** once, can't be cancelled, and always delivers asynchronously. An Observable is **lazy** (runs only on subscribe, and again for each subscriber), can emit **many values** over time, is **cancellable** via `unsubscribe()`, can be sync or async, and has a rich operator library.",
+    details: [
+      { type: 'heading3', text: 'Eager vs lazy' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `const p = new Promise((resolve) => {
   console.log('promise executor runs');   // logs IMMEDIATELY, even with no .then()
   resolve(42);
 });
@@ -171,22 +170,22 @@ const o = new Observable((sub) => {
 // nothing logged for o yet…
 o.subscribe();  // "observable producer runs"
 o.subscribe();  // runs AGAIN — each subscriber gets its own execution (cold)`,
-        },
-        { type: 'heading3', text: 'Single vs multiple values' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `new Promise((resolve) => { resolve(1); resolve(2); })
+      },
+      { type: 'heading3', text: 'Single vs multiple values' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `new Promise((resolve) => { resolve(1); resolve(2); })
   .then(console.log);                     // 1  — later resolves are ignored
 
 new Observable<number>((sub) => { sub.next(1); sub.next(2); sub.next(3); })
   .subscribe(console.log);                // 1, 2, 3`,
-        },
-        { type: 'heading3', text: 'Cancellation' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Observable: unsubscribe runs teardown → HttpClient aborts the XHR/fetch
+      },
+      { type: 'heading3', text: 'Cancellation' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Observable: unsubscribe runs teardown → HttpClient aborts the XHR/fetch
 const sub = this.http.get('/api/report').subscribe();
 sub.unsubscribe();                        // request cancelled (visible as "canceled" in DevTools)
 
@@ -194,39 +193,39 @@ sub.unsubscribe();                        // request cancelled (visible as "canc
 const ctrl = new AbortController();
 fetch('/api/report', { signal: ctrl.signal });
 ctrl.abort();`,
-        },
-        { type: 'heading3', text: 'Side-by-side' },
-        {
-          type: 'bullets',
-          items: [
-            '**Execution**: Promise eager · Observable lazy.',
-            '**Values**: Promise one · Observable zero to many (then complete or error).',
-            '**Cancel**: Promise no (needs AbortController) · Observable `unsubscribe()`.',
-            '**Timing**: Promise `.then` always async (microtask) · Observable may emit synchronously (`of(1)`).',
-            '**Sharing**: a Promise caches its result for all `.then` callers · a cold Observable re-executes per subscriber unless you `share()`/`shareReplay()`.',
-            '**Operators**: Promise has `then/catch/finally` + `Promise.all/race` · Observable has 100+ operators (`map`, `retry`, `debounceTime`, `switchMap`…).',
-            '**Errors**: both propagate errors; RxJS can `retry` by re-subscribing, which a Promise cannot do.',
-          ],
-        },
-        { type: 'heading3', text: 'Converting between them' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `import { from, firstValueFrom, lastValueFrom } from 'rxjs';
+      },
+      { type: 'heading3', text: 'Side-by-side' },
+      {
+        type: 'bullets',
+        items: [
+          '**Execution**: Promise eager · Observable lazy.',
+          '**Values**: Promise one · Observable zero to many (then complete or error).',
+          '**Cancel**: Promise no (needs AbortController) · Observable `unsubscribe()`.',
+          '**Timing**: Promise `.then` always async (microtask) · Observable may emit synchronously (`of(1)`).',
+          '**Sharing**: a Promise caches its result for all `.then` callers · a cold Observable re-executes per subscriber unless you `share()`/`shareReplay()`.',
+          '**Operators**: Promise has `then/catch/finally` + `Promise.all/race` · Observable has 100+ operators (`map`, `retry`, `debounceTime`, `switchMap`…).',
+          '**Errors**: both propagate errors; RxJS can `retry` by re-subscribing, which a Promise cannot do.',
+        ],
+      },
+      { type: 'heading3', text: 'Converting between them' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `import { from, firstValueFrom, lastValueFrom } from 'rxjs';
 
 const obs$ = from(fetch('/api/x'));                     // Promise → Observable
 const user = await firstValueFrom(this.http.get<User>('/api/me')); // Observable → Promise
 // toPromise() is deprecated in RxJS 7 — use firstValueFrom / lastValueFrom`,
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: "Interview tip: back each difference with a one-line example (the console.log in the Promise executor is the classic proof of eagerness). Also say when a Promise is fine: a one-shot async value you'll `await` and never cancel.",
-        },
-      ],
-    },
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: "Interview tip: back each difference with a one-line example (the console.log in the Promise executor is the classic proof of eagerness). Also say when a Promise is fine: a one-shot async value you'll `await` and never cancel.",
+      },
+    ],
+  },
 
-  'Explain the difference between cold and hot observables with examples': {
+  'cold-vs-hot-observables': {
     summary:
       'A **cold** observable creates its producer per subscriber — each subscription gets its own independent execution from the start (e.g. `HttpClient.get` sends a new request per subscribe, `interval` starts a new timer). A **hot** observable has a producer that exists independently and is shared — subscribers receive only values emitted after they subscribe (e.g. DOM events, a `Subject`, WebSocket messages). You turn cold into hot (multicast) with `share()` or `shareReplay()`.',
     details: [
@@ -304,7 +303,7 @@ users$.subscribe();   // no new request — gets the cached response`,
     ],
   },
 
-  'What is the core difference between a Subject and an Observable in RxJS?': {
+  'subject-vs-observable': {
     summary:
       'A plain Observable is **unicast** and passive: each subscriber triggers its own execution, and only the producer inside can emit. A Subject is **both an Observable and an Observer** — it is **multicast** (one execution shared by all subscribers, like an event emitter) and you can push values into it from outside with `next()`, `error()` and `complete()`.',
     details: [
@@ -364,7 +363,7 @@ export class CartEvents {
     ],
   },
 
-  'What is the difference between Subject, BehaviorSubject, ReplaySubject, and AsyncSubject?': {
+  'subject-vs-behavior-replay-asyncsubject': {
     summary:
       'All four are multicast Subjects; they differ in what they deliver and when. `Subject`: only future values. `BehaviorSubject`: needs an initial value and replays the current value to each new subscriber. `ReplaySubject(n, windowTime?)`: replays the last n values. `AsyncSubject`: emits **only the last value, and only when it completes** — to all current and future subscribers, much like a Promise.',
     details: [
@@ -635,7 +634,7 @@ export class CartPageComponent {
     ],
   },
 
-  'Which RxJS operators have you used?': {
+  'rxjs-operators-you-have-used': {
     summary:
       'Group them by purpose rather than listing names: transformation (`map`, `scan`), filtering (`filter`, `distinctUntilChanged`, `debounceTime`, `take`, `takeUntil`), higher-order mapping (`switchMap`, `mergeMap`, `concatMap`, `exhaustMap`), combination (`combineLatest`, `forkJoin`, `withLatestFrom`), multicasting (`shareReplay`), error handling (`catchError`, `retry`) and utility (`tap`, `finalize`). Then give a real example for the ones you use most.',
     details: [
@@ -882,20 +881,19 @@ this.searchControl.valueChanges.pipe(searchTerm(3), switchMap(search));`,
     ],
   },
 
-  'When would you use switchMap vs mergeMap vs concatMap vs exhaustMap? Give a real-world scenario for each':
-    {
-      summary:
-        'Decide by what should happen when a new value arrives while the previous inner request is still running: **switchMap** cancels it (search box, route params); **mergeMap** runs both in parallel (uploading multiple files, independent deletes); **concatMap** queues the new one until the previous finishes (ordered auto-save, chat messages sent in order); **exhaustMap** ignores the new one until the current finishes (login/payment submit button, pull-to-refresh).',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'All four are "higher-order mapping" operators: they map a value to an Observable and subscribe to it for you. The only difference is their overlap strategy.',
-        },
-        { type: 'heading3', text: 'Scenarios side by side' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// 1) switchMap — product search: only the latest term's results matter
+  'switchmap-vs-mergemap-vs-concatmap': {
+    summary:
+      'Decide by what should happen when a new value arrives while the previous inner request is still running: **switchMap** cancels it (search box, route params); **mergeMap** runs both in parallel (uploading multiple files, independent deletes); **concatMap** queues the new one until the previous finishes (ordered auto-save, chat messages sent in order); **exhaustMap** ignores the new one until the current finishes (login/payment submit button, pull-to-refresh).',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'All four are "higher-order mapping" operators: they map a value to an Observable and subscribe to it for you. The only difference is their overlap strategy.',
+      },
+      { type: 'heading3', text: 'Scenarios side by side' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// 1) switchMap — product search: only the latest term's results matter
 results$ = this.term$.pipe(debounceTime(300), distinctUntilChanged(),
   switchMap((t) => this.api.search(t)));
 
@@ -907,49 +905,49 @@ this.send$.pipe(concatMap((msg) => this.api.postMessage(msg))).subscribe();
 
 // 4) exhaustMap — payment "Pay now": extra clicks while the request runs are ignored
 this.payClick$.pipe(exhaustMap(() => this.api.charge(this.order()))).subscribe();`,
-        },
-        {
-          type: 'heading3',
-          text: 'What happens with clicks at t=0, 100ms, 200ms (each request takes 1s)',
-        },
-        {
-          type: 'bullets',
-          items: [
-            '**switchMap**: requests 1 and 2 cancelled, only request 3 completes → 1 result.',
-            '**mergeMap**: 3 concurrent requests → 3 results, possibly out of order.',
-            '**concatMap**: request 1 runs, then 2, then 3 → 3 results, in order, ~3s total.',
-            '**exhaustMap**: request 1 runs; clicks 2 and 3 are dropped → 1 result (from the first click).',
-          ],
-        },
-        {
-          type: 'flow',
-          title: 'Overlap strategies',
-          code: `flowchart LR
+      },
+      {
+        type: 'heading3',
+        text: 'What happens with clicks at t=0, 100ms, 200ms (each request takes 1s)',
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**switchMap**: requests 1 and 2 cancelled, only request 3 completes → 1 result.',
+          '**mergeMap**: 3 concurrent requests → 3 results, possibly out of order.',
+          '**concatMap**: request 1 runs, then 2, then 3 → 3 results, in order, ~3s total.',
+          '**exhaustMap**: request 1 runs; clicks 2 and 3 are dropped → 1 result (from the first click).',
+        ],
+      },
+      {
+        type: 'flow',
+        title: 'Overlap strategies',
+        code: `flowchart LR
   N["New value while<br/>inner is busy"]:::highlight --> A["switchMap:<br/>cancel old, start new"]:::client
   N --> B["mergeMap:<br/>start new in parallel"]:::network
   N --> C["concatMap:<br/>queue new"]:::server
   N --> D["exhaustMap:<br/>drop new"]:::security`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Reads that can be superseded → **switchMap**.',
-            'Independent writes, throughput matters → **mergeMap** (with a concurrency limit).',
-            'Writes where order/consistency matters → **concatMap**.',
-            'Non-idempotent actions that must not be duplicated → **exhaustMap** (plus disable the button and use idempotency keys on the server).',
-          ],
-        },
-        { type: 'divider' },
-        { type: 'heading3', text: 'Follow-up: Difference between switchMap and mergeMap' },
-        {
-          type: 'paragraph',
-          text: 'Both map each source value to an inner Observable and flatten the results. `switchMap` **cancels** the previous inner Observable when a new value arrives — only the latest one matters (search, route params). `mergeMap` keeps **all** inner Observables running **concurrently** and emits results as they arrive, in any order (parallel uploads, independent saves).',
-        },
-        { type: 'heading3', text: 'Same input, different behaviour' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Fake API that takes 1s to respond
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Reads that can be superseded → **switchMap**.',
+          'Independent writes, throughput matters → **mergeMap** (with a concurrency limit).',
+          'Writes where order/consistency matters → **concatMap**.',
+          'Non-idempotent actions that must not be duplicated → **exhaustMap** (plus disable the button and use idempotency keys on the server).',
+        ],
+      },
+      { type: 'divider' },
+      { type: 'heading3', text: 'Follow-up: Difference between switchMap and mergeMap' },
+      {
+        type: 'paragraph',
+        text: 'Both map each source value to an inner Observable and flatten the results. `switchMap` **cancels** the previous inner Observable when a new value arrives — only the latest one matters (search, route params). `mergeMap` keeps **all** inner Observables running **concurrently** and emits results as they arrive, in any order (parallel uploads, independent saves).',
+      },
+      { type: 'heading3', text: 'Same input, different behaviour' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Fake API that takes 1s to respond
 const fakeApi = (id: string) => timer(1000).pipe(map(() => \`result \${id}\`));
 
 // User triggers a, b, c quickly (within 1s)
@@ -960,12 +958,12 @@ clicks$.pipe(switchMap(fakeApi)).subscribe(console.log);
 
 clicks$.pipe(mergeMap(fakeApi)).subscribe(console.log);
 // result a, result b, result c   ← all three ran in parallel`,
-        },
-        { type: 'heading3', text: 'Real-world use' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// switchMap: product detail page — new route param makes the old request irrelevant
+      },
+      { type: 'heading3', text: 'Real-world use' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// switchMap: product detail page — new route param makes the old request irrelevant
 product$ = this.route.paramMap.pipe(
   switchMap((p) => this.api.getProduct(p.get('id')!)),
 );
@@ -974,11 +972,11 @@ product$ = this.route.paramMap.pipe(
 upload$ = from(files).pipe(
   mergeMap((file) => this.api.upload(file), 3),   // concurrency limit
 );`,
-        },
-        {
-          type: 'flow',
-          title: 'switchMap vs mergeMap timeline',
-          code: `sequenceDiagram
+      },
+      {
+        type: 'flow',
+        title: 'switchMap vs mergeMap timeline',
+        code: `sequenceDiagram
   participant S as Source
   participant SW as switchMap
   participant MM as mergeMap
@@ -989,34 +987,34 @@ upload$ = from(files).pipe(
   S->>MM: b (start b in parallel)
   MM-->>S: result b (whichever finishes first)
   MM-->>S: result a`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '**switchMap**: cancel previous → latest wins. Risky for writes (a cancelled POST may still have reached the server).',
-            '**mergeMap** (alias `flatMap`): no cancellation, concurrent, unordered results; optional `concurrent` argument.',
-            'Use `concatMap` if you need sequential, ordered processing; `exhaustMap` to ignore new values while busy.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Pitfall: using `switchMap` for save/delete requests. Cancelling the HTTP observable only aborts the client side — the server may already have processed it, and you lose the response. Use `concatMap` or `mergeMap` for writes.',
-        },
-        { type: 'divider' },
-        {
-          type: 'heading3',
-          text: 'Follow-up: Explain the use cases of switchMap, concatMap, and mergeMap.',
-        },
-        {
-          type: 'paragraph',
-          text: 'All three flatten inner Observables; they differ in how they handle overlap. `switchMap` — cancel the previous, keep the latest: type-ahead search, route-param driven loads, refresh triggers. `concatMap` — queue and run one at a time in order: sequential saves, ordered API calls, processing a queue. `mergeMap` — run all in parallel: bulk uploads, independent fire-and-forget requests, handling WebSocket messages concurrently.',
-        },
-        { type: 'heading3', text: 'switchMap — "only the latest matters"' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Type-ahead: when the user types again, the old request is aborted
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**switchMap**: cancel previous → latest wins. Risky for writes (a cancelled POST may still have reached the server).',
+          '**mergeMap** (alias `flatMap`): no cancellation, concurrent, unordered results; optional `concurrent` argument.',
+          'Use `concatMap` if you need sequential, ordered processing; `exhaustMap` to ignore new values while busy.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Pitfall: using `switchMap` for save/delete requests. Cancelling the HTTP observable only aborts the client side — the server may already have processed it, and you lose the response. Use `concatMap` or `mergeMap` for writes.',
+      },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: Explain the use cases of switchMap, concatMap, and mergeMap.',
+      },
+      {
+        type: 'paragraph',
+        text: 'All three flatten inner Observables; they differ in how they handle overlap. `switchMap` — cancel the previous, keep the latest: type-ahead search, route-param driven loads, refresh triggers. `concatMap` — queue and run one at a time in order: sequential saves, ordered API calls, processing a queue. `mergeMap` — run all in parallel: bulk uploads, independent fire-and-forget requests, handling WebSocket messages concurrently.',
+      },
+      { type: 'heading3', text: 'switchMap — "only the latest matters"' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Type-ahead: when the user types again, the old request is aborted
 results$ = this.query.valueChanges.pipe(
   debounceTime(300),
   switchMap((q) => this.api.search(q)),
@@ -1024,12 +1022,12 @@ results$ = this.query.valueChanges.pipe(
 
 // Dashboard refresh: a new tick or click restarts loading
 data$ = merge(interval(30_000), this.refreshClick$).pipe(switchMap(() => this.api.load()));`,
-        },
-        { type: 'heading3', text: 'concatMap — "one at a time, in order"' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Auto-save each edit; saves must hit the server in the same order the user made them
+      },
+      { type: 'heading3', text: 'concatMap — "one at a time, in order"' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Auto-save each edit; saves must hit the server in the same order the user made them
 this.form.valueChanges.pipe(
   debounceTime(500),
   concatMap((value) => this.api.saveDraft(value)),   // next save waits for the previous to finish
@@ -1037,12 +1035,12 @@ this.form.valueChanges.pipe(
 
 // Dependent sequential steps
 from(['step1', 'step2', 'step3']).pipe(concatMap((s) => this.api.runStep(s)));`,
-        },
-        { type: 'heading3', text: 'mergeMap — "all at once"' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Delete selected rows in parallel (limit to 4 concurrent requests)
+      },
+      { type: 'heading3', text: 'mergeMap — "all at once"' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Delete selected rows in parallel (limit to 4 concurrent requests)
 from(selectedIds).pipe(
   mergeMap((id) => this.api.delete(id), 4),
   toArray(),                                   // wait for all to finish
@@ -1050,33 +1048,33 @@ from(selectedIds).pipe(
 
 // Each incoming socket message triggers an independent lookup
 this.socket.messages$.pipe(mergeMap((m) => this.api.enrich(m)));`,
-        },
-        {
-          type: 'flow',
-          title: 'Pick the right flattening operator',
-          code: `flowchart TD
+      },
+      {
+        type: 'flow',
+        title: 'Pick the right flattening operator',
+        code: `flowchart TD
   Q{"New value arrives while<br/>previous inner is still running"} -->|"Old one is obsolete"| SW["switchMap<br/>cancel previous"]:::highlight
   Q -->|"Order matters, keep all"| CM["concatMap<br/>queue"]:::server
   Q -->|"Independent, speed matters"| MM["mergeMap<br/>parallel"]:::network
   Q -->|"Ignore until finished"| EM["exhaustMap<br/>drop new"]:::security`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '`switchMap` is ideal for **reads**; avoid it for writes.',
-            '`concatMap` can build up a backlog if the source is faster than the inner work.',
-            '`mergeMap` gives no ordering guarantees; pass a concurrency limit to avoid flooding the server.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: frame it as "what to do with overlap: cancel, parallel, queue or ignore." That one sentence shows you understand the model, not just memorised examples.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          '`switchMap` is ideal for **reads**; avoid it for writes.',
+          '`concatMap` can build up a backlog if the source is faster than the inner work.',
+          '`mergeMap` gives no ordering guarantees; pass a concurrency limit to avoid flooding the server.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: frame it as "what to do with overlap: cancel, parallel, queue or ignore." That one sentence shows you understand the model, not just memorised examples.',
+      },
+    ],
+  },
 
-  'Explain the difference between combineLatest, forkJoin, zip, and withLatestFrom': {
+  'combinelatest-vs-forkjoin-vs-zip': {
     summary:
       '`combineLatest` emits the latest value of every source whenever **any** source emits (after each has emitted once) — great for filters + data. `forkJoin` waits for **all sources to complete** and emits their last values once — like `Promise.all` for parallel HTTP calls. `zip` pairs values **by index** (1st with 1st, 2nd with 2nd). `withLatestFrom` is an operator: when the **primary** source emits, it grabs the latest value from the others — the secondary sources never trigger emissions.',
     details: [
@@ -1145,7 +1143,7 @@ zip(this.questions$, this.answers$).pipe(map(([q, a]) => ({ q, a })));`,
     ],
   },
 
-  'What does shareReplay(1) do and when is it essential?': {
+  'sharereplay-1-and-when-it-matters': {
     summary:
       '`shareReplay(1)` multicasts a source — all subscribers share a single subscription to it — and caches the **last emitted value**, replaying it immediately to anyone who subscribes later. It is essential when a cold, expensive source (usually an HTTP call) is subscribed to multiple times, e.g. several `async` pipes or components, and you want one request plus a cached result.',
     details: [
@@ -1215,7 +1213,7 @@ prices$ = this.socket.prices$.pipe(shareReplay({ bufferSize: 1, refCount: true }
     ],
   },
 
-  'What is the difference between debounceTime and throttleTime?': {
+  'debouncetime-vs-throttletime': {
     summary:
       '`debounceTime(ms)` waits for a **pause**: it emits the latest value only after the source has been silent for `ms` — every new value restarts the timer. `throttleTime(ms)` emits a value and then **ignores** values for the next `ms` — it guarantees at most one emission per window, even during continuous activity. Debounce = "after the user stops"; throttle = "at most once every X".',
     details: [
@@ -1268,7 +1266,7 @@ this.likeClick$.pipe(throttleTime(1000)).subscribe(() => this.api.like());`,
     ],
   },
 
-  'How does scan differ from reduce? Where would you use scan in an Angular app?': {
+  'scan-vs-reduce': {
     summary:
       "Both accumulate values with an accumulator function and seed. `reduce` emits **only the final** accumulated value when the source **completes** (so it never emits for infinite streams). `scan` emits the **running** accumulated value after **every** source emission — it's the RxJS way to keep state over time, e.g. a Redux-style reducer, running totals, infinite-scroll lists or undo stacks.",
     details: [
@@ -1343,16 +1341,15 @@ export class TodoStore {
     ],
   },
 
-  'What is takeUntil and how is it used for subscription management? What are modern alternatives?':
-    {
-      summary:
-        '`takeUntil(notifier$)` mirrors the source until `notifier$` emits, then completes — which unsubscribes from the source. The classic Angular pattern is a `destroy$` Subject that emits in `ngOnDestroy`, with `takeUntil(this.destroy$)` as the **last** operator. Modern alternatives: `takeUntilDestroyed()` from `@angular/core/rxjs-interop` (uses `DestroyRef`, no boilerplate), the `async` pipe, and `toSignal()` — all clean up automatically.',
-      details: [
-        { type: 'heading3', text: 'Classic pattern (pre-Angular 16)' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export class PriceTickerComponent implements OnInit, OnDestroy {
+  'takeuntil-and-modern-alternatives': {
+    summary:
+      '`takeUntil(notifier$)` mirrors the source until `notifier$` emits, then completes — which unsubscribes from the source. The classic Angular pattern is a `destroy$` Subject that emits in `ngOnDestroy`, with `takeUntil(this.destroy$)` as the **last** operator. Modern alternatives: `takeUntilDestroyed()` from `@angular/core/rxjs-interop` (uses `DestroyRef`, no boilerplate), the `async` pipe, and `toSignal()` — all clean up automatically.',
+    details: [
+      { type: 'heading3', text: 'Classic pattern (pre-Angular 16)' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export class PriceTickerComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   ngOnInit() {
@@ -1367,12 +1364,12 @@ export class TodoStore {
     this.destroy$.complete();
   }
 }`,
-        },
-        { type: 'heading3', text: 'Modern: takeUntilDestroyed()' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+      },
+      { type: 'heading3', text: 'Modern: takeUntilDestroyed()' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export class PriceTickerComponent {
   private prices = inject(PriceService);
@@ -1389,36 +1386,36 @@ export class PriceTickerComponent {
     interval(5000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.refresh());
   }
 }`,
-        },
-        { type: 'heading3', text: "Often best: don't subscribe manually at all" },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// async pipe — subscribes on render, unsubscribes on destroy
+      },
+      { type: 'heading3', text: "Often best: don't subscribe manually at all" },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// async pipe — subscribes on render, unsubscribes on destroy
 // template: {{ price$ | async }}
 price$ = this.prices.stream$.pipe(map((p) => p.toFixed(2)));
 
 // toSignal — subscribes immediately, unsubscribes when the injector is destroyed
 price = toSignal(this.prices.stream$.pipe(map((p) => p.toFixed(2))), { initialValue: '' });`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Place `takeUntil` **last**: operators after it (e.g. a `switchMap`) can keep inner subscriptions alive — there is even an ESLint rule (`rxjs/no-unsafe-takeuntil`).',
-            'HTTP observables complete on their own, but unsubscribing still matters to cancel in-flight requests when leaving a page.',
-            'Other completion operators: `take(1)`, `first()`, `takeWhile()`.',
-            '`DestroyRef.onDestroy(cb)` is the general-purpose cleanup hook behind `takeUntilDestroyed`.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: rank the options — "prefer `async` pipe or `toSignal`; if I must subscribe, `takeUntilDestroyed`; `takeUntil(destroy$)` is the legacy pattern I still see in older code." That ordering shows modern judgement.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Place `takeUntil` **last**: operators after it (e.g. a `switchMap`) can keep inner subscriptions alive — there is even an ESLint rule (`rxjs/no-unsafe-takeuntil`).',
+          'HTTP observables complete on their own, but unsubscribing still matters to cancel in-flight requests when leaving a page.',
+          'Other completion operators: `take(1)`, `first()`, `takeWhile()`.',
+          '`DestroyRef.onDestroy(cb)` is the general-purpose cleanup hook behind `takeUntilDestroyed`.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: rank the options — "prefer `async` pipe or `toSignal`; if I must subscribe, `takeUntilDestroyed`; `takeUntil(destroy$)` is the legacy pattern I still see in older code." That ordering shows modern judgement.',
+      },
+    ],
+  },
 
-  'What are schedulers in RxJS and when would you use asyncScheduler vs queueScheduler?': {
+  'asyncscheduler-vs-queuescheduler': {
     summary:
       'A scheduler controls **when** (and in what execution context) an Observable delivers values. `queueScheduler` runs work synchronously but queues nested/recursive tasks (trampolining) to avoid stack overflows. `asyncScheduler` schedules work as a macrotask with `setTimeout`/`setInterval` — it is what time-based operators (`delay`, `debounceTime`, `interval`) use by default. There are also `asapScheduler` (microtask, like a resolved Promise) and `animationFrameScheduler` (before the next repaint).',
     details: [
@@ -1494,7 +1491,7 @@ testScheduler.run(({ cold, expectObservable }) => {
     ],
   },
 
-  'How do you handle errors in RxJS streams? Explain catchError, retry, and retryWhen': {
+  'error-handling-catcherror-and-retry': {
     summary:
       '`catchError` intercepts an error and returns a replacement Observable — a fallback value (`of([])`), `EMPTY`, or a rethrow with `throwError(() => err)`. `retry(n)` resubscribes to the source up to n times on error. `retryWhen` was the old way to customise retries (delays, conditions) and is **deprecated in RxJS 7** in favour of `retry({ count, delay })`, where `delay` can be a number or a function returning a notifier Observable.',
     details: [
@@ -1734,7 +1731,7 @@ getOrders(): Observable<Order[]> {
     ],
   },
 
-  'Explain the complete RxJS flow: API response, subscribe, and error handling': {
+  'full-rxjs-flow-api-to-error-handling': {
     summary:
       "A service method returns a cold `HttpClient` Observable (nothing sent yet). The component composes it with operators — `map` to shape data, `retry`/`catchError` for failures, `finalize` for cleanup — and something subscribes (the `async` pipe, `toSignal()`, or `subscribe()`), which sends the request. The interceptor chain runs, the response flows back through the operators to `next`, followed by `complete`; on failure the error travels down until a `catchError` handles it or it reaches the subscriber's `error` callback. Unsubscribing early cancels the request.",
     details: [
@@ -1837,16 +1834,15 @@ export class UsersComponent {
     ],
   },
 
-  "You're building a type-ahead search — implement it using RxJS operators, handling debounce, cancellation of in-flight requests, and deduplication":
-    {
-      summary:
-        "Pipe the input's value stream through `map(trim)` → `filter(min length)` → `debounceTime(300)` (wait for typing to pause) → `distinctUntilChanged()` (skip repeated terms) → `switchMap` to the HTTP call (cancels the previous in-flight request when a new term arrives), with `catchError` **inside** the `switchMap` so one failed request doesn't kill the search, and render via `async` pipe or `toSignal`.",
-      details: [
-        { type: 'heading3', text: 'Full implementation (standalone component + signals)' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+  'build-a-type-ahead-search-with-rxjs': {
+    summary:
+      "Pipe the input's value stream through `map(trim)` → `filter(min length)` → `debounceTime(300)` (wait for typing to pause) → `distinctUntilChanged()` (skip repeated terms) → `switchMap` to the HTTP call (cancels the previous in-flight request when a new term arrives), with `catchError` **inside** the `switchMap` so one failed request doesn't kill the search, and render via `async` pipe or `toSignal`.",
+    details: [
+      { type: 'heading3', text: 'Full implementation (standalone component + signals)' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-product-search',
   imports: [ReactiveFormsModule],
   template: \`
@@ -1881,12 +1877,12 @@ export class ProductSearchComponent {
     initialValue: { term: '', results: [] as Product[], loading: false, error: null as string | null },
   });
 }`,
-        },
-        { type: 'heading3', text: 'Optional: cache results to avoid repeat calls' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `private cache = new Map<string, Product[]>();
+      },
+      { type: 'heading3', text: 'Optional: cache results to avoid repeat calls' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `private cache = new Map<string, Product[]>();
 
 search(term: string): Observable<Product[]> {
   const hit = this.cache.get(term);
@@ -1895,44 +1891,43 @@ search(term: string): Observable<Product[]> {
     tap((res) => this.cache.set(term, res)),
   );
 }`,
-        },
-        {
-          type: 'flow',
-          title: 'Type-ahead pipeline',
-          code: `flowchart LR
+      },
+      {
+        type: 'flow',
+        title: 'Type-ahead pipeline',
+        code: `flowchart LR
   K["keystrokes"]:::client --> D["debounceTime 300"]:::server --> DC["distinctUntilChanged"]:::server --> F{"length >= 2?"}
   F -->|no| E["empty results"]:::external
   F -->|yes| SW["switchMap<br/>cancel old request"]:::highlight --> API["GET /api/products?q="]:::network
   API --> CE["catchError inside<br/>keeps stream alive"]:::security --> UI["toSignal / template"]:::client`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '**Debounce** → fewer requests while typing.',
-            "**distinctUntilChanged** → no request if the term didn't really change (e.g. typing then deleting a char, or trailing spaces after `trim`).",
-            '**switchMap** → stale responses can\'t overwrite newer results (no race conditions); aborted requests show as "canceled" in DevTools.',
-            '**catchError inside** → the outer `valueChanges` stream survives errors.',
-            'Accessibility: announce result counts with `aria-live`; consider a minimum length and server-side rate limiting.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Common mistake: `mergeMap` instead of `switchMap` — responses can arrive out of order, so results for "an" might overwrite results for "angular". `switchMap` eliminates that race.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**Debounce** → fewer requests while typing.',
+          "**distinctUntilChanged** → no request if the term didn't really change (e.g. typing then deleting a char, or trailing spaces after `trim`).",
+          '**switchMap** → stale responses can\'t overwrite newer results (no race conditions); aborted requests show as "canceled" in DevTools.',
+          '**catchError inside** → the outer `valueChanges` stream survives errors.',
+          'Accessibility: announce result counts with `aria-live`; consider a minimum length and server-side rate limiting.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common mistake: `mergeMap` instead of `switchMap` — responses can arrive out of order, so results for "an" might overwrite results for "angular". `switchMap` eliminates that race.',
+      },
+    ],
+  },
 
-  'A user clicks a button 10 times and 10 API calls are triggered. How would you handle this using RxJS?':
-    {
-      summary:
-        'Turn the clicks into a stream and pick the operator that matches the intent: `exhaustMap` to ignore clicks while a request is running (submit/save — usually the right answer), `switchMap` if only the latest click matters (refresh), `throttleTime`/`debounceTime` to rate-limit, or `concatMap` if every click must be processed in order. Combine with disabling the button for UX and idempotency on the server.',
-      details: [
-        { type: 'heading3', text: 'Option 1 — exhaustMap: ignore clicks while busy' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+  'repeated-clicks-fire-duplicate-calls': {
+    summary:
+      'Turn the clicks into a stream and pick the operator that matches the intent: `exhaustMap` to ignore clicks while a request is running (submit/save — usually the right answer), `switchMap` if only the latest click matters (refresh), `throttleTime`/`debounceTime` to rate-limit, or `concatMap` if every click must be processed in order. Combine with disabling the button for UX and idempotency on the server.',
+    details: [
+      { type: 'heading3', text: 'Option 1 — exhaustMap: ignore clicks while busy' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-save',
   template: \`<button (click)="clicks.next()" [disabled]="saving()">Save</button>\`,
 })
@@ -1955,59 +1950,58 @@ export class SaveComponent {
   }
 }
 // 10 rapid clicks → 1 request; clicks after it finishes start a new one.`,
-        },
-        { type: 'heading3', text: 'Option 2 — switchMap: only the latest click matters' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// "Refresh" button: a newer click cancels the in-flight request
+      },
+      { type: 'heading3', text: 'Option 2 — switchMap: only the latest click matters' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// "Refresh" button: a newer click cancels the in-flight request
 data$ = this.refresh$.pipe(switchMap(() => this.api.load()));
 // 10 clicks → up to 10 requests started, 9 cancelled client-side, 1 result used`,
-        },
-        { type: 'heading3', text: 'Option 3 — time-based rate limiting' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `this.clicks.pipe(throttleTime(1000)).subscribe(() => this.api.like());   // at most 1/second, first click wins
+      },
+      { type: 'heading3', text: 'Option 3 — time-based rate limiting' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `this.clicks.pipe(throttleTime(1000)).subscribe(() => this.api.like());   // at most 1/second, first click wins
 this.clicks.pipe(debounceTime(500)).subscribe(() => this.api.save());    // fire once after clicking stops`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '**exhaustMap** — submit, login, payment, "create" actions (no duplicates).',
-            '**switchMap** — refresh/reload where the newest request supersedes older ones (reads only).',
-            '**concatMap** — every click is meaningful and order matters (e.g. "add one item" × 10 should add 10 items, sequentially).',
-            '**throttleTime / debounceTime** — rate limiting regardless of request duration.',
-            'Defense in depth: disable the button while pending and make the backend idempotent (idempotency key).',
-          ],
-        },
-        {
-          type: 'flow',
-          title: '10 clicks, different strategies',
-          code: `flowchart LR
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**exhaustMap** — submit, login, payment, "create" actions (no duplicates).',
+          '**switchMap** — refresh/reload where the newest request supersedes older ones (reads only).',
+          '**concatMap** — every click is meaningful and order matters (e.g. "add one item" × 10 should add 10 items, sequentially).',
+          '**throttleTime / debounceTime** — rate limiting regardless of request duration.',
+          'Defense in depth: disable the button while pending and make the backend idempotent (idempotency key).',
+        ],
+      },
+      {
+        type: 'flow',
+        title: '10 clicks, different strategies',
+        code: `flowchart LR
   C["10 rapid clicks"]:::client --> EX["exhaustMap<br/>1 request"]:::highlight
   C --> SW["switchMap<br/>9 cancelled, 1 result"]:::network
   C --> CM["concatMap<br/>10 sequential"]:::server
   C --> TH["throttleTime 1s<br/>1 per second"]:::cache`,
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: ask (or state) the intent first — "should extra clicks be ignored, replace the previous one, or all be processed?" — then pick the operator. For a save button, `exhaustMap` + disabled button is the expected answer.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: ask (or state) the intent first — "should extra clicks be ignored, replace the previous one, or all be processed?" — then pick the operator. For a save button, `exhaustMap` + disabled button is the expected answer.',
+      },
+    ],
+  },
 
-  'You have a payment form where the user clicks Submit. How do you prevent duplicate submissions using RxJS? Which operator do you choose and why?':
-    {
-      summary:
-        "`exhaustMap`. While the payment request is in flight it **ignores** further submit events, so double-clicks or Enter-key repeats can't create a second charge, and it doesn't cancel the request that's already running. `switchMap` is wrong (it would cancel a payment that may already have reached the server), `mergeMap` would send duplicates, and `concatMap` would queue a second payment. Back it up with a disabled button and a server-side idempotency key.",
-      details: [
-        { type: 'heading3', text: 'Implementation' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+  'prevent-duplicate-payment-submits': {
+    summary:
+      "`exhaustMap`. While the payment request is in flight it **ignores** further submit events, so double-clicks or Enter-key repeats can't create a second charge, and it doesn't cancel the request that's already running. `switchMap` is wrong (it would cancel a payment that may already have reached the server), `mergeMap` would send duplicates, and `concatMap` would queue a second payment. Back it up with a disabled button and a server-side idempotency key.",
+    details: [
+      { type: 'heading3', text: 'Implementation' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-payment',
   imports: [ReactiveFormsModule],
   template: \`
@@ -2044,22 +2038,22 @@ export class PaymentComponent {
     ).subscribe();
   }
 }`,
-        },
-        { type: 'heading3', text: 'Why not the others?' },
-        {
-          type: 'bullets',
-          items: [
-            '**switchMap**: a second click cancels the first HTTP call client-side — but the server may already have charged the card. You lose the response and may charge again.',
-            '**mergeMap**: every click starts a parallel payment → duplicate charges.',
-            '**concatMap**: clicks are queued → the second payment runs after the first.',
-            '**debounceTime/throttleTime**: time-based guesses; a slow request (> window) still allows duplicates.',
-            '**exhaustMap**: exactly "one at a time, ignore extras until done" ✅.',
-          ],
-        },
-        {
-          type: 'flow',
-          title: 'exhaustMap on a payment button',
-          code: `sequenceDiagram
+      },
+      { type: 'heading3', text: 'Why not the others?' },
+      {
+        type: 'bullets',
+        items: [
+          '**switchMap**: a second click cancels the first HTTP call client-side — but the server may already have charged the card. You lose the response and may charge again.',
+          '**mergeMap**: every click starts a parallel payment → duplicate charges.',
+          '**concatMap**: clicks are queued → the second payment runs after the first.',
+          '**debounceTime/throttleTime**: time-based guesses; a slow request (> window) still allows duplicates.',
+          '**exhaustMap**: exactly "one at a time, ignore extras until done" ✅.',
+        ],
+      },
+      {
+        type: 'flow',
+        title: 'exhaustMap on a payment button',
+        code: `sequenceDiagram
   participant U as User
   participant E as exhaustMap
   participant API as Payment API
@@ -2069,25 +2063,24 @@ export class PaymentComponent {
   U->>E: click 3 (ignored)
   API-->>E: 200 OK
   E-->>U: navigate to receipt`,
-        },
-        {
-          type: 'callout',
-          variant: 'important',
-          text: 'Frontend prevention is not enough for money: the server must enforce idempotency (an `Idempotency-Key` header, as payment providers like Stripe support) so retries, refreshes or a second tab can never double-charge.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'callout',
+        variant: 'important',
+        text: 'Frontend prevention is not enough for money: the server must enforce idempotency (an `Idempotency-Key` header, as payment providers like Stripe support) so retries, refreshes or a second tab can never double-charge.',
+      },
+    ],
+  },
 
-  "You need to poll an API every 10 seconds but stop polling when the component is destroyed. Show how you'd implement this":
-    {
-      summary:
-        "Use `timer(0, 10_000)` (immediate first call, then every 10s) and `switchMap` to the HTTP call, so a slow response is cancelled when the next tick fires — or `exhaustMap` to skip a tick while a request is still running. Stop it automatically with `takeUntilDestroyed()` (or consume it via `toSignal`/`async` pipe, which unsubscribe on destroy). Add `catchError` inside the inner call so one failure doesn't stop polling.",
-      details: [
-        { type: 'heading3', text: 'Modern implementation' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+  'poll-an-api-until-destroy': {
+    summary:
+      "Use `timer(0, 10_000)` (immediate first call, then every 10s) and `switchMap` to the HTTP call, so a slow response is cancelled when the next tick fires — or `exhaustMap` to skip a tick while a request is still running. Stop it automatically with `takeUntilDestroyed()` (or consume it via `toSignal`/`async` pipe, which unsubscribe on destroy). Add `catchError` inside the inner call so one failure doesn't stop polling.",
+    details: [
+      { type: 'heading3', text: 'Modern implementation' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-order-status',
   template: \`
     @if (status(); as s) { <p>Order {{ s.id }}: {{ s.state }}</p> }
@@ -2111,12 +2104,12 @@ export class OrderStatusComponent {
   // toSignal unsubscribes when the component is destroyed → polling stops
   status = toSignal(this.status$);
 }`,
-        },
-        { type: 'heading3', text: 'With explicit subscribe + takeUntilDestroyed' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export class DashboardComponent {
+      },
+      { type: 'heading3', text: 'With explicit subscribe + takeUntilDestroyed' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export class DashboardComponent {
   private api = inject(MetricsApi);
   metrics = signal<Metrics | null>(null);
 
@@ -2127,12 +2120,12 @@ export class OrderStatusComponent {
     ).subscribe((m) => this.metrics.set(m));
   }
 }`,
-        },
-        { type: 'heading3', text: 'Legacy version (pre-Angular 16)' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export class DashboardComponent implements OnInit, OnDestroy {
+      },
+      { type: 'heading3', text: 'Legacy version (pre-Angular 16)' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export class DashboardComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   ngOnInit() {
     interval(10_000).pipe(
@@ -2143,59 +2136,58 @@ export class OrderStatusComponent {
   }
   ngOnDestroy() { this.destroy$.next(); this.destroy$.complete(); }
 }`,
-        },
-        {
-          type: 'flow',
-          title: 'Polling lifecycle',
-          code: `stateDiagram-v2
+      },
+      {
+        type: 'flow',
+        title: 'Polling lifecycle',
+        code: `stateDiagram-v2
   [*] --> Polling: component created, timer(0, 10s)
   Polling --> Requesting: tick
   Requesting --> Polling: response or error swallowed
   Polling --> Stopped: component destroyed (takeUntilDestroyed)
   Polling --> Stopped: status DELIVERED (takeWhile)
   Stopped --> [*]`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '`interval(10000)` waits 10s before the first call; `timer(0, 10000)` fires immediately.',
-            '`switchMap` vs `exhaustMap`: switch cancels a slow request at the next tick; exhaust skips ticks while busy (no overlap, no cancellation).',
-            'For back-off when the server is unhealthy, use `retry({ delay })` or adjust the interval dynamically.',
-            'Pause when the tab is hidden: combine with `fromEvent(document, "visibilitychange")` to save requests.',
-            'Consider server push (WebSocket/SSE) if polling frequency must be high.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Pitfall: forgetting to unsubscribe — `interval` never completes, so polling continues after navigation, multiplying with each visit. `takeUntilDestroyed`, `toSignal` or the `async` pipe prevent this.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          '`interval(10000)` waits 10s before the first call; `timer(0, 10000)` fires immediately.',
+          '`switchMap` vs `exhaustMap`: switch cancels a slow request at the next tick; exhaust skips ticks while busy (no overlap, no cancellation).',
+          'For back-off when the server is unhealthy, use `retry({ delay })` or adjust the interval dynamically.',
+          'Pause when the tab is hidden: combine with `fromEvent(document, "visibilitychange")` to save requests.',
+          'Consider server push (WebSocket/SSE) if polling frequency must be high.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Pitfall: forgetting to unsubscribe — `interval` never completes, so polling continues after navigation, multiplying with each visit. `takeUntilDestroyed`, `toSignal` or the `async` pipe prevent this.',
+      },
+    ],
+  },
 
-  'An observable chain emits an error and the entire stream terminates. How do you architect a resilient stream that recovers gracefully?':
-    {
-      summary:
-        'Isolate failures in the **inner** observable: wrap each unit of work (each HTTP call inside `switchMap`/`concatMap`) with `retry` and `catchError` that returns a fallback or an error-state value, so the long-lived **outer** stream never sees the error. Model errors as data (`{ status: "error" }`) instead of terminating, use `retry({ delay })` with backoff for transient failures, and for infinite sources (WebSocket) resubscribe with `retry` after a delay. Log centrally, show a recoverable UI state.',
-      details: [
-        {
-          type: 'paragraph',
-          text: "The rule of the Observable contract — after `error`, nothing more is delivered — is not a bug; it's why the design matters. You decide **where** an error is allowed to stop things: usually only the single request, never the event stream that drives the feature.",
-        },
-        { type: 'heading3', text: 'Anti-pattern: catchError on the outer stream' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `this.refresh$.pipe(
+  'resilient-stream-that-survives-errors': {
+    summary:
+      'Isolate failures in the **inner** observable: wrap each unit of work (each HTTP call inside `switchMap`/`concatMap`) with `retry` and `catchError` that returns a fallback or an error-state value, so the long-lived **outer** stream never sees the error. Model errors as data (`{ status: "error" }`) instead of terminating, use `retry({ delay })` with backoff for transient failures, and for infinite sources (WebSocket) resubscribe with `retry` after a delay. Log centrally, show a recoverable UI state.',
+    details: [
+      {
+        type: 'paragraph',
+        text: "The rule of the Observable contract — after `error`, nothing more is delivered — is not a bug; it's why the design matters. You decide **where** an error is allowed to stop things: usually only the single request, never the event stream that drives the feature.",
+      },
+      { type: 'heading3', text: 'Anti-pattern: catchError on the outer stream' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `this.refresh$.pipe(
   switchMap(() => this.api.load()),
   catchError(() => of([])),       // ❌ outer stream replaced by of([]) → completes; refresh$ is dead
 ).subscribe(render);`,
-        },
-        { type: 'heading3', text: 'Pattern 1: catch inside the flattening operator' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `this.refresh$.pipe(
+      },
+      { type: 'heading3', text: 'Pattern 1: catch inside the flattening operator' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `this.refresh$.pipe(
   switchMap(() =>
     this.api.load().pipe(
       retry({ count: 2, delay: (_, i) => timer(i * 1000) }),  // transient failures
@@ -2206,12 +2198,12 @@ export class OrderStatusComponent {
     ),
   ),
 ).subscribe(render);   // ✅ next refresh still works`,
-        },
-        { type: 'heading3', text: 'Pattern 2: errors as values (state machine)' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `type Result<T> =
+      },
+      { type: 'heading3', text: 'Pattern 2: errors as values (state machine)' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `type Result<T> =
   | { status: 'loading' }
   | { status: 'success'; data: T }
   | { status: 'error'; error: unknown };
@@ -2227,12 +2219,12 @@ export function toResult<T>() {
 
 vm$ = this.filters$.pipe(switchMap((f) => this.api.search(f).pipe(toResult())));
 // Template renders spinner / data / "Retry" button from vm.status — the stream never dies.`,
-        },
-        { type: 'heading3', text: 'Pattern 3: self-healing infinite sources' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// WebSocket that reconnects with exponential backoff (capped at 30s)
+      },
+      { type: 'heading3', text: 'Pattern 3: self-healing infinite sources' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// WebSocket that reconnects with exponential backoff (capped at 30s)
 prices$ = defer(() => webSocket<Price>('wss://example.com/prices')).pipe(
   retry({
     delay: (_, attempt) => timer(Math.min(1000 * 2 ** attempt, 30_000)),
@@ -2240,11 +2232,11 @@ prices$ = defer(() => webSocket<Price>('wss://example.com/prices')).pipe(
   }),
   shareReplay({ bufferSize: 1, refCount: true }),
 );`,
-        },
-        {
-          type: 'flow',
-          title: 'Resilient stream architecture',
-          code: `flowchart LR
+      },
+      {
+        type: 'flow',
+        title: 'Resilient stream architecture',
+        code: `flowchart LR
   T["Trigger stream<br/>(clicks, filters, timer)"]:::client --> SW["switchMap / concatMap"]:::server
   SW --> IN["Inner request"]:::network
   IN --> R["retry with backoff"]:::cache
@@ -2252,23 +2244,23 @@ prices$ = defer(() => webSocket<Price>('wss://example.com/prices')).pipe(
   CE --> SW
   SW --> UI["UI renders<br/>loading / data / error"]:::client
   CE -.->|log| LOG["Logger / Sentry"]:::external`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '**Boundary**: one failure should affect one request, not the feature.',
-            '**Retry only transient errors** (network, 5xx, 429); fail fast on 4xx.',
-            '**Fallbacks**: cached last-good value, empty list, or an error state with a "Try again" action that pushes into the trigger Subject.',
-            '**Observability**: log in `catchError` or `tap({ error })` so swallowed errors are still visible.',
-            "**Cleanup**: `finalize` for spinners; `takeUntilDestroyed` so recovery loops don't outlive the component.",
-            'Global safety net: an HTTP error interceptor + custom `ErrorHandler`.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: the key phrase is "handle errors on the inner observable and treat errors as data." Draw the outer/inner distinction — it\'s the architectural insight interviewers are testing.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**Boundary**: one failure should affect one request, not the feature.',
+          '**Retry only transient errors** (network, 5xx, 429); fail fast on 4xx.',
+          '**Fallbacks**: cached last-good value, empty list, or an error state with a "Try again" action that pushes into the trigger Subject.',
+          '**Observability**: log in `catchError` or `tap({ error })` so swallowed errors are still visible.',
+          "**Cleanup**: `finalize` for spinners; `takeUntilDestroyed` so recovery loops don't outlive the component.",
+          'Global safety net: an HTTP error interceptor + custom `ErrorHandler`.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: the key phrase is "handle errors on the inner observable and treat errors as data." Draw the outer/inner distinction — it\'s the architectural insight interviewers are testing.',
+      },
+    ],
+  },
 };

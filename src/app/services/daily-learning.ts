@@ -1,9 +1,11 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { CategoryModel } from './question';
+import { CategoryModel, QuestionModel } from './question';
 
 export type LearningMode = 'single' | 'mixed' | 'random';
 
 export interface DailyQuestion {
+  /** Stable question id (sessions saved before ids existed get one from the migration). */
+  id?: string;
   text: string;
   categoryId: string;
   categoryTitle: string;
@@ -164,9 +166,10 @@ export class DailyLearningService {
     return this.seededShuffle(pool, seed).slice(0, total);
   }
 
-  private toQuestion(text: string, cat: CategoryModel): DailyQuestion {
+  private toQuestion(q: QuestionModel, cat: CategoryModel): DailyQuestion {
     return {
-      text,
+      id: q.id,
+      text: q.text,
       categoryId: cat.id,
       categoryTitle: cat.title,
       categoryColor: cat.color,

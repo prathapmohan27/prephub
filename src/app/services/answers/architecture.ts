@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'How to implement SOLID principles in an Angular application?': {
+  'solid-in-an-angular-app': {
     summary:
       'Map each principle to Angular building blocks: **S** — small components and services with one job (presentational vs container, API service vs state service); **O** — extend via DI, content projection, injection tokens and multi-providers instead of editing existing code; **L** — implementations of an abstract class/token must be swappable; **I** — small focused interfaces and narrow inputs; **D** — depend on abstractions via DI tokens and abstract classes, not concrete implementations.',
     details: [
@@ -117,7 +117,7 @@ providers: [{ provide: Logger, useClass: environment.production ? SentryLogger :
     ],
   },
 
-  'Are you familiar with the facade pattern in Angular? Explain where you have used it.': {
+  'facade-pattern': {
     summary:
       'A facade is a service that gives components one simple API for a feature — exposing state as signals/observables and actions as methods — while hiding how that is implemented (NgRx store, HTTP services, caching, multiple APIs). Components depend on the facade, not on the store or endpoints, so you can change state management without touching the UI. A typical use: an `OrdersFacade` that wraps NgRx actions/selectors and several API calls for an orders feature.',
     details: [
@@ -205,7 +205,7 @@ we only changed the facade — [N] components were untouched."`,
     ],
   },
 
-  'Have you worked on Micro Frontend architecture?': {
+  'micro-frontend-architecture': {
     summary:
       'Answer honestly, then show you understand the architecture: micro frontends split a large UI into independently developed and deployed apps owned by different teams, composed at runtime by a shell (host). In Angular this is usually done with Module Federation or Native Federation, sometimes Web Components (Angular Elements) or iframes. The key concerns are shared dependencies, routing, cross-app communication, a shared design system and versioning.',
     details: [
@@ -285,7 +285,7 @@ benefits without the runtime complexity. If I had to, I'd start with Native Fede
     ],
   },
 
-  'If multiple applications need to share data, how would you design the communication?': {
+  'sharing-data-between-applications': {
     summary:
       'First clarify the context: separate apps on different domains, micro frontends in one page, or tabs of the same app. The source of truth should almost always be a backend API (with push via WebSockets/SSE when real-time updates matter). On the client, use the URL for navigation context, custom events or a small typed event bus for micro frontends in one page, `BroadcastChannel`/`storage` events across tabs of the same origin, and `postMessage` with origin checks for iframes or cross-origin windows.',
     details: [
@@ -379,7 +379,7 @@ window.addEventListener('message', event => {
     ],
   },
 
-  'Do you create HLD or LLD documents while implementing new features?': {
+  'writing-hld-and-lld-documents': {
     summary:
       "Yes, proportionate to the feature's size and risk. An **HLD** (high-level design) explains the what and why at system level — components, data flow, integrations, non-functional requirements and trade-offs — and is reviewed with architects and other teams. An **LLD** (low-level design) explains the how — component/service structure, state, API contracts, models, error handling, edge cases — and guides the implementing developers. Small changes may only need a short ticket description or an ADR.",
     details: [
@@ -439,28 +439,27 @@ formal document and capture the decision in the ticket or an ADR."`,
     ],
   },
 
-  'Describe the architecture, tech stack, state management, and key modules of an enterprise Angular application you have worked on.':
-    {
-      summary:
-        'Structure the answer top-down in about two minutes: the business context and scale, the high-level architecture (frontend structure, backend/APIs, auth, deployment), the tech stack, how state is managed and why, the key feature areas, and one or two hard problems you solved with measurable results. Use your real project — the interviewer is checking whether you understand the WHY behind the decisions, not just the list of libraries.',
-      details: [
-        { type: 'heading3', text: 'A structure that works' },
-        {
-          type: 'numbered',
-          items: [
-            '**Context**: domain, users, scale (e.g. "internal claims platform, ~2,000 daily users, 6 frontend devs").',
-            '**Architecture**: monorepo or multi-repo, standalone/feature-based structure, lazy-loaded features, shared libraries, micro frontends if any, SSR or SPA.',
-            '**Tech stack**: Angular version, UI library, RxJS/signals, state library, testing, build/CI, hosting, backend APIs.',
-            '**State management**: what lives where (server cache vs UI state vs global state) and why you chose that tool.',
-            '**Key modules/features**: 3–5 main areas and how they are separated.',
-            '**Cross-cutting concerns**: auth, interceptors, error handling, i18n, accessibility, performance, monitoring.',
-            '**Your contribution and a challenge**: a problem, what you did, and the result with numbers.',
-          ],
-        },
-        {
-          type: 'flow',
-          title: 'Example architecture to describe',
-          code: `flowchart TD
+  'an-enterprise-app-you-worked-on': {
+    summary:
+      'Structure the answer top-down in about two minutes: the business context and scale, the high-level architecture (frontend structure, backend/APIs, auth, deployment), the tech stack, how state is managed and why, the key feature areas, and one or two hard problems you solved with measurable results. Use your real project — the interviewer is checking whether you understand the WHY behind the decisions, not just the list of libraries.',
+    details: [
+      { type: 'heading3', text: 'A structure that works' },
+      {
+        type: 'numbered',
+        items: [
+          '**Context**: domain, users, scale (e.g. "internal claims platform, ~2,000 daily users, 6 frontend devs").',
+          '**Architecture**: monorepo or multi-repo, standalone/feature-based structure, lazy-loaded features, shared libraries, micro frontends if any, SSR or SPA.',
+          '**Tech stack**: Angular version, UI library, RxJS/signals, state library, testing, build/CI, hosting, backend APIs.',
+          '**State management**: what lives where (server cache vs UI state vs global state) and why you chose that tool.',
+          '**Key modules/features**: 3–5 main areas and how they are separated.',
+          '**Cross-cutting concerns**: auth, interceptors, error handling, i18n, accessibility, performance, monitoring.',
+          '**Your contribution and a challenge**: a problem, what you did, and the result with numbers.',
+        ],
+      },
+      {
+        type: 'flow',
+        title: 'Example architecture to describe',
+        code: `flowchart TD
   U["Users"]:::client --> CDN["CDN + Angular SPA"]:::network
   CDN --> SH["App shell<br/>layout, auth, routing"]:::highlight
   SH --> F1["Feature: Claims<br/>lazy"]:::server
@@ -471,12 +470,12 @@ formal document and capture the decision in the ticket or an ADR."`,
   F3 --> GW
   GW --> MS[("Microservices + DB")]:::db
   SH -.-> IDP["OIDC provider"]:::external`,
-        },
-        { type: 'heading3', text: 'Example folder structure' },
-        {
-          type: 'code',
-          lang: 'text',
-          code: `apps/claims-portal/src/app/
+      },
+      { type: 'heading3', text: 'Example folder structure' },
+      {
+        type: 'code',
+        lang: 'text',
+        code: `apps/claims-portal/src/app/
   core/            → auth (OIDC), interceptors, ErrorHandler, layout shell, app-wide services
   shared/          → UI kit wrappers, pipes, directives, utilities (no feature logic)
   features/
@@ -485,12 +484,12 @@ formal document and capture the decision in the ticket or an ADR."`,
     reports/
   app.routes.ts    → lazy loadChildren for each feature, guards
 libs/              → design-system, shared models, api-client (generated from OpenAPI)`,
-        },
-        { type: 'heading3', text: 'Sample answer template' },
-        {
-          type: 'code',
-          lang: 'text',
-          code: `"I worked on [product], a [domain] application used by [who / how many]. It's an
+      },
+      { type: 'heading3', text: 'Sample answer template' },
+      {
+        type: 'code',
+        lang: 'text',
+        code: `"I worked on [product], a [domain] application used by [who / how many]. It's an
 Angular [version] SPA in an [Nx monorepo / single repo], fully standalone with
 lazy-loaded features for [feature A, B, C]. The UI uses [Angular Material / PrimeNG +
 our design system], and we talk to [N] backend services through an API gateway using
@@ -507,21 +506,21 @@ deployed via [GitHub Actions / Azure DevOps] to [hosting].
 One challenge I owned was [e.g. slow initial load of 6s]. I [split features into lazy
 routes, added @defer for heavy charts, and fixed a shared module that pulled in a large
 library], which brought it down to [2s LCP]."`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Explain WHY: "we chose SignalStore because most state was feature-local and NgRx boilerplate slowed the team".',
-            'Mention a decision you would change today — it shows reflection.',
-            'Keep NDA-sensitive details generic (domain and scale, not client names or internals).',
-            'Be ready for follow-ups on each layer: "how did the token refresh work?", "how did you share code between features?".',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Common pitfall: reciting a list of libraries ("Angular, RxJS, NgRx, Material, Jest...") with no structure or reasons. Interviewers use this question to judge architectural thinking — always attach a reason and a trade-off to each choice.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Explain WHY: "we chose SignalStore because most state was feature-local and NgRx boilerplate slowed the team".',
+          'Mention a decision you would change today — it shows reflection.',
+          'Keep NDA-sensitive details generic (domain and scale, not client names or internals).',
+          'Be ready for follow-ups on each layer: "how did the token refresh work?", "how did you share code between features?".',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Common pitfall: reciting a list of libraries ("Angular, RxJS, NgRx, Material, Jest...") with no structure or reasons. Interviewers use this question to judge architectural thinking — always attach a reason and a trade-off to each choice.',
+      },
+    ],
+  },
 };

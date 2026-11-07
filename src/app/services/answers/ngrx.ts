@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What is NgRx and how did you implement it in Angular applications?': {
+  'ngrx-and-how-you-used-it': {
     summary:
       'NgRx is a set of reactive state-management libraries for Angular inspired by Redux: a single immutable **Store**, state changed only by **Actions** handled in pure **Reducers**, side effects (HTTP, storage) isolated in **Effects**, and data read through memoised **Selectors**. Explain it, then describe how you used it in your project — which features went into the store, how you structured feature state, and why.',
     details: [
@@ -168,7 +168,7 @@ const count = store.selectSignal(selectCartCount); // Signal<number>`,
     ],
   },
 
-  'What are the steps to set up NgRx in an Angular application?': {
+  'setting-up-ngrx': {
     summary:
       'Install packages (`ng add @ngrx/store`, plus effects, devtools, entity as needed), register the root store with `provideStore()` in `app.config.ts`, add `provideStoreDevtools()` and `provideEffects()`, then for each feature define actions, a reducer (ideally via `createFeature`), selectors and effects, register them with `provideState()`/`provideEffects()` (often on a lazy route), and use `Store` in components to `dispatch` and `select`.',
     details: [
@@ -280,7 +280,7 @@ export const loadProducts = createEffect(
     ],
   },
 
-  'Explain the NgRx data flow: Action → Reducer → Store → Selector → Component → Effect → Action': {
+  'ngrx-data-flow': {
     summary:
       'A component dispatches an **action**; the store passes it with the current state to the **reducers**, which synchronously return new state; the **store** emits that state; **selectors** derive and memoise the slices the **component** needs, so its view updates. After the reducers run, **effects** also receive the action, perform side effects (e.g. HTTP) and dispatch a new success/failure **action**, which starts the loop again.',
     details: [
@@ -344,7 +344,7 @@ search$ = createEffect(() => this.actions$.pipe(
     ],
   },
 
-  'What is the difference between createAction, createReducer, and createEffect?': {
+  'createaction-vs-createreducer': {
     summary:
       '`createAction` defines a typed action creator — the "event" with a type string and optional payload (`props`). `createReducer` defines a pure function that maps the current state plus an action to the next state, using `on(action, handler)`. `createEffect` defines a side-effect stream that listens to actions (`ofType`), does async work, and usually returns new actions.',
     details: [
@@ -410,15 +410,14 @@ export const redirectAfterLogin$ = createEffect(
     ],
   },
 
-  'What is the difference between dispatch and select in NgRx? How do you avoid unnecessary re-renders via selectors?':
-    {
-      summary:
-        '`dispatch(action)` is the write path — it sends an action into the store so reducers and effects can react. `select(selector)` (or `selectSignal`) is the read path — it returns an observable/signal of a slice of state that emits when that slice changes. To avoid needless re-renders, select the smallest derived value with memoised `createSelector`s, keep references stable through immutable updates, and combine with OnPush/signals and `track` in `@for`.',
-      details: [
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export class CartBadge {
+  'dispatch-vs-select': {
+    summary:
+      '`dispatch(action)` is the write path — it sends an action into the store so reducers and effects can react. `select(selector)` (or `selectSignal`) is the read path — it returns an observable/signal of a slice of state that emits when that slice changes. To avoid needless re-renders, select the smallest derived value with memoised `createSelector`s, keep references stable through immutable updates, and combine with OnPush/signals and `track` in `@for`.',
+    details: [
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export class CartBadge {
   private store = inject(Store);
 
   // READ: only the number — badge re-renders only when the count changes
@@ -428,12 +427,12 @@ export const redirectAfterLogin$ = createEffect(
   // WRITE
   clear() { this.store.dispatch(CartActions.clear()); }
 }`,
-        },
-        { type: 'heading3', text: 'Why selecting too much causes re-renders' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// ❌ Selecting the whole feature: any change in 'cart' (even unrelated fields) emits
+      },
+      { type: 'heading3', text: 'Why selecting too much causes re-renders' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// ❌ Selecting the whole feature: any change in 'cart' (even unrelated fields) emits
 cart = this.store.selectSignal(selectCartState);
 // template: {{ cart().items.length }}
 
@@ -443,29 +442,29 @@ items$ = this.store.select(selectCartState).pipe(map((s) => s.items.filter((i) =
 // ✅ Memoised selector: recomputes only when items change, returns same reference otherwise
 export const selectActiveItems = createSelector(selectItems, (items) => items.filter((i) => i.qty > 0));
 export const selectCartCount = createSelector(selectActiveItems, (items) => items.length);`,
-        },
-        { type: 'heading3', text: 'Checklist' },
-        {
-          type: 'bullets',
-          items: [
-            '**Select narrowly** — the exact primitive or object the view needs.',
-            "**Derive in selectors, not components** — `createSelector` memoises on input references, so the output reference is stable when inputs don't change.",
-            '**Immutable reducers** — only replace objects that actually changed (`map` returning the same item for unchanged ids) so memoisation works.',
-            '**`store.select` already applies `distinctUntilChanged`**; `selectSignal` uses equality too — but both compare by reference, so new arrays mean a new emission.',
-            '**OnPush / zoneless + signals** — components re-render only when their bound signals change.',
-            '**`track item.id` in `@for`** — when the list does change, only changed rows re-render.',
-            '**Avoid calling methods in templates** that recompute on every change detection.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Pitfall: a selector that does `state.items.map(...)` returns a new array whenever ANY of its inputs change — and if its input is the whole feature state, that is every action in the feature. Make inputs as narrow as the result needs.',
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'Checklist' },
+      {
+        type: 'bullets',
+        items: [
+          '**Select narrowly** — the exact primitive or object the view needs.',
+          "**Derive in selectors, not components** — `createSelector` memoises on input references, so the output reference is stable when inputs don't change.",
+          '**Immutable reducers** — only replace objects that actually changed (`map` returning the same item for unchanged ids) so memoisation works.',
+          '**`store.select` already applies `distinctUntilChanged`**; `selectSignal` uses equality too — but both compare by reference, so new arrays mean a new emission.',
+          '**OnPush / zoneless + signals** — components re-render only when their bound signals change.',
+          '**`track item.id` in `@for`** — when the list does change, only changed rows re-render.',
+          '**Avoid calling methods in templates** that recompute on every change detection.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Pitfall: a selector that does `state.items.map(...)` returns a new array whenever ANY of its inputs change — and if its input is the whole feature state, that is every action in the feature. Make inputs as narrow as the result needs.',
+      },
+    ],
+  },
 
-  'What are Selectors in NgRx? Explain memoization and why it matters for performance': {
+  'selectors-and-memoization': {
     summary:
       "Selectors are pure functions that read and derive data from the store (`createSelector(inputSelectors..., projector)`). They are **memoised**: the selector remembers its last inputs and result, and if the input references haven't changed it returns the cached result without re-running the projector. That avoids recomputing expensive derivations and — because the same reference is returned — prevents downstream emissions and re-renders.",
     details: [
@@ -535,7 +534,7 @@ expect(selectFiltered.projector([{ name: 'Phone' }, { name: 'Laptop' }], 'ph')).
     ],
   },
 
-  'What is createFeatureSelector and when do you use it?': {
+  createfeatureselector: {
     summary:
       "`createFeatureSelector<FeatureState>('featureKey')` creates a typed selector that returns the top-level slice of state registered under that key (e.g. via `provideState('orders', reducer)`). You use it as the base input for the `createSelector`s of that feature. With `createFeature`, it's generated for you as `selectOrdersState`, so you rarely write it by hand anymore.",
     details: [
@@ -598,7 +597,7 @@ provideState(ordersFeature); // key comes from 'name' — no string duplication`
     ],
   },
 
-  'How do Effects work in NgRx? Explain ofType, switchMap, and error handling inside effects': {
+  'how-effects-work': {
     summary:
       'An effect is an observable that subscribes to the `Actions` stream (after reducers run). `ofType(...)` filters it to the actions you care about; a flattening operator like `switchMap` maps each action to an inner observable (e.g. an HTTP call) and cancels the previous inner one when a new action arrives; the result is mapped to success/failure actions that are dispatched back to the store. Errors must be caught **inside** the inner observable, otherwise the effect stream dies.',
     details: [
@@ -678,7 +677,7 @@ switchMap((id: string) => api.getUser(id).pipe(
     ],
   },
 
-  'Explain concatLatestFrom (formerly withLatestFrom in effects) and its use case': {
+  'concatlatestfrom-and-its-use-case': {
     summary:
       "`concatLatestFrom(() => store.select(selector))` lets an effect read the latest value of one or more selectors when an action arrives, emitting `[action, value]`. Unlike `withLatestFrom`, it subscribes **lazily** — only after the action passes `ofType` — so the selector isn't evaluated for every action and it sees state that already includes the reducer changes. It now lives in `@ngrx/operators` (it was previously exported from `@ngrx/effects`).",
     details: [
@@ -738,7 +737,7 @@ export const loadNextPage = createEffect(
     ],
   },
 
-  'What is NgRx Entity and what problem does it solve?': {
+  'ngrx-entity': {
     summary:
       '`@ngrx/entity` manages collections in a normalised shape — `{ ids: string[], entities: Record<id, T> }` — and gives you an `EntityAdapter` with ready-made, immutable CRUD reducers helpers (`addOne`, `upsertMany`, `updateOne`, `removeOne`, `setAll`…) and selectors (`selectAll`, `selectEntities`, `selectIds`, `selectTotal`). It removes repetitive array-manipulation code and gives O(1) lookups by id.',
     details: [
@@ -812,19 +811,18 @@ export const accountsFeature = createFeature({
     ],
   },
 
-  'What is the NgRx Signal Store (introduced in NgRx 17)? How does it differ from the traditional store?':
-    {
-      summary:
-        '`@ngrx/signals` `signalStore()` is a lightweight, signal-based state container built from composable features — `withState`, `withComputed`, `withMethods`, `withHooks`, `withEntities` — and updated with `patchState`. It was introduced in NgRx 17 (stable since v18). Unlike the global Redux store, it has no actions/reducers/effects boilerplate, is usually scoped to a feature or component via DI, and exposes state directly as signals.',
-      details: [
-        {
-          type: 'paragraph',
-          text: "The classic store is one global, event-driven state tree with strict separation of actions, reducers, effects and selectors. Signal Store is closer to a well-structured service: state, derived state and methods live together, and RxJS is optional (via `rxMethod`). It fits Angular's move to signals and zoneless change detection.",
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `import { signalStore, withState, withComputed, withMethods, withHooks, patchState } from '@ngrx/signals';
+  'ngrx-signal-store-vs-classic-store': {
+    summary:
+      '`@ngrx/signals` `signalStore()` is a lightweight, signal-based state container built from composable features — `withState`, `withComputed`, `withMethods`, `withHooks`, `withEntities` — and updated with `patchState`. It was introduced in NgRx 17 (stable since v18). Unlike the global Redux store, it has no actions/reducers/effects boilerplate, is usually scoped to a feature or component via DI, and exposes state directly as signals.',
+    details: [
+      {
+        type: 'paragraph',
+        text: "The classic store is one global, event-driven state tree with strict separation of actions, reducers, effects and selectors. Signal Store is closer to a well-structured service: state, derived state and methods live together, and RxJS is optional (via `rxMethod`). It fits Angular's move to signals and zoneless change detection.",
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `import { signalStore, withState, withComputed, withMethods, withHooks, patchState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { tapResponse } from '@ngrx/operators';
 
@@ -860,42 +858,41 @@ export const TodosStore = signalStore(
 
 @Component({ providers: [TodosStore], template: '{{ store.remaining() }} left' })
 export class TodosPage { store = inject(TodosStore); }`,
-        },
-        { type: 'heading3', text: 'Key differences' },
-        {
-          type: 'bullets',
-          items: [
-            '**Reactivity model** — Signal Store: signals (sync, fine-grained). Classic: RxJS observables (`select`, plus `selectSignal`).',
-            '**Boilerplate** — Signal Store: state + methods in one place. Classic: actions, reducers, effects, selectors in separate files.',
-            '**Scope** — Signal Store: often local/feature-scoped (`providers: [Store]`), can be root. Classic: one global store with feature slices.',
-            '**Updates** — `patchState` from methods vs dispatching actions handled by reducers.',
-            '**Side effects** — `rxMethod` or plain async methods vs Effects on the action stream.',
-            '**Indirection & tooling** — classic store has event-driven decoupling, time-travel and Redux DevTools by default; Signal Store devtools need a community add-on (e.g. ngrx-toolkit). Recent NgRx versions also add an Events plugin (`@ngrx/signals/events`, initially experimental) for event-driven Signal Stores.',
-            '**Extensibility** — `signalStoreFeature()` lets you build reusable features (e.g. `withRequestStatus()`, `withEntities()`).',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: don\'t present it as a replacement — say "Signal Store for feature/local state with less ceremony; classic Store when you need global event-driven state, cross-feature reactions and time-travel debugging." Many apps use both.',
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'Key differences' },
+      {
+        type: 'bullets',
+        items: [
+          '**Reactivity model** — Signal Store: signals (sync, fine-grained). Classic: RxJS observables (`select`, plus `selectSignal`).',
+          '**Boilerplate** — Signal Store: state + methods in one place. Classic: actions, reducers, effects, selectors in separate files.',
+          '**Scope** — Signal Store: often local/feature-scoped (`providers: [Store]`), can be root. Classic: one global store with feature slices.',
+          '**Updates** — `patchState` from methods vs dispatching actions handled by reducers.',
+          '**Side effects** — `rxMethod` or plain async methods vs Effects on the action stream.',
+          '**Indirection & tooling** — classic store has event-driven decoupling, time-travel and Redux DevTools by default; Signal Store devtools need a community add-on (e.g. ngrx-toolkit). Recent NgRx versions also add an Events plugin (`@ngrx/signals/events`, initially experimental) for event-driven Signal Stores.',
+          '**Extensibility** — `signalStoreFeature()` lets you build reusable features (e.g. `withRequestStatus()`, `withEntities()`).',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: don\'t present it as a replacement — say "Signal Store for feature/local state with less ceremony; classic Store when you need global event-driven state, cross-feature reactions and time-travel debugging." Many apps use both.',
+      },
+    ],
+  },
 
-  'Design the NgRx state shape for a banking dashboard that shows account list, selected account details, and transaction history with pagination':
-    {
-      summary:
-        'Normalise: an `accounts` entity slice (`ids` + `entities`) with `selectedAccountId` and load status; a `transactions` entity slice keyed by transaction id plus a **pagination index per account** (`pagesByAccount[accountId] = { pageIds, page, pageSize, total, status }`). Selected account details and the current page of transactions are derived by selectors, not stored twice. Put the selected account id and page in the URL so the view is refresh-safe.',
-      details: [
-        {
-          type: 'paragraph',
-          text: "Design principles: store each entity once (normalised), keep UI/derived data out of state, track loading/error per request, and model pagination as a cache of page → ids so going back to page 1 is instant and switching accounts doesn't wipe other accounts' pages.",
-        },
-        { type: 'heading3', text: 'State interfaces' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `type RequestStatus = 'idle' | 'loading' | 'loaded' | { error: string };
+  'state-shape-for-a-banking-dashboard': {
+    summary:
+      'Normalise: an `accounts` entity slice (`ids` + `entities`) with `selectedAccountId` and load status; a `transactions` entity slice keyed by transaction id plus a **pagination index per account** (`pagesByAccount[accountId] = { pageIds, page, pageSize, total, status }`). Selected account details and the current page of transactions are derived by selectors, not stored twice. Put the selected account id and page in the URL so the view is refresh-safe.',
+    details: [
+      {
+        type: 'paragraph',
+        text: "Design principles: store each entity once (normalised), keep UI/derived data out of state, track loading/error per request, and model pagination as a cache of page → ids so going back to page 1 is instant and switching accounts doesn't wipe other accounts' pages.",
+      },
+      { type: 'heading3', text: 'State interfaces' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `type RequestStatus = 'idle' | 'loading' | 'loaded' | { error: string };
 
 // ---- accounts feature ----
 export interface Account { id: string; name: string; type: 'SAVINGS' | 'CURRENT' | 'CARD'; balance: number; currency: string }
@@ -923,12 +920,12 @@ export interface TransactionsState extends EntityState<Transaction> {
   byAccount: Record<string, PageState>;   // pagination per account
   filters: { from?: string; to?: string; type?: 'CREDIT' | 'DEBIT' };
 }`,
-        },
-        { type: 'heading3', text: 'Example state at runtime' },
-        {
-          type: 'code',
-          lang: 'json',
-          code: `{
+      },
+      { type: 'heading3', text: 'Example state at runtime' },
+      {
+        type: 'code',
+        lang: 'json',
+        code: `{
   "accounts": {
     "ids": ["ac1", "ac2"],
     "entities": { "ac1": { "id": "ac1", "name": "Salary", "balance": 82000 }, "ac2": { "id": "ac2", "name": "Card", "balance": -4500 } },
@@ -946,12 +943,12 @@ export interface TransactionsState extends EntityState<Transaction> {
     "filters": {}
   }
 }`,
-        },
-        { type: 'heading3', text: 'Selectors derive the view' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export const selectSelectedAccount = createSelector(
+      },
+      { type: 'heading3', text: 'Selectors derive the view' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export const selectSelectedAccount = createSelector(
   selectAccountEntities, selectSelectedAccountId,
   (entities, id) => (id ? entities[id] ?? null : null),
 );
@@ -968,11 +965,11 @@ export const selectCurrentTransactions = createSelector(
 
 export const selectPagination = createSelector(selectSelectedPageState, (p) =>
   p ? { page: p.currentPage, totalPages: Math.ceil(p.total / p.pageSize) } : null);`,
-        },
-        {
-          type: 'flow',
-          title: 'Selecting an account',
-          code: `sequenceDiagram
+      },
+      {
+        type: 'flow',
+        title: 'Selecting an account',
+        code: `sequenceDiagram
   participant U as Dashboard
   participant S as Store
   participant E as Effects
@@ -986,38 +983,37 @@ export const selectPagination = createSelector(selectSelectedPageState, (p) =>
     E->>S: transactionsPageLoaded
   end
   S-->>U: selectors emit details + page`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            "Don't store `selectedAccount` as an object — store the id and derive it, so balance updates show everywhere.",
-            'Pagination cached per account and page; invalidate (`byAccount[id] = undefined`) when a new transaction arrives or filters change.',
-            'Keep `selectedAccountId` and page in route/query params and sync via `@ngrx/router-store` or a route-driven action.',
-            'Sensitive data: avoid persisting this state to localStorage; clear the store on logout with a meta-reducer.',
-            'For infinite scroll instead of numbered pages, store a single ordered `ids` list plus a `cursor`.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: say the words **normalised**, **derived via selectors** and **per-request status**. Then explain how page caching and invalidation work — that is where design questions are usually won.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          "Don't store `selectedAccount` as an object — store the id and derive it, so balance updates show everywhere.",
+          'Pagination cached per account and page; invalidate (`byAccount[id] = undefined`) when a new transaction arrives or filters change.',
+          'Keep `selectedAccountId` and page in route/query params and sync via `@ngrx/router-store` or a route-driven action.',
+          'Sensitive data: avoid persisting this state to localStorage; clear the store on logout with a meta-reducer.',
+          'For infinite scroll instead of numbered pages, store a single ordered `ids` list plus a `cursor`.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: say the words **normalised**, **derived via selectors** and **per-request status**. Then explain how page caching and invalidation work — that is where design questions are usually won.',
+      },
+    ],
+  },
 
-  'An Effect makes an HTTP call, but you want to cancel the previous request if a new action arrives. Which operator do you use inside the effect and why?':
-    {
-      summary:
-        "`switchMap`. When a new action arrives it unsubscribes from the previous inner observable — and for `HttpClient` unsubscribing aborts the in-flight XHR/fetch — then switches to the new request. So only the latest request's result is dispatched, avoiding stale or out-of-order responses (e.g. type-ahead search).",
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Without cancellation, responses can arrive out of order: the user types "ph", then "phone"; if the "ph" request is slower it overwrites the "phone" results. `switchMap` guarantees that only the most recent action\'s response reaches the reducer.',
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `export const search = createEffect(
+  'cancel-a-stale-request-in-an-effect': {
+    summary:
+      "`switchMap`. When a new action arrives it unsubscribes from the previous inner observable — and for `HttpClient` unsubscribing aborts the in-flight XHR/fetch — then switches to the new request. So only the latest request's result is dispatched, avoiding stale or out-of-order responses (e.g. type-ahead search).",
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Without cancellation, responses can arrive out of order: the user types "ph", then "phone"; if the "ph" request is slower it overwrites the "phone" results. `switchMap` guarantees that only the most recent action\'s response reaches the reducer.',
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `export const search = createEffect(
   (actions$ = inject(Actions), api = inject(ProductApi)) =>
     actions$.pipe(
       ofType(SearchActions.termChanged),
@@ -1038,22 +1034,22 @@ export const selectPagination = createSelector(selectSelectedPageState, (p) =>
 // termChanged('phone')  → GET ?q=ph   CANCELLED (shown as "canceled" in Network tab)
 //                        → GET ?q=phone
 // only searchSuccess(phone results) is dispatched`,
-        },
-        { type: 'heading3', text: 'Comparing flattening operators' },
-        {
-          type: 'bullets',
-          items: [
-            '**switchMap** — cancel previous, keep latest. Reads: search, filters, load selected item.',
-            '**concatMap** — queue, preserve order. Writes where order matters (sequential saves).',
-            '**mergeMap** — run all in parallel. Independent operations (delete several items).',
-            '**exhaustMap** — ignore new until current completes. Login, submit, "refresh" button.',
-            'Cancelling per key (e.g. one request per row id): `groupBy(a => a.id)` then `mergeMap(group => group.pipe(switchMap(...)))`.',
-          ],
-        },
-        {
-          type: 'flow',
-          title: 'switchMap vs out-of-order responses',
-          code: `sequenceDiagram
+      },
+      { type: 'heading3', text: 'Comparing flattening operators' },
+      {
+        type: 'bullets',
+        items: [
+          '**switchMap** — cancel previous, keep latest. Reads: search, filters, load selected item.',
+          '**concatMap** — queue, preserve order. Writes where order matters (sequential saves).',
+          '**mergeMap** — run all in parallel. Independent operations (delete several items).',
+          '**exhaustMap** — ignore new until current completes. Login, submit, "refresh" button.',
+          'Cancelling per key (e.g. one request per row id): `groupBy(a => a.id)` then `mergeMap(group => group.pipe(switchMap(...)))`.',
+        ],
+      },
+      {
+        type: 'flow',
+        title: 'switchMap vs out-of-order responses',
+        code: `sequenceDiagram
   participant E as Effect
   participant API as Server
   E->>API: search ph
@@ -1062,40 +1058,39 @@ export const selectPagination = createSelector(selectSelectedPageState, (p) =>
   API--xE: ph response ignored and aborted
   API-->>E: phone response
   E->>E: dispatch searchSuccess for phone`,
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: "Pitfall: using `switchMap` for writes (POST/PUT/DELETE). Cancelling the client side doesn't guarantee the server didn't process it, so the UI can miss a change that actually happened. Use `concatMap`/`mergeMap`/`exhaustMap` for mutations.",
-        },
-      ],
-    },
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: "Pitfall: using `switchMap` for writes (POST/PUT/DELETE). Cancelling the client side doesn't guarantee the server didn't process it, so the UI can miss a change that actually happened. Use `concatMap`/`mergeMap`/`exhaustMap` for mutations.",
+      },
+    ],
+  },
 
-  'Your selector is being called too frequently causing performance issues. How do you diagnose and fix this?':
-    {
-      summary:
-        "Diagnose with the Angular DevTools profiler and Redux DevTools (which actions fire, how often), plus a temporary log/counter in the projector to see whether it's the selector or the component re-running. Typical fixes: compose selectors from narrow inputs so memoisation hits, keep reducers immutable but reference-stable, create parameterised selectors once instead of per change detection, avoid calling selector factories or methods from templates, and reduce action noise (debounce high-frequency actions).",
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Note that selectors are *evaluated* on every state change by design — a cheap reference check. The problem is when the **projector** re-runs (memoisation miss) or the **output reference** changes and triggers re-renders. Diagnosis is about finding which of these is happening and why.',
-        },
-        { type: 'heading3', text: 'Diagnose' },
-        {
-          type: 'numbered',
-          items: [
-            'Redux DevTools: look at action frequency — e.g. a `mouseMoved` or websocket `tick` action dispatched 50×/s.',
-            'Add a counter/log inside the projector to confirm it is recomputing, and log its inputs to see which one has a new reference.',
-            'Angular DevTools profiler: find components that re-render on every cycle and the bindings that changed.',
-            'Look for selector factories called in templates or getters: `store.select(selectById(id))` inside a method runs every change detection and creates a new selector (with an empty cache) each time.',
-            'Check reducers that return new objects for no reason (`{ ...state }` on unrelated actions, `map` that recreates every item).',
-          ],
-        },
-        { type: 'heading3', text: 'Common causes and fixes' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// ❌ 1. Input is too broad: any change in 'orders' recomputes the expensive filter
+  'selector-runs-too-often-diagnose-it': {
+    summary:
+      "Diagnose with the Angular DevTools profiler and Redux DevTools (which actions fire, how often), plus a temporary log/counter in the projector to see whether it's the selector or the component re-running. Typical fixes: compose selectors from narrow inputs so memoisation hits, keep reducers immutable but reference-stable, create parameterised selectors once instead of per change detection, avoid calling selector factories or methods from templates, and reduce action noise (debounce high-frequency actions).",
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Note that selectors are *evaluated* on every state change by design — a cheap reference check. The problem is when the **projector** re-runs (memoisation miss) or the **output reference** changes and triggers re-renders. Diagnosis is about finding which of these is happening and why.',
+      },
+      { type: 'heading3', text: 'Diagnose' },
+      {
+        type: 'numbered',
+        items: [
+          'Redux DevTools: look at action frequency — e.g. a `mouseMoved` or websocket `tick` action dispatched 50×/s.',
+          'Add a counter/log inside the projector to confirm it is recomputing, and log its inputs to see which one has a new reference.',
+          'Angular DevTools profiler: find components that re-render on every cycle and the bindings that changed.',
+          'Look for selector factories called in templates or getters: `store.select(selectById(id))` inside a method runs every change detection and creates a new selector (with an empty cache) each time.',
+          'Check reducers that return new objects for no reason (`{ ...state }` on unrelated actions, `map` that recreates every item).',
+        ],
+      },
+      { type: 'heading3', text: 'Common causes and fixes' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// ❌ 1. Input is too broad: any change in 'orders' recomputes the expensive filter
 const selectOpen = createSelector(selectOrdersState, (s) => s.list.filter(isOpen).sort(byDate));
 // ✅ depend only on what you use
 const selectOpen = createSelector(selectOrderList, (list) => list.filter(isOpen).sort(byDate));
@@ -1121,26 +1116,26 @@ const selectSummary = createSelectorFactory((projector) => resultMemoize(project
   selectOrderList,
   summarize, // returns the previous reference when isEqual(prev, next), e.g. lodash isEqual
 );`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Throttle/debounce high-frequency sources before dispatching, or batch updates into one action.',
-            'Move very hot, local state (drag position, hover) out of the global store into component signals.',
-            'Use `@ngrx/entity` for O(1) lookups instead of `find` in projectors.',
-            'OnPush/zoneless + signals and `track` in `@for` limit the render cost when data does change.',
-            'For very heavy computations, precompute in the reducer (store an index) or move to a web worker.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: distinguish **evaluated** (cheap, every action) from **recomputed** (projector runs — should be rare). Showing you know where memoisation breaks — broad inputs, unstable references, per-call selector factories — is what this question tests.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Throttle/debounce high-frequency sources before dispatching, or batch updates into one action.',
+          'Move very hot, local state (drag position, hover) out of the global store into component signals.',
+          'Use `@ngrx/entity` for O(1) lookups instead of `find` in projectors.',
+          'OnPush/zoneless + signals and `track` in `@for` limit the render cost when data does change.',
+          'For very heavy computations, precompute in the reducer (store an index) or move to a web worker.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: distinguish **evaluated** (cheap, every action) from **recomputed** (projector runs — should be rare). Showing you know where memoisation breaks — broad inputs, unstable references, per-call selector factories — is what this question tests.',
+      },
+    ],
+  },
 
-  'How would you implement optimistic updates using NgRx?': {
+  'optimistic-updates-with-ngrx': {
     summary:
       'Update the store immediately when the user acts (the reducer applies the change on the request action), then let an effect call the API. On success, optionally reconcile with the server response; on failure, dispatch a failure action carrying enough data (the previous value or a snapshot) for the reducer to roll back, and notify the user.',
     details: [
@@ -1232,7 +1227,7 @@ toggle(todo: Todo) { this.store.dispatch(TodoActions.toggle({ id: todo.id, previ
     ],
   },
 
-  'How would you implement undo/redo functionality using NgRx?': {
+  'undo-redo-with-ngrx': {
     summary:
       'Wrap the feature reducer in a **meta-reducer** (higher-order reducer) that keeps `{ past: State[], present: State, future: State[] }`. Normal actions push `present` onto `past` and compute a new `present`; an `undo` action moves `present` to `future` and pops `past`; `redo` does the reverse; any new action clears `future`. Because NgRx state is immutable, snapshots are cheap (structural sharing).',
     details: [

@@ -1,20 +1,19 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What is the built-in control flow (`@if`, `@for`, `@switch`) and how is it better than `*ngIf` / `*ngFor`?':
-    {
-      summary:
-        'Built-in control flow (since v17) is template syntax compiled directly by Angular: `@if / @else if / @else`, `@for` with a mandatory `track` and an `@empty` block, and `@switch / @case / @default`. Unlike `*ngIf`/`*ngFor`, it is not a directive, so there is nothing to import, it reads like normal code, it narrows types better, `@for` uses a faster diffing algorithm, and it needs no `<ng-template>` for else branches. The structural directives are deprecated since v20.',
-      details: [
-        {
-          type: 'paragraph',
-          text: '`*ngIf` and `*ngFor` are structural directives: classes that live in `CommonModule`, receive a `TemplateRef` and manipulate a `ViewContainerRef` at runtime. The new blocks are part of the template language itself — the compiler turns them into dedicated instructions, so there is no directive to load, match, or import.',
-        },
-        { type: 'heading3', text: 'Before and after — a product page' },
-        {
-          type: 'code',
-          lang: 'html',
-          code: `<!-- Old: directives, ng-template for else, CommonModule import -->
+  'built-in-control-flow-vs-ngif-ngfor': {
+    summary:
+      'Built-in control flow (since v17) is template syntax compiled directly by Angular: `@if / @else if / @else`, `@for` with a mandatory `track` and an `@empty` block, and `@switch / @case / @default`. Unlike `*ngIf`/`*ngFor`, it is not a directive, so there is nothing to import, it reads like normal code, it narrows types better, `@for` uses a faster diffing algorithm, and it needs no `<ng-template>` for else branches. The structural directives are deprecated since v20.',
+    details: [
+      {
+        type: 'paragraph',
+        text: '`*ngIf` and `*ngFor` are structural directives: classes that live in `CommonModule`, receive a `TemplateRef` and manipulate a `ViewContainerRef` at runtime. The new blocks are part of the template language itself — the compiler turns them into dedicated instructions, so there is no directive to load, match, or import.',
+      },
+      { type: 'heading3', text: 'Before and after — a product page' },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<!-- Old: directives, ng-template for else, CommonModule import -->
 <div *ngIf="product$ | async as product; else loading">
   <h2>{{ product.name }}</h2>
   <li *ngFor="let review of product.reviews; trackBy: trackById; let i = index">
@@ -40,48 +39,48 @@ export const answers: AnswerMap = {
   @case ('low') { <span class="badge amber">Only a few left</span> }
   @default { <span class="badge grey">Out of stock</span> }
 }`,
-        },
-        { type: 'heading3', text: 'Why it is better' },
-        {
-          type: 'bullets',
-          items: [
-            '**No imports**: no `NgIf`/`NgFor`/`CommonModule` in standalone `imports` — one less source of "Can\'t bind to ngForOf" errors.',
-            '**Readability**: `@else if` and `@else` are real branches; no `<ng-template #ref>` and `else` micro-syntax.',
-            "**Type narrowing**: inside `@if (user.role === 'admin')` or a `@case`, the compiler narrows types like TypeScript does — `*ngIf` narrowing needed special guards.",
-            '**Performance**: `@for` uses a new reconciliation algorithm and requires `track`, so lists are diffed efficiently by default instead of relying on developers remembering `trackBy`.',
-            '**Built-in `@empty`** and implicit variables: `$index`, `$first`, `$last`, `$even`, `$odd`, `$count`.',
-            '**Smaller bundles**: no directive code shipped; the logic is compiled into the template function.',
-            '**`@switch` has no fallthrough** and uses `===` comparison, matching what people expect.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'info',
-          text: 'Migration is automated: `ng generate @angular/core:control-flow` rewrites `*ngIf`/`*ngFor`/`*ngSwitch` across the project (it accepts `--path` to migrate one folder at a time). Pair it with `@let` for local template variables instead of `*ngIf="x as y"` tricks.',
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: say "it moved from runtime directives to compiler-level syntax" — that one sentence explains every benefit (no imports, better typing, faster diffing, smaller bundles). Mention `*ngIf`/`*ngFor` are deprecated since v20 so new code should not use them.',
-        },
-        { type: 'divider' },
-        {
-          type: 'heading3',
-          text: 'Follow-up: If I want to toggle an element dynamically without using *ngIf, how?',
-        },
-        {
-          type: 'paragraph',
-          text: 'In modern Angular use the built-in `@if` block. Without removing the element from the DOM you can hide it with `[hidden]`, a `[class.x]` / `[style.display]` binding, or CSS. Other options: `[ngSwitch]`/`@switch`, `ng-template` + `ngTemplateOutlet`, a custom structural directive, `@defer`, or `ViewContainerRef` in code.',
-        },
-        {
-          type: 'paragraph',
-          text: 'The first decision is: should the element be **removed from the DOM** (destroying its components and state) or just **hidden** (kept alive, still in the DOM)? `*ngIf`/`@if` remove; `[hidden]` and style/class bindings hide.',
-        },
-        { type: 'heading3', text: 'Remove/add from the DOM' },
-        {
-          type: 'code',
-          lang: 'html',
-          code: `<!-- Built-in control flow (Angular 17+) — the modern replacement for *ngIf -->
+      },
+      { type: 'heading3', text: 'Why it is better' },
+      {
+        type: 'bullets',
+        items: [
+          '**No imports**: no `NgIf`/`NgFor`/`CommonModule` in standalone `imports` — one less source of "Can\'t bind to ngForOf" errors.',
+          '**Readability**: `@else if` and `@else` are real branches; no `<ng-template #ref>` and `else` micro-syntax.',
+          "**Type narrowing**: inside `@if (user.role === 'admin')` or a `@case`, the compiler narrows types like TypeScript does — `*ngIf` narrowing needed special guards.",
+          '**Performance**: `@for` uses a new reconciliation algorithm and requires `track`, so lists are diffed efficiently by default instead of relying on developers remembering `trackBy`.',
+          '**Built-in `@empty`** and implicit variables: `$index`, `$first`, `$last`, `$even`, `$odd`, `$count`.',
+          '**Smaller bundles**: no directive code shipped; the logic is compiled into the template function.',
+          '**`@switch` has no fallthrough** and uses `===` comparison, matching what people expect.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'info',
+        text: 'Migration is automated: `ng generate @angular/core:control-flow` rewrites `*ngIf`/`*ngFor`/`*ngSwitch` across the project (it accepts `--path` to migrate one folder at a time). Pair it with `@let` for local template variables instead of `*ngIf="x as y"` tricks.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: say "it moved from runtime directives to compiler-level syntax" — that one sentence explains every benefit (no imports, better typing, faster diffing, smaller bundles). Mention `*ngIf`/`*ngFor` are deprecated since v20 so new code should not use them.',
+      },
+      { type: 'divider' },
+      {
+        type: 'heading3',
+        text: 'Follow-up: If I want to toggle an element dynamically without using *ngIf, how?',
+      },
+      {
+        type: 'paragraph',
+        text: 'In modern Angular use the built-in `@if` block. Without removing the element from the DOM you can hide it with `[hidden]`, a `[class.x]` / `[style.display]` binding, or CSS. Other options: `[ngSwitch]`/`@switch`, `ng-template` + `ngTemplateOutlet`, a custom structural directive, `@defer`, or `ViewContainerRef` in code.',
+      },
+      {
+        type: 'paragraph',
+        text: 'The first decision is: should the element be **removed from the DOM** (destroying its components and state) or just **hidden** (kept alive, still in the DOM)? `*ngIf`/`@if` remove; `[hidden]` and style/class bindings hide.',
+      },
+      { type: 'heading3', text: 'Remove/add from the DOM' },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<!-- Built-in control flow (Angular 17+) — the modern replacement for *ngIf -->
 @if (isOpen()) {
   <app-details />
 } @else {
@@ -98,12 +97,12 @@ export const answers: AnswerMap = {
   @case ('error') { <app-error /> }
   @default { <app-content /> }
 }`,
-        },
-        { type: 'heading3', text: 'Hide but keep in the DOM' },
-        {
-          type: 'code',
-          lang: 'html',
-          code: `<!-- [hidden] sets the HTML hidden attribute (display: none by default) -->
+      },
+      { type: 'heading3', text: 'Hide but keep in the DOM' },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<!-- [hidden] sets the HTML hidden attribute (display: none by default) -->
 <div [hidden]="!isOpen()">Panel</div>
 
 <!-- class / style bindings -->
@@ -112,12 +111,12 @@ export const answers: AnswerMap = {
 
 <!-- visibility keeps the space reserved -->
 <div [style.visibility]="isOpen() ? 'visible' : 'hidden'">Panel</div>`,
-        },
-        { type: 'heading3', text: 'Programmatically / custom directive' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// A tiny custom structural directive: *appShowIf="cond"
+      },
+      { type: 'heading3', text: 'Programmatically / custom directive' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// A tiny custom structural directive: *appShowIf="cond"
 @Directive({ selector: '[appShowIf]' })
 export class ShowIfDirective {
   private tpl = inject(TemplateRef);
@@ -131,25 +130,25 @@ export class ShowIfDirective {
     });
   }
 }`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            'Remove (`@if`) when the content is heavy or should reset its state; hide (`[hidden]`) when toggling often and you want to keep state (e.g. form input).',
-            '`[hidden]` can be overridden by CSS that sets `display` on the element — add `[hidden] { display: none !important; }` globally if needed.',
-            'Hidden components still run change detection and keep their subscriptions alive.',
-            '`@defer (when cond)` also lazy-loads the code for the block the first time the condition is true.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: start with "today I\'d use `@if`", then explain the remove-vs-hide trade-off — that is usually what the interviewer is really probing.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          'Remove (`@if`) when the content is heavy or should reset its state; hide (`[hidden]`) when toggling often and you want to keep state (e.g. form input).',
+          '`[hidden]` can be overridden by CSS that sets `display` on the element — add `[hidden] { display: none !important; }` globally if needed.',
+          'Hidden components still run change detection and keep their subscriptions alive.',
+          '`@defer (when cond)` also lazy-loads the code for the block the first time the condition is true.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: start with "today I\'d use `@if`", then explain the remove-vs-hide trade-off — that is usually what the interviewer is really probing.',
+      },
+    ],
+  },
 
-  'Why is `track` mandatory in `@for`, and what should you track by?': {
+  'why-track-is-mandatory-in-for': {
     summary:
       "`track` tells Angular how to identify each item so that when the array changes it can move, keep, or remove existing DOM nodes instead of destroying and recreating them. Forgetting `trackBy` was one of the most common Angular performance bugs, so `@for` makes it mandatory. Track by a stable, unique key — usually the entity's `id`; use `$index` only for static lists or lists of primitives without identity.",
     details: [
@@ -199,20 +198,19 @@ export class ShowIfDirective {
     ],
   },
 
-  'What are deferrable views (`@defer`)? Explain its triggers and the `@placeholder`, `@loading`, and `@error` blocks.':
-    {
-      summary:
-        '`@defer` lazy-loads a chunk of a template — and the standalone components, directives and pipes inside it — only when a trigger fires. The compiler splits those dependencies into a separate JS chunk automatically, no router or dynamic `import()` needed. Triggers are `on idle` (default), `on viewport`, `on interaction`, `on hover`, `on immediate`, `on timer(...)` and `when <condition>`, plus `prefetch` variants. `@placeholder` shows before loading starts, `@loading` while the chunk downloads, and `@error` if it fails.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Classic lazy loading works per route. `@defer` works per template region: a heavy chart below the fold, a comments section, a rich-text editor that only appears after clicking "Edit". This directly reduces the initial bundle and improves LCP/TTI.',
-        },
-        { type: 'heading3', text: 'Product page example' },
-        {
-          type: 'code',
-          lang: 'html',
-          code: `<app-product-hero [product]="product()" />
+  'deferrable-views-and-their-triggers': {
+    summary:
+      '`@defer` lazy-loads a chunk of a template — and the standalone components, directives and pipes inside it — only when a trigger fires. The compiler splits those dependencies into a separate JS chunk automatically, no router or dynamic `import()` needed. Triggers are `on idle` (default), `on viewport`, `on interaction`, `on hover`, `on immediate`, `on timer(...)` and `when <condition>`, plus `prefetch` variants. `@placeholder` shows before loading starts, `@loading` while the chunk downloads, and `@error` if it fails.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Classic lazy loading works per route. `@defer` works per template region: a heavy chart below the fold, a comments section, a rich-text editor that only appears after clicking "Edit". This directly reduces the initial bundle and improves LCP/TTI.',
+      },
+      { type: 'heading3', text: 'Product page example' },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<app-product-hero [product]="product()" />
 
 <!-- Load reviews when the placeholder scrolls into view; prefetch when the browser is idle -->
 @defer (on viewport; prefetch on idle) {
@@ -235,67 +233,66 @@ export class ShowIfDirective {
 @defer (when isAdmin()) {
   <app-admin-toolbar />
 }`,
-        },
-        { type: 'heading3', text: 'Triggers' },
-        {
-          type: 'bullets',
-          items: [
-            '`on idle` (default) — when the browser is idle (`requestIdleCallback`).',
-            '`on viewport` — when the placeholder (or a referenced element) enters the viewport (IntersectionObserver).',
-            '`on interaction` — on click or keydown on the placeholder or a referenced element.',
-            '`on hover` — on mouseenter/focus.',
-            '`on immediate` — right after the non-deferred content has rendered.',
-            '`on timer(2s)` — after a delay.',
-            '`when expr` — when a boolean expression becomes truthy (one-way: once loaded, it does not unload).',
-            'Combine several with `;` (OR semantics). `prefetch on …` / `prefetch when …` download the chunk early without rendering it.',
-          ],
-        },
-        { type: 'heading3', text: 'The sub-blocks' },
-        {
-          type: 'bullets',
-          items: [
-            '`@placeholder (minimum 500ms)` — shown initially, before loading begins. Its content is eagerly loaded. `minimum` avoids a flash if loading is fast. The viewport/interaction/hover triggers attach to it, so it should have a single root element.',
-            '`@loading (after 100ms; minimum 1s)` — shown while the chunk downloads. `after` avoids showing a spinner for fast loads; `minimum` prevents flicker.',
-            '`@error` — shown if loading the chunk fails (e.g. network error).',
-          ],
-        },
-        {
-          type: 'flow',
-          title: '@defer lifecycle',
-          code: `flowchart LR
+      },
+      { type: 'heading3', text: 'Triggers' },
+      {
+        type: 'bullets',
+        items: [
+          '`on idle` (default) — when the browser is idle (`requestIdleCallback`).',
+          '`on viewport` — when the placeholder (or a referenced element) enters the viewport (IntersectionObserver).',
+          '`on interaction` — on click or keydown on the placeholder or a referenced element.',
+          '`on hover` — on mouseenter/focus.',
+          '`on immediate` — right after the non-deferred content has rendered.',
+          '`on timer(2s)` — after a delay.',
+          '`when expr` — when a boolean expression becomes truthy (one-way: once loaded, it does not unload).',
+          'Combine several with `;` (OR semantics). `prefetch on …` / `prefetch when …` download the chunk early without rendering it.',
+        ],
+      },
+      { type: 'heading3', text: 'The sub-blocks' },
+      {
+        type: 'bullets',
+        items: [
+          '`@placeholder (minimum 500ms)` — shown initially, before loading begins. Its content is eagerly loaded. `minimum` avoids a flash if loading is fast. The viewport/interaction/hover triggers attach to it, so it should have a single root element.',
+          '`@loading (after 100ms; minimum 1s)` — shown while the chunk downloads. `after` avoids showing a spinner for fast loads; `minimum` prevents flicker.',
+          '`@error` — shown if loading the chunk fails (e.g. network error).',
+        ],
+      },
+      {
+        type: 'flow',
+        title: '@defer lifecycle',
+        code: `flowchart LR
   P["@placeholder"]:::client -->|"trigger fires"| L["@loading"]:::network
   P -.->|"prefetch trigger"| C["Download chunk"]:::cache
   L --> C
   C -->|success| M["Main @defer content"]:::highlight
   C -->|failure| E["@error"]:::security`,
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Pitfalls: (1) deferred dependencies must be standalone and must not be referenced elsewhere in the same component file (e.g. via `viewChild(ReviewsComponent)`) or they get bundled eagerly. (2) During SSR the main content is not rendered — the server outputs the `@placeholder`, so do not defer above-the-fold content that matters for LCP or SEO.',
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: frame `@defer` as "component-level code splitting declared in the template". Give a real example (reviews on viewport, editor on interaction) and mention `prefetch` — it shows you think about perceived latency, not just bundle size.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Pitfalls: (1) deferred dependencies must be standalone and must not be referenced elsewhere in the same component file (e.g. via `viewChild(ReviewsComponent)`) or they get bundled eagerly. (2) During SSR the main content is not rendered — the server outputs the `@placeholder`, so do not defer above-the-fold content that matters for LCP or SEO.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: frame `@defer` as "component-level code splitting declared in the template". Give a real example (reviews on viewport, editor on interaction) and mention `prefetch` — it shows you think about perceived latency, not just bundle size.',
+      },
+    ],
+  },
 
-  'What are signal inputs (`input()`, `input.required()`) and how do they differ from `@Input()`?':
-    {
-      summary:
-        '`input()` declares a component input as a read-only signal: `price = input(0)` or `product = input.required<Product>()`. You read it by calling it, derive from it with `computed()`, and react to it with `effect()` — no `ngOnChanges` or setters. Compared with `@Input()`, signal inputs are read-only inside the component, `required` is enforced at compile time with proper non-undefined types, and they plug directly into signal-based, OnPush and zoneless change detection.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'With decorator inputs, deriving state meant `ngOnChanges(changes: SimpleChanges)` or getter/setter pairs, and `@Input() product!: Product` lied to the type system with `!`. Signal inputs make an input just another signal in the graph.',
-        },
-        { type: 'heading3', text: 'Old vs new' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Before
+  'signal-inputs-vs-input': {
+    summary:
+      '`input()` declares a component input as a read-only signal: `price = input(0)` or `product = input.required<Product>()`. You read it by calling it, derive from it with `computed()`, and react to it with `effect()` — no `ngOnChanges` or setters. Compared with `@Input()`, signal inputs are read-only inside the component, `required` is enforced at compile time with proper non-undefined types, and they plug directly into signal-based, OnPush and zoneless change detection.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'With decorator inputs, deriving state meant `ngOnChanges(changes: SimpleChanges)` or getter/setter pairs, and `@Input() product!: Product` lied to the type system with `!`. Signal inputs make an input just another signal in the graph.',
+      },
+      { type: 'heading3', text: 'Old vs new' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Before
 export class PriceTagComponent implements OnChanges {
   @Input({ required: true }) product!: Product;
   @Input() discountPct = 0;
@@ -315,35 +312,35 @@ export class PriceTagComponent {
 
   finalPrice = computed(() => this.product().price * (1 - this.discountPct() / 100));
 }`,
-        },
-        {
-          type: 'code',
-          lang: 'html',
-          code: `<!-- Parent template: binding syntax is unchanged -->
+      },
+      {
+        type: 'code',
+        lang: 'html',
+        code: `<!-- Parent template: binding syntax is unchanged -->
 <app-price-tag [product]="selected()" [discountPct]="20" compact />`,
-        },
-        { type: 'heading3', text: 'Key differences' },
-        {
-          type: 'bullets',
-          items: [
-            '**Read-only**: `InputSignal` has no `set()`. Inputs flow down; if the component needs local editable state, use `model()` (two-way) or `linkedSignal(() => this.value())` (local copy that resets).',
-            '**Type safety**: `input.required<T>()` returns `Signal<T>`, and a missing binding is a compile error — no `!` assertions.',
-            '**Derivation**: `computed()` replaces most `ngOnChanges` logic; `effect()` replaces setter side effects.',
-            '**Change detection**: reading an input in the template registers a signal dependency, so OnPush/zoneless just works.',
-            '**Transforms**: `transform` (e.g. `booleanAttribute`, `numberAttribute`) is available on both, but with signals the transformed type is inferred.',
-            'Inputs are not available in the constructor — read them in `computed`, `effect`, templates, or `ngOnInit` onwards. Calling a required input too early throws.',
-            'Stable since v19. Migrate with `ng generate @angular/core:signal-input-migration`.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: the killer comparison is "`ngOnChanges` + manual field vs one `computed()` line". Then add the gotcha: signal inputs are read-only, so a component that used to mutate its `@Input` needs `model()` or `linkedSignal()`.',
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'Key differences' },
+      {
+        type: 'bullets',
+        items: [
+          '**Read-only**: `InputSignal` has no `set()`. Inputs flow down; if the component needs local editable state, use `model()` (two-way) or `linkedSignal(() => this.value())` (local copy that resets).',
+          '**Type safety**: `input.required<T>()` returns `Signal<T>`, and a missing binding is a compile error — no `!` assertions.',
+          '**Derivation**: `computed()` replaces most `ngOnChanges` logic; `effect()` replaces setter side effects.',
+          '**Change detection**: reading an input in the template registers a signal dependency, so OnPush/zoneless just works.',
+          '**Transforms**: `transform` (e.g. `booleanAttribute`, `numberAttribute`) is available on both, but with signals the transformed type is inferred.',
+          'Inputs are not available in the constructor — read them in `computed`, `effect`, templates, or `ngOnInit` onwards. Calling a required input too early throws.',
+          'Stable since v19. Migrate with `ng generate @angular/core:signal-input-migration`.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: the killer comparison is "`ngOnChanges` + manual field vs one `computed()` line". Then add the gotcha: signal inputs are read-only, so a component that used to mutate its `@Input` needs `model()` or `linkedSignal()`.',
+      },
+    ],
+  },
 
-  'What is `model()` and how does two-way binding work with signals?': {
+  'model-and-two-way-binding': {
     summary:
       "`model()` declares a **writable** input: the component can read it like an input and also `set()`/`update()` it. Angular automatically creates a matching `<name>Change` output, so the parent can use banana-in-a-box `[(name)]`. When the child writes the model, the change event fires and the parent's bound value updates — and if the parent binds a `WritableSignal`, Angular writes straight into that signal.",
     details: [
@@ -412,7 +409,7 @@ export class CartLineComponent {
     ],
   },
 
-  'What is the `output()` function and how does it differ from `@Output()` with `EventEmitter`?': {
+  'output-vs-output': {
     summary:
       '`output()` declares a component event: `addToCart = output<Product>()`, then `this.addToCart.emit(p)`. The parent template syntax `(addToCart)="..."` is unchanged. Unlike `@Output() x = new EventEmitter()`, it does not extend RxJS `Subject`, so there is no accidental `.pipe()`/`.next()`/`.error()` usage, subscriptions are cleaned up automatically when the component is destroyed, and it fits the function-based API family (`input`, `model`, `viewChild`). It is **not** a signal — events are not state.',
     details: [
@@ -481,20 +478,19 @@ const sub = ref.instance.addToCart.subscribe(p => cart.add(p)); // OutputRefSubs
     ],
   },
 
-  'What are signal queries (`viewChild()`, `contentChildren()`) and why use them instead of `@ViewChild`?':
-    {
-      summary:
-        'Signal queries — `viewChild()`, `viewChildren()`, `contentChild()`, `contentChildren()` — return signals whose value updates whenever the query result changes. You read them inside `computed()`, `effect()`, templates or `afterNextRender()` without waiting for `ngAfterViewInit`, there is no `static` flag to get wrong, `.required()` gives non-undefined types, and `viewChildren` returns a plain readonly array instead of a `QueryList` with a `changes` observable.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'With decorator queries, the result is assigned at some lifecycle point (`static: true` → before `ngOnInit`, otherwise before `ngAfterViewInit`), and lists change via `QueryList.changes`. Code reading them too early got `undefined`. Signal queries make the timing reactive: the signal is `undefined` until the element exists, and anything depending on it re-runs when it appears or changes.',
-        },
-        { type: 'heading3', text: 'View queries — search page' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+  'signal-queries-vs-viewchild': {
+    summary:
+      'Signal queries — `viewChild()`, `viewChildren()`, `contentChild()`, `contentChildren()` — return signals whose value updates whenever the query result changes. You read them inside `computed()`, `effect()`, templates or `afterNextRender()` without waiting for `ngAfterViewInit`, there is no `static` flag to get wrong, `.required()` gives non-undefined types, and `viewChildren` returns a plain readonly array instead of a `QueryList` with a `changes` observable.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'With decorator queries, the result is assigned at some lifecycle point (`static: true` → before `ngOnInit`, otherwise before `ngAfterViewInit`), and lists change via `QueryList.changes`. Code reading them too early got `undefined`. Signal queries make the timing reactive: the signal is `undefined` until the element exists, and anything depending on it re-runs when it appears or changes.',
+      },
+      { type: 'heading3', text: 'View queries — search page' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-search-page',
   template: \`
     <input #searchBox placeholder="Search products" />
@@ -514,12 +510,12 @@ export class SearchPageComponent {
     afterNextRender(() => this.searchBox().nativeElement.focus());
   }
 }`,
-        },
-        { type: 'heading3', text: 'Content queries — tabs component' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `@Component({
+      },
+      { type: 'heading3', text: 'Content queries — tabs component' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `@Component({
   selector: 'app-tabs',
   template: \`
     @for (tab of tabs(); track tab.title()) {
@@ -533,27 +529,27 @@ export class TabsComponent {
   active = signal(0);
   activeTab = computed(() => this.tabs()[this.active()]);
 }`,
-        },
-        {
-          type: 'bullets',
-          items: [
-            '**Reactive timing**: no "is it available yet?" lifecycle reasoning; derive with `computed()`.',
-            '**Types**: `viewChild.required()` / `contentChild.required()` return `Signal<T>`; optional ones return `Signal<T | undefined>` honestly.',
-            '**No `static` option** and no `QueryList` / `changes` subscription — `viewChildren()` is `Signal<readonly T[]>`.',
-            '**Options**: `read` (e.g. `{ read: ElementRef }` or `ViewContainerRef`) and, for content queries, `descendants`.',
-            'Use `afterNextRender()` for one-off DOM work (focus, measuring) rather than an `effect()`.',
-            'Migrate with `ng generate @angular/core:signal-queries-migration`.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: the strongest point is "queries become part of the reactive graph" — e.g. `computed(() => this.rows().length)` updates automatically when items are added, replacing `QueryList.changes.subscribe(...)` and manual unsubscription.',
-        },
-      ],
-    },
+      },
+      {
+        type: 'bullets',
+        items: [
+          '**Reactive timing**: no "is it available yet?" lifecycle reasoning; derive with `computed()`.',
+          '**Types**: `viewChild.required()` / `contentChild.required()` return `Signal<T>`; optional ones return `Signal<T | undefined>` honestly.',
+          '**No `static` option** and no `QueryList` / `changes` subscription — `viewChildren()` is `Signal<readonly T[]>`.',
+          '**Options**: `read` (e.g. `{ read: ElementRef }` or `ViewContainerRef`) and, for content queries, `descendants`.',
+          'Use `afterNextRender()` for one-off DOM work (focus, measuring) rather than an `effect()`.',
+          'Migrate with `ng generate @angular/core:signal-queries-migration`.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: the strongest point is "queries become part of the reactive graph" — e.g. `computed(() => this.rows().length)` updates automatically when items are added, replacing `QueryList.changes.subscribe(...)` and manual unsubscription.',
+      },
+    ],
+  },
 
-  'What is `linkedSignal()` and when would you use it instead of `computed()`?': {
+  'linkedsignal-vs-computed': {
     summary:
       '`linkedSignal()` creates a **writable** signal whose value is derived from other signals, like `computed()`, but which the user can also `set()` locally. Whenever its source changes, it recomputes and the local override is discarded. Use it for "derived default, user can override" state: a selected item that resets when the list changes, a form field initialised from an input, a page number that resets when filters change. Stable since v20.',
     details: [
@@ -623,7 +619,7 @@ export class TabsComponent {
     ],
   },
 
-  'What are `resource()` and `httpResource()`, and how do they load async data with signals?': {
+  'resource-and-httpresource': {
     summary:
       '`resource()` turns async loading into signals: you give it reactive `params` and an async `loader({ params, abortSignal })`, and it exposes `value()`, `status()`, `error()`, `isLoading()` and `hasValue()`. When params change, it aborts the previous request and loads again. `httpResource()` (from `@angular/common/http`) is the HttpClient-based version: you pass a reactive function returning a URL or request object, and interceptors, testing utilities and JSON parsing just work. `rxResource()` is the Observable-based variant.',
     details: [
@@ -711,7 +707,7 @@ export class ProductPageComponent {
     ],
   },
 
-  'What is the `inject()` function and why is it preferred over constructor injection?': {
+  'inject-vs-constructor-injection': {
     summary:
       '`inject(Token)` retrieves a dependency from the current injector during an **injection context** — field initializers, the constructor, factory functions, and functional guards/resolvers/interceptors. It is preferred because it works where constructors do not exist (functional APIs), avoids long constructor parameter lists and `super(...)` chains in inheritance, infers types from `InjectionToken`s, and lets you build reusable `injectXyz()` helper functions. It is now the default style in Angular docs and schematics.',
     details: [
@@ -780,7 +776,7 @@ export function injectQueryParam(name: string) {
     ],
   },
 
-  'How do `DestroyRef` and `takeUntilDestroyed()` simplify cleanup and unsubscribing?': {
+  'destroyref-and-takeuntildestroyed': {
     summary:
       '`DestroyRef` is an injectable handle to the current lifecycle scope (component, directive, service or environment injector); `inject(DestroyRef).onDestroy(fn)` registers cleanup without implementing `ngOnDestroy`. `takeUntilDestroyed()` from `@angular/core/rxjs-interop` is an RxJS operator built on it: it completes the observable when that scope is destroyed. Together they replace the `destroy$ = new Subject()` + `takeUntil(this.destroy$)` + `ngOnDestroy` boilerplate.',
     details: [
@@ -852,7 +848,7 @@ export function injectWindowResize() {
     ],
   },
 
-  'How do you migrate an existing Angular app to zoneless change detection?': {
+  'migrating-to-zoneless': {
     summary:
       'First make the app "OnPush-ready": every state change must notify Angular through signals, the `async` pipe, template event handlers, input changes or `markForCheck()`. Then swap `provideZoneChangeDetection()` for `provideZonelessChangeDetection()`, remove `zone.js` from the `polyfills` in `angular.json` (build and test targets) and uninstall it, replace `NgZone.onStable`/`onMicrotaskEmpty` with `afterNextRender`, switch tests off `fakeAsync`, and fix code that mutated plain fields in `setTimeout`, Promises or third-party callbacks.',
     details: [
@@ -945,7 +941,7 @@ expect(fixture.nativeElement.textContent).toContain('shipped');`,
     ],
   },
 
-  'What is hydration in Angular? Explain event replay and incremental hydration.': {
+  'hydration-and-event-replay': {
     summary:
       'Hydration is the process where the browser-side Angular app **reuses** the DOM rendered by the server (SSR/prerender) instead of destroying and re-creating it — it attaches listeners and state to existing nodes, avoiding flicker and layout shift. You enable it with `provideClientHydration()`. **Event replay** (`withEventReplay()`) records clicks and other events that happen before hydration finishes and replays them afterwards. **Incremental hydration** uses `@defer` blocks with `hydrate on ...` triggers so parts of the page stay as static HTML and are hydrated — and their code downloaded — only when needed.',
     details: [
@@ -1024,7 +1020,7 @@ export const appConfig: ApplicationConfig = {
     ],
   },
 
-  'What are Signal Forms and how do they differ from Reactive Forms?': {
+  'signal-forms-vs-reactive-forms': {
     summary:
       "Signal Forms (`@angular/forms/signals`) build a form on top of a `WritableSignal` model: `form(model, schema)` returns a field tree that mirrors the model's shape, each field exposes signal state (`value`, `valid`, `errors`, `touched`, `dirty`, `pending`, `disabled`), validation is declared in a schema function (`required`, `email`, `minLength`, `validate`…), and inputs bind with a single directive. Unlike Reactive Forms, there is no parallel `FormGroup`/`FormControl` tree to keep in sync — the signal model is the source of truth, types come from the model, and everything is read reactively instead of via `valueChanges` observables. The API was introduced as experimental and names have changed between releases.",
     details: [
@@ -1107,20 +1103,19 @@ export class SignUpComponent {
     ],
   },
 
-  'How do you migrate an older Angular codebase to modern APIs (standalone, control flow, signal inputs, `inject()`)?':
-    {
-      summary:
-        'Do it incrementally with the official schematics, one migration per commit, tests green between each: `ng update` to a current version, then `ng generate @angular/core:standalone` (convert → prune NgModules → standalone bootstrap), `@angular/core:control-flow`, `@angular/core:inject`, then the signal migrations (`signal-input-migration`, `output-migration`, `signal-queries-migration`, or the combined `signals`), and finally `cleanup-unused-imports`. Then do the manual, higher-value work: replace `ngOnChanges` with `computed`, subscriptions with `toSignal`/`takeUntilDestroyed`, adopt OnPush, and eventually zoneless.',
-      details: [
-        {
-          type: 'paragraph',
-          text: 'Big-bang rewrites stall. Each migration is independent and mechanical, so treat them as separate low-risk PRs. Scope them with `--path` to a feature folder when the codebase is large or several teams own it.',
-        },
-        { type: 'heading3', text: 'Recommended order' },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// 0. Upgrade one major at a time (runs automatic migrations from migrations.json)
+  'migrating-to-modern-angular-apis': {
+    summary:
+      'Do it incrementally with the official schematics, one migration per commit, tests green between each: `ng update` to a current version, then `ng generate @angular/core:standalone` (convert → prune NgModules → standalone bootstrap), `@angular/core:control-flow`, `@angular/core:inject`, then the signal migrations (`signal-input-migration`, `output-migration`, `signal-queries-migration`, or the combined `signals`), and finally `cleanup-unused-imports`. Then do the manual, higher-value work: replace `ngOnChanges` with `computed`, subscriptions with `toSignal`/`takeUntilDestroyed`, adopt OnPush, and eventually zoneless.',
+    details: [
+      {
+        type: 'paragraph',
+        text: 'Big-bang rewrites stall. Each migration is independent and mechanical, so treat them as separate low-risk PRs. Scope them with `--path` to a feature folder when the codebase is large or several teams own it.',
+      },
+      { type: 'heading3', text: 'Recommended order' },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// 0. Upgrade one major at a time (runs automatic migrations from migrations.json)
 ng update @angular/core @angular/cli
 
 // 1. Standalone — run the three modes in order, building/testing after each
@@ -1144,34 +1139,34 @@ ng generate @angular/core:signals        // all signal migrations together
 ng generate @angular/core:cleanup-unused-imports
 ng generate @angular/core:self-closing-tag
 ng generate @angular/core:route-lazy-loading   // eager route components → loadComponent`,
-        },
-        { type: 'heading3', text: 'What the schematics will not do for you' },
-        {
-          type: 'bullets',
-          items: [
-            'Signal input migration skips inputs it cannot migrate safely (e.g. inputs written to inside the component). `--best-effort-mode` migrates more aggressively; `--insert-todos` leaves TODO comments explaining skipped cases.',
-            'Rewrite `ngOnChanges`/setter logic into `computed()` — schematics convert declarations and reads, not your design.',
-            'Replace `subscribe` + manual fields with `toSignal()`, `resource()`/`httpResource()`, and `takeUntilDestroyed()`.',
-            'Move components to `ChangeDetectionStrategy.OnPush` and verify they still update — the prerequisite for zoneless.',
-            'Convert class-based guards/resolvers/interceptors to functional ones (`CanActivateFn`, `HttpInterceptorFn`).',
-            'Review the `track` expressions the control-flow migration generates: `trackBy: fn` becomes `track fn($index, item)`, but loops without `trackBy` get `track item` (object identity) — replace those with a real id.',
-          ],
-        },
-        { type: 'heading3', text: 'Making it safe' },
-        {
-          type: 'bullets',
-          items: [
-            'One schematic per PR, with build + unit + e2e tests in CI; easy to review and revert.',
-            'Migrate leaf/shared components first, then features, then the app shell.',
-            'Add lint rules or code-review guidelines so new code uses the modern APIs and the old ones stop spreading.',
-            'Track progress with a simple grep metric (e.g. count of `@Input(` and `*ngFor`) on a dashboard.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: interviewers want to hear a strategy, not a list of commands — "incremental, schematic-driven, one concern per PR, tests as the safety net, then manual refactors where the real value is (computed instead of ngOnChanges, OnPush, zoneless)". Name two or three schematics accurately to show hands-on experience.',
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'What the schematics will not do for you' },
+      {
+        type: 'bullets',
+        items: [
+          'Signal input migration skips inputs it cannot migrate safely (e.g. inputs written to inside the component). `--best-effort-mode` migrates more aggressively; `--insert-todos` leaves TODO comments explaining skipped cases.',
+          'Rewrite `ngOnChanges`/setter logic into `computed()` — schematics convert declarations and reads, not your design.',
+          'Replace `subscribe` + manual fields with `toSignal()`, `resource()`/`httpResource()`, and `takeUntilDestroyed()`.',
+          'Move components to `ChangeDetectionStrategy.OnPush` and verify they still update — the prerequisite for zoneless.',
+          'Convert class-based guards/resolvers/interceptors to functional ones (`CanActivateFn`, `HttpInterceptorFn`).',
+          'Review the `track` expressions the control-flow migration generates: `trackBy: fn` becomes `track fn($index, item)`, but loops without `trackBy` get `track item` (object identity) — replace those with a real id.',
+        ],
+      },
+      { type: 'heading3', text: 'Making it safe' },
+      {
+        type: 'bullets',
+        items: [
+          'One schematic per PR, with build + unit + e2e tests in CI; easy to review and revert.',
+          'Migrate leaf/shared components first, then features, then the app shell.',
+          'Add lint rules or code-review guidelines so new code uses the modern APIs and the old ones stop spreading.',
+          'Track progress with a simple grep metric (e.g. count of `@Input(` and `*ngFor`) on a dashboard.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: interviewers want to hear a strategy, not a list of commands — "incremental, schematic-driven, one concern per PR, tests as the safety net, then manual refactors where the real value is (computed instead of ngOnChanges, OnPush, zoneless)". Name two or three schematics accurately to show hands-on experience.',
+      },
+    ],
+  },
 };

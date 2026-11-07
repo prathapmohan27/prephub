@@ -1,7 +1,7 @@
 import type { AnswerMap } from './answer.model';
 
 export const answers: AnswerMap = {
-  'What makes a REST API well designed: resources, naming, status codes and consistency?': {
+  'what-makes-a-rest-api-well-designed': {
     summary:
       'A well-designed REST API models the domain as resources (plural nouns in collections), uses HTTP methods and status codes for what they mean, and is boringly consistent: the same casing, envelope, error format, pagination and date format everywhere. Clients should be able to guess the next endpoint correctly. Concurrency (ETag / If-Match) and clear creation semantics (201 + Location) are what separate a senior design from a CRUD dump.',
     details: [
@@ -104,59 +104,58 @@ async update(
     ],
   },
 
-  'How do you evolve an API without breaking existing clients (versioning and backward compatibility)?':
-    {
-      summary:
-        'Prefer evolution over versions: make only additive changes, and require clients to be tolerant readers that ignore unknown fields. When a breaking change is unavoidable, introduce a new version (URI, header or media type) alongside the old one, announce deprecation with the `Deprecation` and `Sunset` headers, measure who still calls the old version, and only remove it when telemetry says it is safe. Contract tests and automated breaking-change checks stop accidental breaks before they ship.',
-      details: [
-        { type: 'heading3', text: 'Safe vs breaking changes' },
-        {
-          type: 'bullets',
-          items: [
-            '**Safe (additive):** new endpoint, new optional request field, new response field, new optional query parameter, new enum value **only if** clients were told to handle unknown values.',
-            '**Breaking:** removing or renaming a field, changing a type (`id` number → string), making an optional field required, changing a default, tightening validation, changing status codes or error shape, changing pagination, changing auth or URL structure, changing semantics of an existing field.',
-          ],
-        },
-        {
-          type: 'paragraph',
-          text: '**Tolerant reader:** clients ignore fields they do not know and do not fail on new enum values. In Angular this means typing responses with only the fields you use and having a default branch for unknown statuses. On the server side, ignore (or explicitly allow) unknown request fields only if that is a documented policy — `whitelist: true` in the NestJS `ValidationPipe` strips them silently.',
-        },
-        { type: 'heading3', text: 'Versioning strategies' },
-        {
-          type: 'bullets',
-          items: [
-            '**URI** (`/v1/orders`): most visible, easy to route, cache and debug. The common default.',
-            '**Header** (`Api-Version: 2026-11-01`): cleaner URLs; date-based versions let each client pin the behavior it was built against.',
-            '**Media type** (`Accept: application/vnd.acme.v2+json`): most "RESTful", but hardest for tooling and humans.',
-          ],
-        },
-        {
-          type: 'paragraph',
-          text: 'NestJS supports all three via `enableVersioning` (setup is in the Express & NestJS answers). Whatever you choose, version the **whole API surface** consistently, not individual fields.',
-        },
-        { type: 'heading3', text: 'Expand, migrate, contract' },
-        {
-          type: 'numbered',
-          items: [
-            'Add the new shape next to the old (e.g. return both `name` and `fullName`, or ship `/v2`).',
-            'Update your own clients (the Angular app) and notify external consumers.',
-            'Mark the old one deprecated in OpenAPI (`deprecated: true`) and in responses.',
-            'Watch usage telemetry per version, endpoint and client ID until it reaches zero (or the sunset date passes).',
-            'Remove it.',
-          ],
-        },
-        {
-          type: 'code',
-          lang: 'http',
-          code: `HTTP/1.1 200 OK
+  'evolve-an-api-without-breaking-clients': {
+    summary:
+      'Prefer evolution over versions: make only additive changes, and require clients to be tolerant readers that ignore unknown fields. When a breaking change is unavoidable, introduce a new version (URI, header or media type) alongside the old one, announce deprecation with the `Deprecation` and `Sunset` headers, measure who still calls the old version, and only remove it when telemetry says it is safe. Contract tests and automated breaking-change checks stop accidental breaks before they ship.',
+    details: [
+      { type: 'heading3', text: 'Safe vs breaking changes' },
+      {
+        type: 'bullets',
+        items: [
+          '**Safe (additive):** new endpoint, new optional request field, new response field, new optional query parameter, new enum value **only if** clients were told to handle unknown values.',
+          '**Breaking:** removing or renaming a field, changing a type (`id` number → string), making an optional field required, changing a default, tightening validation, changing status codes or error shape, changing pagination, changing auth or URL structure, changing semantics of an existing field.',
+        ],
+      },
+      {
+        type: 'paragraph',
+        text: '**Tolerant reader:** clients ignore fields they do not know and do not fail on new enum values. In Angular this means typing responses with only the fields you use and having a default branch for unknown statuses. On the server side, ignore (or explicitly allow) unknown request fields only if that is a documented policy — `whitelist: true` in the NestJS `ValidationPipe` strips them silently.',
+      },
+      { type: 'heading3', text: 'Versioning strategies' },
+      {
+        type: 'bullets',
+        items: [
+          '**URI** (`/v1/orders`): most visible, easy to route, cache and debug. The common default.',
+          '**Header** (`Api-Version: 2026-11-01`): cleaner URLs; date-based versions let each client pin the behavior it was built against.',
+          '**Media type** (`Accept: application/vnd.acme.v2+json`): most "RESTful", but hardest for tooling and humans.',
+        ],
+      },
+      {
+        type: 'paragraph',
+        text: 'NestJS supports all three via `enableVersioning` (setup is in the Express & NestJS answers). Whatever you choose, version the **whole API surface** consistently, not individual fields.',
+      },
+      { type: 'heading3', text: 'Expand, migrate, contract' },
+      {
+        type: 'numbered',
+        items: [
+          'Add the new shape next to the old (e.g. return both `name` and `fullName`, or ship `/v2`).',
+          'Update your own clients (the Angular app) and notify external consumers.',
+          'Mark the old one deprecated in OpenAPI (`deprecated: true`) and in responses.',
+          'Watch usage telemetry per version, endpoint and client ID until it reaches zero (or the sunset date passes).',
+          'Remove it.',
+        ],
+      },
+      {
+        type: 'code',
+        lang: 'http',
+        code: `HTTP/1.1 200 OK
 Deprecation: @1798761600
 Sunset: Thu, 01 Jul 2027 00:00:00 GMT
 Link: <https://api.acme.dev/docs/migrate-v2>; rel="deprecation"`,
-        },
-        {
-          type: 'code',
-          lang: 'typescript',
-          code: `// Interceptor that marks a deprecated controller and records who still calls it
+      },
+      {
+        type: 'code',
+        lang: 'typescript',
+        code: `// Interceptor that marks a deprecated controller and records who still calls it
 @Injectable()
 export class DeprecatedInterceptor implements NestInterceptor {
   constructor(private metrics: MetricsService) {}
@@ -172,40 +171,40 @@ export class DeprecatedInterceptor implements NestInterceptor {
     return next.handle();
   }
 }`,
-        },
-        { type: 'heading3', text: 'Guard rails' },
-        {
-          type: 'bullets',
-          items: [
-            '**Breaking-change detection** in CI: diff the OpenAPI spec against `main` (e.g. oasdiff) and fail the build on breaking changes.',
-            '**Consumer-driven contract tests** (e.g. Pact): each consumer publishes what it relies on; the provider verifies against all of them before deploy.',
-            '**Mobile and cached SPAs** keep old clients alive for months — an Angular tab left open runs yesterday’s bundle against today’s API.',
-          ],
-        },
-        {
-          type: 'callout',
-          variant: 'tip',
-          text: 'Interview tip: Lead with "the best version is the one you never have to create" — additive changes plus tolerant readers — then describe deprecation with telemetry. Showing you remove versions based on data, not dates alone, signals real production experience.',
-        },
-        {
-          type: 'callout',
-          variant: 'warning',
-          text: 'Adding a value to an enum is breaking for clients with exhaustive `switch` statements or strict generated types. Document up front that enums are open-ended.',
-        },
-        { type: 'heading3', text: 'Follow-ups they may ask' },
-        {
-          type: 'bullets',
-          items: [
-            'How long do you support an old version, and who decides?',
-            'How do you version events or webhooks, not just HTTP endpoints?',
-            'How do you handle a field rename without a new version?',
-            'URI vs header versioning: which works better with CDNs and caches?',
-          ],
-        },
-      ],
-    },
+      },
+      { type: 'heading3', text: 'Guard rails' },
+      {
+        type: 'bullets',
+        items: [
+          '**Breaking-change detection** in CI: diff the OpenAPI spec against `main` (e.g. oasdiff) and fail the build on breaking changes.',
+          '**Consumer-driven contract tests** (e.g. Pact): each consumer publishes what it relies on; the provider verifies against all of them before deploy.',
+          '**Mobile and cached SPAs** keep old clients alive for months — an Angular tab left open runs yesterday’s bundle against today’s API.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        text: 'Interview tip: Lead with "the best version is the one you never have to create" — additive changes plus tolerant readers — then describe deprecation with telemetry. Showing you remove versions based on data, not dates alone, signals real production experience.',
+      },
+      {
+        type: 'callout',
+        variant: 'warning',
+        text: 'Adding a value to an enum is breaking for clients with exhaustive `switch` statements or strict generated types. Document up front that enums are open-ended.',
+      },
+      { type: 'heading3', text: 'Follow-ups they may ask' },
+      {
+        type: 'bullets',
+        items: [
+          'How long do you support an old version, and who decides?',
+          'How do you version events or webhooks, not just HTTP endpoints?',
+          'How do you handle a field rename without a new version?',
+          'URI vs header versioning: which works better with CDNs and caches?',
+        ],
+      },
+    ],
+  },
 
-  'How should an API return errors? Explain Problem Details (RFC 9457).': {
+  'api-errors-with-problem-details': {
     summary:
       'Errors should use the correct HTTP status plus one consistent, machine-readable body. RFC 9457 (which obsoletes RFC 7807) standardizes that body as `application/problem+json` with `type`, `title`, `status`, `detail` and `instance`, plus extension members such as field-level validation errors or a trace ID. Clients branch on `type` and `status`, show `detail` to humans, and the server never leaks stack traces or internals.',
     details: [
@@ -351,7 +350,7 @@ this.api.createOrder(dto).subscribe({
     ],
   },
 
-  'How do you use OpenAPI in a team: contract-first vs code-first, and generated clients?': {
+  'openapi-contract-first-vs-code-first': {
     summary:
       'OpenAPI is the single source of truth for the API contract. Contract-first means you write and review the spec before code (best for public or cross-team APIs); code-first means the spec is generated from annotated code like NestJS with `@nestjs/swagger` (faster for a single full-stack team). Either way, the spec feeds generated TypeScript clients for Angular, linting with Spectral, breaking-change detection with oasdiff in CI, and mock servers so the frontend can work in parallel.',
     details: [
@@ -446,7 +445,7 @@ npx orval`,
     ],
   },
 
-  'How do you design and secure webhooks (signatures, retries, idempotency)?': {
+  'design-and-secure-webhooks': {
     summary:
       'A webhook is an HTTP POST from the provider to a URL the consumer registers. Secure it with an HMAC signature over a timestamp plus the raw body, verified with a constant-time comparison and a short tolerance window to block replays. The receiver acknowledges with 2xx quickly and processes asynchronously; the sender retries with exponential backoff, so receivers must be idempotent by event ID and must not assume ordering.',
     details: [
@@ -556,7 +555,7 @@ async receive(@Req() req: RawBodyRequest<Request>, @Headers() headers: Record<st
     ],
   },
 
-  'What is the N+1 problem in GraphQL, and how does DataLoader solve it?': {
+  'graphql-n-plus-1-dataloader': {
     summary:
       'Because GraphQL resolves each field independently, a query for 50 posts with their authors runs 1 query for the posts and then 50 separate author lookups — N+1. DataLoader collects all `load(id)` calls made in the same tick of the event loop into one batched query (`WHERE id IN (...)`) and caches results for the rest of the request. Loaders must be created per request so the cache never leaks data between users.',
     details: [
@@ -659,7 +658,7 @@ author(@Parent() post: Post, @Context() ctx: { loaders: Loaders }) {
     ],
   },
 
-  'What is the Backend-for-Frontend (BFF) pattern, and when is it worth it?': {
+  'backend-for-frontend-bff-pattern': {
     summary:
       'A BFF is a thin server built for one client experience — for example one for the Angular web app and one for mobile — that aggregates calls to downstream services and shapes payloads exactly for that UI. It is usually owned by the frontend team, and it is also the cleanest place to keep OAuth tokens out of the browser. It is worth it when clients have genuinely different needs or the UI makes many chatty calls; the cost is another service to run, and business logic must stay in the domain services.',
     details: [
@@ -742,7 +741,7 @@ async dashboard(@Session() session: UserSession): Promise<DashboardVm> {
     ],
   },
 
-  'How do you design filtering, sorting and field selection for a list endpoint?': {
+  'filtering-sorting-and-field-selection': {
     summary:
       'Use a small, consistent query-string convention on every collection — for example `?status=active&createdAfter=2026-01-01&sort=-createdAt,name&fields=id,name` — and parse it into a validated object. Only whitelisted fields can be filtered or sorted, and they map to real columns through a lookup table, which both prevents SQL injection through `ORDER BY` and keeps queries on indexed paths. Document the parameters in OpenAPI and combine with cursor pagination.',
     details: [
@@ -839,7 +838,7 @@ function buildOrderBy(sort: string) {
     ],
   },
 
-  'How do you design long-running operations in an API (202 Accepted, polling, callbacks)?': {
+  'long-running-operations-202-accepted': {
     summary:
       'When work takes longer than a normal request timeout (reports, video processing, bulk imports), accept the request, enqueue a job and return `202 Accepted` with a `Location` header pointing to a status resource. Clients poll that resource (guided by `Retry-After`) or get notified by webhook or SSE when it completes. Job creation should be idempotent, jobs should support cancellation, and the final status links to the result.',
     details: [

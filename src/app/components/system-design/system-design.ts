@@ -435,6 +435,9 @@ export class SystemDesign {
     { label: 'Distributed' },
     { label: 'Flash Sales' },
     { label: 'Production-Grade' },
+    { label: 'AI Chat' },
+    { label: 'RAG' },
+    { label: 'AI Agents' },
   ];
 
   calloutIconMap = CALLOUT_ICONS;

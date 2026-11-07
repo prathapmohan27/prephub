@@ -567,6 +567,14 @@ export class CoreConcepts {
     { label: 'Scaling' },
     { label: 'Queues' },
     { label: 'Estimation' },
+    { label: 'LLMs' },
+    { label: 'Prompts' },
+    { label: 'Vectors' },
+    { label: 'RAG' },
+    { label: 'Agents & MCP' },
+    { label: 'Agentic Apps' },
+    { label: 'Evals' },
+    { label: 'AI Security' },
   ];
 
   calloutIconMap = CALLOUT_ICONS;

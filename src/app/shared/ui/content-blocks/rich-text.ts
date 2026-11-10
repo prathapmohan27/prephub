@@ -35,7 +35,8 @@ export function toSegments(text: string): Segment[] {
         <strong class="rt-bold">{{ s.value }}</strong>
       }
       @default {
-        {{ s.value }}
+        <!-- Wrapped so the template's own whitespace isn't added around the text -->
+        <ng-container>{{ s.value }}</ng-container>
       }
     }
   }`,

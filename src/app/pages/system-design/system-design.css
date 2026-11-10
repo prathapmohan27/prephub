@@ -26,7 +26,7 @@
 .sd-wrapper {
   position: relative;
   z-index: 1;
-  max-width: 1200px;
+  max-width: var(--page-max);
   margin: 0 auto;
   padding: 32px 24px 80px;
 }
@@ -674,4 +674,24 @@
   font: inherit;
   letter-spacing: inherit;
   color: inherit;
+}
+
+/* The status pill shares the first row (page icon or breadcrumb) instead of taking its own */
+@media (min-width: 641px) {
+  .sd-wrapper {
+    position: relative;
+  }
+  .sd-topbar {
+    position: absolute;
+    top: 32px;
+    right: 24px;
+    margin: 0;
+    z-index: 1;
+  }
+}
+@media (min-width: 641px) and (max-width: 768px) {
+  .sd-topbar {
+    top: 20px;
+    right: 16px;
+  }
 }

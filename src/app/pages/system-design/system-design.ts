@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, effect } from '@angular/core';
+import { Component, signal, computed, inject, input, effect } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FlowDiagram } from '@shared/ui/flow-diagram/flow-diagram';
 import { SystemDesignService } from '@features/system-design/system-design.service';
@@ -169,7 +169,22 @@ import { difficultyAppearance } from '@shared/utils/difficulty';
             <!-- Two-column layout -->
             <div class="detail-layout">
               <!-- LEFT: section navigator -->
-              <aside class="detail-sidebar">
+              <aside class="detail-sidebar" [class.detail-sidebar--open]="sectionsOpen()">
+                <!-- Phones: the section list folds into this row so the lesson starts on screen -->
+                <button
+                  type="button"
+                  class="sections-toggle"
+                  aria-controls="lesson-sections"
+                  [attr.aria-expanded]="sectionsOpen()"
+                  (click)="sectionsOpen.set(!sectionsOpen())"
+                >
+                  <span class="sections-toggle-count"
+                    >Section {{ activeSectionIdx() + 1 }} of
+                    {{ activeSystem()!.sections.length }}</span
+                  >
+                  <span class="sections-toggle-title">{{ activeSection()?.title }}</span>
+                  <i class="ti ti-chevron-down sections-toggle-chevron" aria-hidden="true"></i>
+                </button>
                 <div class="detail-sidebar-panel">
                   <div class="sidebar-sys-header">
                     <div
@@ -191,7 +206,7 @@ import { difficultyAppearance } from '@shared/utils/difficulty';
                     [value]="systemProgress().percent"
                   ></progress>
 
-                  <nav class="section-nav-list">
+                  <nav id="lesson-sections" class="section-nav-list" aria-label="Sections">
                     @for (sec of activeSystem()!.sections; track sec.id; let i = $index) {
                       <button
                         class="section-nav-btn"
@@ -396,6 +411,9 @@ export class SystemDesign {
     return id ? (this.sdService.getSystem(id) ?? null) : null;
   });
 
+  /** Phones only: whether the folded section list is open. */
+  sectionsOpen = signal(false);
+
   view = computed(() => (this.activeSystem() ? 'detail' : 'list'));
 
   activeSectionIdx = computed(() => {
@@ -443,6 +461,7 @@ export class SystemDesign {
   }
 
   goToSection(idx: number) {
+    this.sectionsOpen.set(false);
     const sec = this.activeSystem()?.sections[idx];
     if (!sec) return;
     // replaceUrl: stepping through sections shouldn't flood browser history

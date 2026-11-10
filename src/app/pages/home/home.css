@@ -22,7 +22,7 @@
 
 .home-wrapper {
   position: relative;
-  max-width: 1100px;
+  max-width: var(--page-max);
   margin: 0 auto;
   padding: 40px 24px 80px;
   display: flex;

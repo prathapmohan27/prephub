@@ -14,6 +14,8 @@
   /* ---- Layout ---- */
   --nav-h: 60px;
   --tabbar-h: 60px;
+  /* Every page and the nav share one container, so content lines up with the logo */
+  --page-max: 1280px;
 
   /* ---- Fonts ---- */
   --font-sans:
@@ -627,4 +629,48 @@ mark {
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-lg);
   background: rgb(var(--n-900) / 0.6);
+}
+
+/* Lesson pages (Core Concepts, System Design): on phones the section list folds into one row */
+.sections-toggle {
+  display: none;
+}
+@media (max-width: 768px) {
+  .sections-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 48px;
+    padding: 10px 14px;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-1);
+    color: var(--color-text-primary);
+    font: 600 0.85rem var(--font-sans);
+    text-align: left;
+    cursor: pointer;
+  }
+  .sections-toggle-count {
+    flex-shrink: 0;
+    color: var(--color-text-subtle);
+    font-weight: 500;
+  }
+  .sections-toggle-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .sections-toggle-chevron {
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
+  }
+  .detail-sidebar--open .sections-toggle-chevron {
+    transform: rotate(180deg);
+  }
+  .detail-sidebar:not(.detail-sidebar--open) > :not(.sections-toggle) {
+    display: none;
+  }
 }

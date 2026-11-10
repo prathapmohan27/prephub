@@ -183,7 +183,22 @@ import { difficultyAppearance } from '@shared/utils/difficulty';
             <!-- Two-column layout -->
             <div class="detail-layout">
               <!-- LEFT: section navigator -->
-              <aside class="detail-sidebar">
+              <aside class="detail-sidebar" [class.detail-sidebar--open]="sectionsOpen()">
+                <!-- Phones: the section list folds into this row so the lesson starts on screen -->
+                <button
+                  type="button"
+                  class="sections-toggle"
+                  aria-controls="lesson-sections"
+                  [attr.aria-expanded]="sectionsOpen()"
+                  (click)="sectionsOpen.set(!sectionsOpen())"
+                >
+                  <span class="sections-toggle-count"
+                    >Section {{ activeSectionIdx() + 1 }} of
+                    {{ activeConcept()!.sections.length }}</span
+                  >
+                  <span class="sections-toggle-title">{{ activeSection()?.title }}</span>
+                  <i class="ti ti-chevron-down sections-toggle-chevron" aria-hidden="true"></i>
+                </button>
                 <div class="detail-sidebar-panel">
                   <div class="sidebar-concept-header">
                     <div
@@ -205,7 +220,7 @@ import { difficultyAppearance } from '@shared/utils/difficulty';
                     [value]="conceptProgress().percent"
                   ></progress>
 
-                  <nav class="section-nav-list">
+                  <nav id="lesson-sections" class="section-nav-list" aria-label="Sections">
                     @for (sec of activeConcept()!.sections; track sec.id; let i = $index) {
                       <button
                         class="section-nav-btn"
@@ -532,6 +547,9 @@ export class CoreConcepts {
     return id ? (this.ccService.getConcept(id) ?? null) : null;
   });
 
+  /** Phones only: whether the folded section list is open. */
+  sectionsOpen = signal(false);
+
   view = computed(() => (this.activeConcept() ? 'detail' : 'list'));
 
   activeSectionIdx = computed(() => {
@@ -579,6 +597,7 @@ export class CoreConcepts {
   }
 
   goToSection(idx: number) {
+    this.sectionsOpen.set(false);
     const sec = this.activeConcept()?.sections[idx];
     if (!sec) return;
     // replaceUrl: stepping through sections shouldn't flood browser history

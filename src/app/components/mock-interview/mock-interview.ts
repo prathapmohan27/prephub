@@ -10,6 +10,17 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { TuiButton, TuiDropdown, TuiInput, TuiLink } from '@taiga-ui/core';
+import {
+  TuiBadge,
+  TuiChevron,
+  TuiDataListWrapper,
+  TuiProgress,
+  TuiSegmented,
+  TuiSelect,
+  TuiSwitch,
+} from '@taiga-ui/kit';
 import { CategoryModel, Level, Track, trackInfo } from '@services/question';
 import { Answer } from '../answer/answer';
 import { RichText } from '../content-blocks/rich-text';
@@ -108,7 +119,22 @@ function formatClock(totalSeconds: number): string {
 @Component({
   selector: 'app-mock-interview',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Answer, RichText],
+  imports: [
+    Answer,
+    FormsModule,
+    RichText,
+    TuiBadge,
+    TuiButton,
+    TuiChevron,
+    TuiDataListWrapper,
+    TuiDropdown,
+    TuiInput,
+    TuiLink,
+    TuiProgress,
+    TuiSegmented,
+    TuiSelect,
+    TuiSwitch,
+  ],
   host: {
     role: 'dialog',
     'aria-modal': 'true',
@@ -136,34 +162,35 @@ function formatClock(totalSeconds: number): string {
           <div class="mock-top-actions">
             @if (phase() === 'question') {
               <button
+                tuiButton
                 type="button"
-                (click)="toggleTimer()"
+                size="xs"
                 class="mock-clock"
-                [class.mock-clock--off]="!timerEnabled()"
-                [class.mock-clock--up]="timeUp() && !revealed()"
+                [appearance]="timeUp() && !revealed() ? 'warning' : 'outline-grayscale'"
+                [iconStart]="timerEnabled() ? '@tui.timer' : '@tui.timer-off'"
                 [attr.aria-pressed]="timerEnabled()"
+                [attr.aria-label]="timerEnabled() ? null : 'Timer off'"
                 [title]="timerEnabled() ? 'Turn timer off (T)' : 'Turn timer on (T)'"
+                (click)="toggleTimer()"
               >
-                <i
-                  class="ti"
-                  [class.ti-clock]="timerEnabled()"
-                  [class.ti-clock-off]="!timerEnabled()"
-                ></i>
                 @if (timerEnabled()) {
-                  <span>{{ timeUp() ? "Time's up" : clock() }}</span>
+                  {{ timeUp() ? "Time's up" : clock() }}
                 }
               </button>
             }
             <button
+              tuiIconButton
               type="button"
+              size="xs"
+              appearance="secondary-grayscale"
+              iconStart="@tui.x"
+              [style.border-radius.%]="100"
               (click)="phase() === 'question' ? end() : closed.emit()"
-              class="btn-icon-small"
               [title]="
                 phase() === 'question' && results().length ? 'End session (Esc)' : 'Close (Esc)'
               "
-              aria-label="Close mock interview"
             >
-              <i class="ti ti-x"></i>
+              Close mock interview
             </button>
           </div>
         </div>
@@ -177,57 +204,62 @@ function formatClock(totalSeconds: number): string {
                   <!-- Scope: these change the page's own filters, so the list behind follows -->
                   <div class="mock-field">
                     <label class="mock-field-label" for="mock-topic">Topic</label>
-                    <select
-                      id="mock-topic"
+                    <tui-textfield
+                      tuiChevron
+                      tuiTextfieldSize="s"
                       class="mock-select"
-                      (change)="topicChange.emit($any($event.target).value || null)"
+                      [stringify]="topicName"
+                      [tuiTextfieldCleaner]="false"
                     >
-                      <option value="" [selected]="!topicId()">
-                        All {{ trackLabel() }} topics
-                      </option>
-                      @for (t of topics(); track t.id) {
-                        <option [value]="t.id" [selected]="t.id === topicId()">
-                          {{ t.title }}
-                        </option>
-                      }
-                    </select>
+                      <input
+                        id="mock-topic"
+                        tuiSelect
+                        [ngModel]="topicId() ?? ''"
+                        (ngModelChange)="topicChange.emit($event || null)"
+                      />
+                      <tui-data-list-wrapper *tuiDropdown [items]="topicIds()" />
+                    </tui-textfield>
                   </div>
 
                   <div class="mock-field">
                     <span class="mock-field-label">Level</span>
-                    <div class="mock-chips" role="radiogroup" aria-label="Question level">
+                    <tui-segmented
+                      size="s"
+                      role="group"
+                      aria-label="Question level"
+                      [activeItemIndex]="levelIndex()"
+                    >
                       @for (l of levelOptions; track l.id) {
                         <button
                           type="button"
-                          role="radio"
-                          class="mock-chip"
-                          [class.mock-chip--on]="level() === l.id"
-                          [attr.aria-checked]="level() === l.id"
+                          [attr.aria-pressed]="level() === l.id"
                           (click)="levelChange.emit(l.id)"
                         >
                           {{ l.label }}
                         </button>
                       }
-                    </div>
+                    </tui-segmented>
                   </div>
 
                   <div class="mock-field">
                     <span class="mock-field-label">Focus</span>
-                    <div class="mock-chips" role="radiogroup" aria-label="Which questions">
+                    <tui-segmented
+                      size="s"
+                      role="group"
+                      aria-label="Which questions"
+                      [activeItemIndex]="focusIndex()"
+                    >
                       @for (f of focusOptions; track f.id) {
                         <button
                           type="button"
-                          role="radio"
-                          class="mock-chip"
-                          [class.mock-chip--on]="focus() === f.id"
-                          [attr.aria-checked]="focus() === f.id"
+                          [attr.aria-pressed]="focus() === f.id"
                           [title]="f.hint"
                           (click)="focusChange.emit(f.id)"
                         >
                           {{ f.label }}
                         </button>
                       }
-                    </div>
+                    </tui-segmented>
                   </div>
                 }
 
@@ -244,35 +276,35 @@ function formatClock(totalSeconds: number): string {
 
                 <div class="mock-field">
                   <span class="mock-field-label">Questions</span>
-                  <div class="mock-chips" role="radiogroup" aria-label="Number of questions">
+                  <tui-segmented
+                    size="s"
+                    role="group"
+                    aria-label="Number of questions"
+                    [activeItemIndex]="sizeIndex()"
+                  >
                     @for (c of sizeChips(); track c.value) {
                       <button
                         type="button"
-                        role="radio"
-                        class="mock-chip"
-                        [class.mock-chip--on]="effectiveSize() === c.count"
-                        [attr.aria-checked]="effectiveSize() === c.count"
+                        [attr.aria-pressed]="effectiveSize() === c.count"
                         (click)="setSize(c.value)"
                       >
                         {{ c.label }}
                       </button>
                     }
-                  </div>
+                  </tui-segmented>
                 </div>
 
                 <div class="mock-field">
                   <span class="mock-field-label">Timer</span>
-                  <button
-                    type="button"
-                    role="switch"
-                    class="mock-switch"
-                    [class.mock-switch--on]="timerEnabled()"
-                    [attr.aria-checked]="timerEnabled()"
+                  <input
+                    tuiSwitch
+                    type="checkbox"
+                    size="s"
                     aria-label="Thinking timer"
-                    (click)="toggleTimer()"
-                  >
-                    <span class="mock-switch-thumb"></span>
-                  </button>
+                    [showIcons]="false"
+                    [checked]="timerEnabled()"
+                    (change)="toggleTimer()"
+                  />
                   <span class="mock-switch-text">
                     {{ timerEnabled() ? 'Thinking timer on' : 'Thinking timer off' }}
                     <span class="mock-switch-help">2 min per question · 5 for design & coding</span>
@@ -285,13 +317,24 @@ function formatClock(totalSeconds: number): string {
                 </p>
 
                 <div class="flex-wrap-gap">
-                  <button type="button" class="mock-btn-primary" (click)="startSession()">
-                    <i class="ti ti-player-play"></i>
+                  <button
+                    tuiButton
+                    type="button"
+                    appearance="primary"
+                    iconStart="@tui.play"
+                    (click)="startSession()"
+                  >
                     Start {{ effectiveSize() }}-question session
                     <kbd class="mock-kbd-inline">Enter</kbd>
                   </button>
-                  <button type="button" class="btn-ghost" (click)="startFree()">
-                    <i class="ti ti-infinity"></i> Free practice
+                  <button
+                    tuiButton
+                    type="button"
+                    appearance="secondary-grayscale"
+                    iconStart="@tui.infinity"
+                    (click)="startFree()"
+                  >
+                    Free practice
                   </button>
                 </div>
               </div>
@@ -299,7 +342,7 @@ function formatClock(totalSeconds: number): string {
               <p class="mock-scope">
                 No questions match the current filters.
                 @if (scopeEditable() && (topicId() || level() !== 'all' || focus() !== 'all')) {
-                  <button type="button" class="mock-link" (click)="resetScope()">
+                  <button tuiLink type="button" (click)="resetScope()">
                     Show all {{ trackLabel() }} questions
                   </button>
                 } @else {
@@ -313,13 +356,15 @@ function formatClock(totalSeconds: number): string {
           @case ('question') {
             @if (current(); as item) {
               @if (timerEnabled()) {
-                <div class="mock-timer-track" aria-hidden="true">
-                  <div
-                    class="mock-timer-fill"
-                    [class.mock-timer-fill--low]="secondsLeft() <= 30"
-                    [style.width.%]="(secondsLeft() / secondsTotal()) * 100"
-                  ></div>
-                </div>
+                <progress
+                  tuiProgressBar
+                  size="xs"
+                  class="mock-timer"
+                  aria-hidden="true"
+                  [class.mock-timer--low]="secondsLeft() <= 30"
+                  [max]="secondsTotal() || 1"
+                  [value]="secondsLeft()"
+                ></progress>
               }
 
               <div class="spotlight-q-box">
@@ -332,12 +377,12 @@ function formatClock(totalSeconds: number): string {
                     >{{ item.cat.title }}</span
                   >
                   @if (prepared().has(item.id)) {
-                    <span class="mock-tag mock-tag--mastered"
-                      ><i class="ti ti-circle-check"></i> Mastered</span
+                    <span tuiBadge appearance="positive" iconStart="@tui.circle-check"
+                      >Mastered</span
                     >
                   }
                   @if (lastReview(item.id); as r) {
-                    <span class="mock-tag" [class]="'mock-tag mock-tag--' + r">
+                    <span tuiBadge [appearance]="ratingAppearance[r]">
                       Last time: {{ ratingLabel[r] }}
                     </span>
                   }
@@ -354,13 +399,13 @@ function formatClock(totalSeconds: number): string {
                   <div class="flex-wrap-gap">
                     @for (r of ratings; track r.value) {
                       <button
+                        tuiButton
                         type="button"
-                        class="mock-rate-btn"
-                        [class]="'mock-rate-btn mock-rate-btn--' + r.value"
+                        [appearance]="ratingAppearance[r.value]"
                         [title]="r.key"
                         (click)="rate(r.value)"
                       >
-                        <i class="ti" [class]="'ti ' + r.icon"></i>
+                        <i [class]="'ti ' + r.icon"></i>
                         {{ r.label }}
                         <kbd class="mock-kbd">{{ r.key }}</kbd>
                       </button>
@@ -371,30 +416,45 @@ function formatClock(totalSeconds: number): string {
 
               <div class="flex-wrap-gap">
                 <button
+                  tuiButton
                   type="button"
-                  (click)="toggleReveal()"
-                  class="btn-ghost"
-                  [class.mock-reveal-cta]="timeUp() && !revealed()"
+                  [appearance]="timeUp() && !revealed() ? 'warning' : 'secondary-grayscale'"
+                  [iconStart]="revealed() ? '@tui.eye-off' : '@tui.eye'"
                   title="Space"
+                  (click)="toggleReveal()"
                 >
-                  <i class="ti" [class.ti-eye]="!revealed()" [class.ti-eye-off]="revealed()"></i>
                   {{ revealed() ? 'Hide Answer' : 'Reveal Answer' }}
                 </button>
-                <button type="button" (click)="rate('skipped')" class="btn-ghost" title="N">
-                  <i class="ti ti-player-skip-forward"></i> Skip
+                <button
+                  tuiButton
+                  type="button"
+                  appearance="secondary-grayscale"
+                  iconStart="@tui.skip-forward"
+                  title="N"
+                  (click)="rate('skipped')"
+                >
+                  Skip
                 </button>
                 <a
-                  [href]="docsUrl(item.q)"
+                  tuiButton
+                  appearance="secondary-grayscale"
+                  iconStart="@tui.external-link"
                   target="_blank"
                   rel="noopener"
-                  class="btn-ghost action-link"
+                  [href]="docsUrl(item.q)"
                 >
-                  <i class="ti ti-external-link"></i>
                   {{ docsLabel() }}
                 </a>
                 @if (results().length) {
-                  <button type="button" (click)="end()" class="btn-ghost mock-end">
-                    <i class="ti ti-flag"></i> End & see results
+                  <button
+                    tuiButton
+                    type="button"
+                    appearance="secondary-grayscale"
+                    iconStart="@tui.flag"
+                    class="mock-end"
+                    (click)="end()"
+                  >
+                    End & see results
                   </button>
                 }
               </div>
@@ -444,7 +504,7 @@ function formatClock(totalSeconds: number): string {
                   <li class="mock-result">
                     <span class="mock-result-q"><app-rich-text [text]="r.item.q" /></span>
                     <span class="mock-result-meta">
-                      <span [class]="'mock-badge mock-badge--' + r.rating">{{
+                      <span tuiBadge [appearance]="ratingAppearance[r.rating]">{{
                         ratingLabel[r.rating]
                       }}</span>
                       <span class="mock-result-time">{{ fmt(r.seconds) }}</span>
@@ -455,25 +515,46 @@ function formatClock(totalSeconds: number): string {
 
               <div class="flex-wrap-gap">
                 @if (s.missed.length) {
-                  <button type="button" class="mock-btn-primary" (click)="retryMissed()" title="R">
-                    <i class="ti ti-repeat"></i> Retry {{ s.missed.length }} missed
+                  <button
+                    tuiButton
+                    type="button"
+                    appearance="primary"
+                    iconStart="@tui.repeat"
+                    title="R"
+                    (click)="retryMissed()"
+                  >
+                    Retry {{ s.missed.length }} missed
                   </button>
                   @if (s.unstarredMissed.length) {
-                    <button type="button" class="btn-ghost" (click)="starMissed()">
-                      <i class="ti ti-star"></i> Star {{ s.unstarredMissed.length }} missed
+                    <button
+                      tuiButton
+                      type="button"
+                      appearance="secondary-grayscale"
+                      iconStart="@tui.star"
+                      (click)="starMissed()"
+                    >
+                      Star {{ s.unstarredMissed.length }} missed
                     </button>
                   }
                 }
                 <button
+                  tuiButton
                   type="button"
-                  class="btn-ghost"
-                  [class.mock-btn-primary]="!s.missed.length"
-                  (click)="phase.set('setup')"
+                  iconStart="@tui.play"
                   title="Enter"
+                  [appearance]="s.missed.length ? 'secondary-grayscale' : 'primary'"
+                  (click)="phase.set('setup')"
                 >
-                  <i class="ti ti-player-play"></i> New session
+                  New session
                 </button>
-                <button type="button" class="btn-ghost" (click)="closed.emit()">Done</button>
+                <button
+                  tuiButton
+                  type="button"
+                  appearance="secondary-grayscale"
+                  (click)="closed.emit()"
+                >
+                  Done
+                </button>
               </div>
             </div>
           }
@@ -511,6 +592,22 @@ export class MockInterview {
     { id: 'core', label: 'Core' },
     { id: 'senior', label: 'Senior' },
   ];
+  /** Topic picker values: '' is "all topics"; ids map to titles through `topicName`. */
+  protected readonly topicIds = computed(() => ['', ...this.topics().map((t) => t.id)]);
+  protected readonly topicName = (id: string): string =>
+    id ? (this.topics().find((t) => t.id === id)?.title ?? id) : `All ${this.trackLabel()} topics`;
+
+  /** Segmented controls track the selection by position. */
+  protected readonly levelIndex = computed(() =>
+    this.levelOptions.findIndex((l) => l.id === this.level()),
+  );
+  protected readonly focusIndex = computed(() =>
+    this.focusOptions.findIndex((f) => f.id === this.focus()),
+  );
+  protected readonly sizeIndex = computed(() =>
+    this.sizeChips().findIndex((c) => c.count === this.effectiveSize()),
+  );
+
   protected readonly focusOptions: { id: MockFocus; label: string; hint: string }[] = [
     { id: 'all', label: 'Everything', hint: 'All questions; weak and unmastered ones come first' },
     { id: 'unprepared', label: 'Unmastered', hint: 'Only questions you have not mastered' },
@@ -545,6 +642,13 @@ export class MockInterview {
   readonly sizes = SESSION_SIZES;
   readonly ratings = RATINGS;
   readonly ratingLabel = RATING_LABEL;
+  /** Taiga status appearance per rating, for buttons and badges. */
+  protected readonly ratingAppearance: Record<Rating, string> = {
+    nailed: 'positive',
+    shaky: 'warning',
+    blanked: 'negative',
+    skipped: 'neutral',
+  };
   readonly fmt = formatClock;
 
   phase = signal<Phase>('setup');

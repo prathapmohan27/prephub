@@ -58,63 +58,14 @@
   overflow-wrap: anywhere;
 }
 
-.reader-star {
-  flex-shrink: 0;
-  background: none;
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
-  padding: 6px 8px;
-  cursor: pointer;
-  font-size: 16px;
-  line-height: 1;
-  color: var(--color-text-subtle);
-  transition:
-    color 0.15s,
-    border-color 0.15s;
-}
-
-.reader-star:hover {
-  color: var(--color-text-muted);
-}
-
-.reader-star--on {
-  color: var(--color-warning);
-  border-color: var(--color-warning-border);
-  background: var(--color-warning-bg);
-}
-
 .reader-body {
   padding: 20px 22px;
 }
 
 /* Practice mode toggle in the top bar */
 .reader-practice {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
   margin-left: auto;
-  padding: 4px 10px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text-muted);
-  font: 500 0.72rem var(--font-sans);
-  cursor: pointer;
-  transition:
-    color 0.15s,
-    border-color 0.15s,
-    background 0.15s;
-}
-
-.reader-practice:hover {
-  color: var(--color-text-primary);
-  border-color: var(--color-border-strong);
-}
-
-.reader-practice--on {
-  color: var(--t-violet-300);
-  border-color: rgba(139, 92, 246, 0.45);
-  background: rgba(139, 92, 246, 0.12);
+  flex-shrink: 0;
 }
 
 .reader-practice + .reader-pos {
@@ -151,26 +102,7 @@
   color: var(--color-text-muted);
 }
 
-.reader-recall-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  border: 0;
-  border-radius: var(--radius-md);
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  color: #fff;
-  font: 700 0.8rem var(--font-sans);
-  cursor: pointer;
-  box-shadow: 0 4px 18px rgba(139, 92, 246, 0.3);
-  transition: transform 0.15s;
-}
-
-.reader-recall-btn:hover {
-  transform: translateY(-1px);
-}
-
-.reader-recall-btn kbd {
+[tuiButton][data-appearance='primary'] kbd {
   margin-left: 4px;
   color: inherit;
   background: rgba(255, 255, 255, 0.18);
@@ -213,81 +145,16 @@
   pointer-events: none;
 }
 
-.reader-nav-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 14px;
-  border-radius: var(--radius-md);
-  border: 1px solid rgb(var(--n-700) / 0.5);
-  background: rgb(var(--n-800) / 0.6);
-  color: var(--color-text-secondary);
-  font: 600 0.75rem var(--font-sans);
-  cursor: pointer;
-  transition:
-    background 0.15s,
-    border-color 0.15s;
-}
-
 /* Self-rating: Nailed it / Shaky / Blanked (same scale as Mock Me) */
 .reader-rate {
   display: inline-flex;
   gap: 6px;
 }
 
-.reader-rate-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text-secondary);
-  font: 600 0.75rem var(--font-sans);
-  cursor: pointer;
-  transition:
-    background 0.15s,
-    border-color 0.15s,
-    color 0.15s;
-}
-
-.reader-rate-btn:hover {
-  border-color: var(--color-border-strong);
-  color: var(--color-text-primary);
-}
-
-.reader-rate-btn--nailed.reader-rate-btn--on {
-  color: var(--color-success-light);
-  background: var(--color-success-bg);
-  border-color: var(--color-success-border);
-}
-
-.reader-rate-btn--shaky.reader-rate-btn--on {
-  color: var(--color-warning-light);
-  background: var(--color-warning-bg);
-  border-color: var(--color-warning-border);
-}
-
-.reader-rate-btn--blanked.reader-rate-btn--on {
-  color: var(--color-danger-text);
-  background: var(--color-angular-glow);
-  border-color: var(--color-angular-ring);
-}
-
 @media (max-width: 1280px) {
   .reader-rate-label {
     display: none;
   }
-}
-
-.reader-nav-btn:hover:not(:disabled) {
-  background: rgb(var(--n-700) / 0.6);
-}
-
-.reader-nav-btn:disabled {
-  opacity: 0.35;
-  cursor: default;
 }
 
 kbd {
@@ -303,7 +170,6 @@ kbd {
   .reader-back {
     display: inline-flex;
     flex-shrink: 0;
-    padding: 6px 10px;
   }
 
   .reader-pos,
@@ -339,10 +205,15 @@ kbd {
   }
 }
 
-.reader-level {
-  padding: 3px 9px;
-  border-radius: var(--radius-sm);
-  font: 600 0.68rem var(--font-sans);
-  color: var(--t-violet-300);
-  background: rgba(139, 92, 246, 0.12);
+.reader-star {
+  flex-shrink: 0;
+}
+
+/* Rating icons are data-driven Tabler icons (shared with Mock Me) */
+.reader-rate .ti {
+  font-size: 15px;
+}
+
+kbd {
+  margin-inline: 2px;
 }

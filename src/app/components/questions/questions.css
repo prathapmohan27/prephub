@@ -121,20 +121,9 @@
   .sidebar:not(.sidebar--collapsed) .sidebar-collapse {
     flex-shrink: 0;
     display: flex;
-    align-items: center;
-    gap: 6px;
     margin-top: 8px;
-    padding: 8px 6px 2px;
-    border: 0;
     border-top: 1px solid var(--color-border);
-    background: none;
-    color: var(--color-text-subtle);
-    font: 500 0.72rem var(--font-sans);
-    cursor: pointer;
-  }
-
-  .sidebar-collapse:hover {
-    color: var(--color-text-primary);
+    border-radius: 0;
   }
 
   .sidebar-collapse kbd {
@@ -195,18 +184,9 @@
 }
 
 .overall-progress {
-  height: 3px;
   margin: 2px 10px 0;
-  border-radius: var(--radius-pill);
-  background: var(--color-surface-2);
-  overflow: hidden;
-}
-
-.overall-progress-fill {
-  height: 100%;
-  border-radius: inherit;
-  background: var(--color-success);
-  transition: width 0.3s ease;
+  width: auto;
+  color: var(--color-success);
 }
 
 /* Section label inside the topic list */
@@ -222,10 +202,6 @@
   margin-top: 2px;
 }
 
-.cat-badge--done {
-  color: var(--color-success-light);
-}
-
 /* No questions at the selected level */
 .cat-badge--empty {
   opacity: 0.45;
@@ -233,23 +209,6 @@
 
 .sidebar-toggle {
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--color-text-subtle);
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.sidebar-toggle:hover {
-  color: var(--color-text-primary);
-  border-color: var(--color-border-strong);
-  background: rgb(var(--n-800) / 0.6);
 }
 
 /* Desktop: the sidebar is exactly as tall as the sticky question list beside it,
@@ -540,41 +499,8 @@
 /* ----------------------------------------
    Keyboard shortcuts dialog
 ---------------------------------------- */
-.kbd-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  background: rgba(0, 0, 0, 0.55);
-}
-
-.kbd-backdrop {
-  position: absolute;
-  inset: 0;
-  border: none;
-  background: transparent;
-  cursor: default;
-}
-
-.kbd-dialog {
-  position: relative;
-  width: min(380px, 100%);
-  border-radius: var(--radius-2xl);
-  padding: 20px;
-  background: rgb(var(--n-900) / 0.97);
-}
-
-.kbd-title {
-  margin: 0;
-  font: 700 0.95rem var(--font-display);
-  color: var(--color-text-primary);
-}
-
 .kbd-list {
-  margin: 16px 0 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -668,38 +594,6 @@
   color: var(--color-text-primary);
 }
 
-.filter-bar-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(139, 92, 246, 0.45);
-  background: rgba(139, 92, 246, 0.14);
-  color: var(--t-violet-300);
-  font: 600 0.72rem var(--font-sans);
-  cursor: pointer;
-}
-
-.filter-bar-chip .ti {
-  font-size: 12px;
-}
-
-.filter-bar-chip:hover {
-  background: rgba(139, 92, 246, 0.24);
-}
-
 .filter-bar-clear {
   margin-left: auto;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--color-text-subtle);
-  font: 500 0.72rem var(--font-sans);
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.filter-bar-clear:hover {
-  color: var(--color-text-primary);
 }

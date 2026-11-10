@@ -26,26 +26,8 @@
 }
 
 .cb-copy {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 8px;
-  border: 0;
-  border-radius: var(--radius-sm, 6px);
-  background: transparent;
   color: var(--color-text-subtle);
-  font: 600 0.68rem var(--font-sans);
-  cursor: pointer;
 }
-.cb-copy:hover {
-  background: rgba(63, 63, 70, 0.5);
-  color: var(--color-text-primary);
-}
-.cb-copy:focus-visible {
-  outline: 2px solid #818cf8;
-  outline-offset: 1px;
-}
-
 .cb-pre {
   margin: 0;
   padding: 14px 16px;

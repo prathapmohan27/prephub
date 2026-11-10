@@ -1,0 +1,117 @@
+/* ----------------------------------------
+   Taiga UI theme bridge
+
+   Taiga UI components read their colours, fonts and radii from --tui-* variables.
+   This file points those variables at PrepHub's own tokens (styles.css), so every
+   Taiga component follows the app's palette and its light / dark switch.
+
+   - Light / dark: ThemeService sets <html data-theme> (our tokens) and Taiga's
+     TUI_DARK_MODE, which puts tuiTheme="dark" on <body> and on Taiga's portals.
+     The selector below covers both, so values are re-resolved wherever Taiga
+     switches palette (including dark-only areas like code blocks).
+   - Only override what the app has an opinion on. Everything else (status
+     shades, charts, shadows…) keeps Taiga's defaults, which flip with the theme.
+   - Loaded after @taiga-ui/styles/taiga-ui-theme.less (see angular.json), so
+     these values win over Taiga's palette at equal specificity.
+---------------------------------------- */
+:root,
+[tuiTheme] {
+  /* ---- Typography ---- */
+  --tui-typography-family-text: var(--font-sans);
+  --tui-typography-family-display: var(--font-display);
+  /* Compact controls (buttons s/xs, segmented s, textfield m) use body-s: match the
+     app's dense ~13px control text instead of Taiga's 14px */
+  --tui-typography-body-s: normal calc(var(--tui-font-offset) + 0.8125rem) / 1.25rem
+    var(--tui-typography-family-text);
+
+  /* ---- Radii (Taiga's scale, nudged to the app's) ---- */
+  --tui-radius-m: var(--radius-md);
+  --tui-radius-l: var(--radius-lg);
+  --tui-radius-xl: var(--radius-2xl);
+
+  /* ---- Surfaces ---- */
+  --tui-background-base: var(--color-page-bg);
+  --tui-background-base-alt: var(--color-page-bg);
+  --tui-background-elevation-1: var(--color-surface-1);
+  --tui-background-elevation-2: var(--color-surface-2);
+  --tui-background-elevation-3: var(--color-surface-3);
+
+  /* Translucent fills: secondary buttons, chips, segmented, textfields */
+  --tui-background-neutral-1: rgb(var(--n-800) / 0.6);
+  --tui-background-neutral-1-hover: rgb(var(--n-700) / 0.5);
+  --tui-background-neutral-1-pressed: rgb(var(--n-700) / 0.7);
+
+  /* ---- Accent: the app's primary violet ---- */
+  --tui-background-accent-1: #6366f1;
+  --tui-background-accent-1-hover: #4f46e5;
+  --tui-background-accent-1-pressed: #4338ca;
+  --tui-text-primary-on-accent-1: #fff;
+  --tui-background-accent-2: #8b5cf6;
+  --tui-background-accent-2-hover: #7c3aed;
+  --tui-background-accent-2-pressed: #6d28d9;
+  --tui-text-primary-on-accent-2: #fff;
+
+  /* ---- Text ---- */
+  --tui-text-primary: var(--color-text-primary);
+  --tui-text-secondary: var(--color-text-muted);
+  --tui-text-tertiary: var(--color-text-faint);
+  --tui-text-action: var(--t-indigo-300);
+  --tui-text-action-hover: var(--t-indigo-200);
+
+  /* ---- Borders & focus ---- */
+  --tui-border-normal: var(--color-border-strong);
+  --tui-border-hover: rgb(var(--n-600) / 0.6);
+  --tui-border-focus: #818cf8;
+
+  /* ---- Status (badges, chips, rating buttons) ---- */
+  --tui-status-positive: var(--color-success);
+  --tui-status-positive-pale: var(--color-success-bg);
+  --tui-status-positive-pale-hover: var(--color-success-border);
+  --tui-text-positive: var(--color-success-light);
+  --tui-status-warning: var(--color-warning);
+  --tui-status-warning-pale: var(--color-warning-bg);
+  --tui-status-warning-pale-hover: var(--color-warning-border);
+  --tui-text-warning: var(--color-warning-light);
+  --tui-status-negative: #f43f5e;
+  --tui-status-negative-pale: rgba(244, 63, 94, 0.12);
+  --tui-status-negative-pale-hover: rgba(244, 63, 94, 0.2);
+  --tui-text-negative: var(--color-danger-text);
+  /* "info" is the app's violet: Senior badges and other neutral highlights */
+  --tui-status-info: #8b5cf6;
+  --tui-status-info-pale: rgba(139, 92, 246, 0.14);
+  --tui-status-info-pale-hover: rgba(139, 92, 246, 0.22);
+}
+
+/* tui-root sets Taiga's 14px body font on the whole app; keep the app's own base
+   typography instead (Taiga components still set their own fonts). */
+:root tui-root {
+  font: inherit;
+  color: inherit;
+}
+
+/* ---- Component-level tuning (kept to what the tokens above can't express) ---- */
+
+/* Segmented: the sliding indicator takes `color`. Taiga uses the page background,
+   which reads as a hole on our translucent strips; use a raised surface instead.
+   html + element selectors outrank Taiga's zero-specificity :where() rules. */
+html tui-segmented {
+  color: rgb(var(--n-700) / 0.85);
+}
+html:where([data-theme='light']) tui-segmented {
+  color: var(--color-surface-1);
+}
+
+/* The app's controls are semibold; Taiga's compact sizes are regular weight */
+html [tuiButton][data-size],
+html [tuiIconButton][data-size],
+html [tuiChip][data-size],
+html tui-segmented[data-size] > * {
+  font-weight: 600;
+}
+
+/* Taiga's portal layer (dropdowns, dialogs, hints) must sit above the app's own
+   overlays: the nav bar (z-index 100) and Mock Me, which moves itself to <body>
+   at z-index 110. Without this, the Mock Me topic dropdown opens underneath it. */
+html tui-popups {
+  z-index: 1000;
+}

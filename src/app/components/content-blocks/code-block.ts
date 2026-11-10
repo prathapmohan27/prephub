@@ -7,17 +7,29 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { TuiButton } from '@taiga-ui/core';
 import { highlightCode } from './code-highlight';
 
 @Component({
   selector: 'app-code-block',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [TuiButton],
+  // Code stays dark in both themes, so Taiga components inside use the dark palette too
+  host: { tuiTheme: 'dark' },
   template: `
     <div class="cb">
       <div class="cb-head">
         <span class="cb-lang">{{ lang() || 'code' }}</span>
-        <button type="button" class="cb-copy" (click)="copy()" [attr.aria-label]="'Copy code'">
-          <i class="ti" [class.ti-copy]="!copied()" [class.ti-check]="copied()"></i>
+        <button
+          tuiButton
+          type="button"
+          size="xs"
+          appearance="flat-grayscale"
+          class="cb-copy"
+          [iconStart]="copied() ? '@tui.check' : '@tui.copy'"
+          (click)="copy()"
+          aria-label="Copy code"
+        >
           {{ copied() ? 'Copied' : 'Copy' }}
         </button>
       </div>

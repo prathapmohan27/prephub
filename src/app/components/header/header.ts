@@ -1,4 +1,7 @@
-import { Component, output, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { TuiButton, TuiIcon, TuiInput } from '@taiga-ui/core';
+import { TuiSegmented } from '@taiga-ui/kit';
 import type { Level } from '@services/question';
 
 export interface FilterCounts {
@@ -10,31 +13,38 @@ export interface FilterCounts {
 
 @Component({
   selector: 'app-header',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormsModule, TuiButton, TuiIcon, TuiInput, TuiSegmented],
   template: `
     <div class="hdr">
       <!-- Row 1: Search -->
-      <div class="search-box">
-        <i class="ti ti-search text-muted text-[15px] shrink-0"></i>
+      <tui-textfield iconStart="@tui.search" class="search-box" [tuiTextfieldCleaner]="false">
         <input
-          type="text"
+          tuiInput
+          type="search"
           class="search-input"
           placeholder="Search questions…"
-          [value]="query()"
-          (input)="onSearch($event)"
+          aria-label="Search questions"
+          [ngModel]="query()"
+          (ngModelChange)="searchChange.emit($event)"
         />
         <kbd class="search-kbd" aria-hidden="true">/</kbd>
-      </div>
+      </tui-textfield>
 
       <!-- Row 2: all filters in one place, then Mock Me -->
       <div class="flex-wrap-gap">
         <!-- Level -->
-        <div class="filter-strip" role="group" aria-label="Question level">
+        <tui-segmented
+          size="s"
+          class="filter-strip"
+          role="group"
+          aria-label="Question level"
+          [class.filter-strip--applied]="level() !== 'all'"
+          [activeItemIndex]="levelIndex()"
+        >
           @for (l of levels; track l.id) {
             <button
               type="button"
-              class="btn-filter-tab"
-              [class.btn-filter-tab--active]="level() === l.id"
-              [class.btn-filter-tab--applied]="level() === l.id && l.id !== 'all'"
               [attr.aria-pressed]="level() === l.id"
               [title]="l.hint"
               (click)="levelChange.emit(l.id)"
@@ -42,31 +52,41 @@ export interface FilterCounts {
               {{ l.label }}
             </button>
           }
-        </div>
+        </tui-segmented>
 
         <!-- Status -->
-        <div class="filter-strip">
+        <tui-segmented
+          size="s"
+          class="filter-strip"
+          role="group"
+          aria-label="Question status"
+          [class.filter-strip--applied]="activeFilter() !== 'all'"
+          [activeItemIndex]="filterIndex()"
+        >
           @for (f of filters; track f.id) {
             <button
               type="button"
-              (click)="onFilterChange(f.id)"
-              class="btn-filter-tab"
-              [class.btn-filter-tab--active]="activeFilter() === f.id"
-              [class.btn-filter-tab--applied]="activeFilter() === f.id && f.id !== 'all'"
               [attr.aria-pressed]="activeFilter() === f.id"
+              (click)="filterChange.emit(f.id)"
             >
               @if (f.icon) {
-                <i [class]="'ti ' + f.icon"></i>
+                <tui-icon class="filter-icon" [icon]="f.icon" [style.color]="f.color" />
               }
               {{ f.label }}
               <span class="filter-count">{{ counts()[f.id] }}</span>
             </button>
           }
-        </div>
+        </tui-segmented>
 
         <!-- Mock Me -->
-        <button (click)="randomChallenge.emit()" class="btn-mock">
-          <i class="ti ti-dice-5 text-[14px]"></i>
+        <button
+          tuiButton
+          type="button"
+          appearance="primary"
+          iconStart="@tui.dices"
+          class="btn-mock"
+          (click)="randomChallenge.emit()"
+        >
           Mock Me
         </button>
       </div>
@@ -92,22 +112,33 @@ export class Header {
     },
   ];
 
-  readonly filters: { id: keyof FilterCounts; label: string; icon: string }[] = [
-    { id: 'all', label: 'All', icon: '' },
-    { id: 'prepared', label: 'Mastered', icon: 'ti-circle-check text-success' },
-    { id: 'starred', label: 'Starred', icon: 'ti-star text-warning' },
-    { id: 'unprepared', label: 'Unprepared', icon: 'ti-circle text-muted' },
+  readonly filters: { id: keyof FilterCounts; label: string; icon: string; color: string }[] = [
+    { id: 'all', label: 'All', icon: '', color: '' },
+    {
+      id: 'prepared',
+      label: 'Mastered',
+      icon: '@tui.circle-check',
+      color: 'var(--color-success-light)',
+    },
+    { id: 'starred', label: 'Starred', icon: '@tui.star', color: 'var(--color-warning-light)' },
+    {
+      id: 'unprepared',
+      label: 'Unprepared',
+      icon: '@tui.circle',
+      color: 'var(--color-text-subtle)',
+    },
   ];
+
+  /** Segmented controls track the selection by position. */
+  protected readonly levelIndex = computed(() =>
+    this.levels.findIndex((l) => l.id === this.level()),
+  );
+  protected readonly filterIndex = computed(() =>
+    this.filters.findIndex((f) => f.id === this.activeFilter()),
+  );
 
   searchChange = output<string>();
   filterChange = output<string>();
   randomChallenge = output<void>();
   levelChange = output<'all' | Level>();
-
-  onSearch(event: Event) {
-    this.searchChange.emit((event.target as HTMLInputElement).value);
-  }
-  onFilterChange(filter: string) {
-    this.filterChange.emit(filter);
-  }
 }

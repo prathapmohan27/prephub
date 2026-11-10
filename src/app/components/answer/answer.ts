@@ -9,6 +9,8 @@ import {
 } from '@angular/core';
 import type { ContentBlock } from '@services/content-model';
 import { AnswerService } from '@services/answer.service';
+import { TuiButton, TuiLoader } from '@taiga-ui/core';
+import { TuiChip } from '@taiga-ui/kit';
 import { ContentBlocks } from '../content-blocks/content-blocks';
 import { RichText } from '../content-blocks/rich-text';
 
@@ -22,18 +24,27 @@ const KEY_SECTIONS: Record<string, string> = {
 @Component({
   selector: 'app-answer',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ContentBlocks, RichText],
+  imports: [ContentBlocks, RichText, TuiButton, TuiChip, TuiLoader],
   template: `
     @let ready = cached();
     @if (ready === undefined && answer.isLoading()) {
       <div class="ans-loading" aria-live="polite">
-        <i class="ti ti-loader-2 ans-spin"></i> Loading answer…
+        <tui-loader size="s" [inheritColor]="true" /> Loading answer…
       </div>
     } @else if (ready === undefined && answer.error()) {
       <div class="ans-empty">
         <i class="ti ti-wifi-off"></i>
         <span>Couldn't load the answer.</span>
-        <button type="button" class="ans-retry" (click)="answer.reload()">Try again</button>
+        <button
+          tuiButton
+          type="button"
+          size="xs"
+          appearance="secondary-grayscale"
+          iconStart="@tui.refresh-cw"
+          (click)="answer.reload()"
+        >
+          Try again
+        </button>
       </div>
     } @else if (ready !== undefined ? ready : answer.value(); as a) {
       <section class="ans-quick" aria-label="Quick answer">
@@ -51,9 +62,11 @@ const KEY_SECTIONS: Record<string, string> = {
             <nav class="ans-toc" aria-label="Sections in this answer">
               @for (sec of sections; track sec.index) {
                 <button
+                  tuiChip
                   type="button"
+                  size="xs"
                   class="ans-toc-chip"
-                  [class.ans-toc-chip--key]="sec.key"
+                  [appearance]="sec.key ? 'info' : 'outline-grayscale'"
                   [title]="sec.label"
                   (click)="jumpTo(sec.index)"
                 >

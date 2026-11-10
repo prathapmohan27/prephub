@@ -1,4 +1,6 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { TuiButton } from '@taiga-ui/core';
+import { TuiBadge, TuiChip, TuiProgress, TuiSegmented } from '@taiga-ui/kit';
 import { DailyLearningService, LearningMode } from '@services/daily-learning';
 import { Question, CategoryModel, TRACKS, Track, isTrack, trackOf } from '@services/question';
 import { Answer } from '../answer/answer';
@@ -9,7 +11,7 @@ type ViewState = 'setup' | 'session';
 
 @Component({
   selector: 'app-daily-learning',
-  imports: [Answer, RichText],
+  imports: [Answer, RichText, TuiBadge, TuiButton, TuiChip, TuiProgress, TuiSegmented],
   template: `
     <div class="dl-shell">
       <div class="dl-glow"></div>
@@ -24,11 +26,8 @@ type ViewState = 'setup' | 'session';
               {{ streak() }} day{{ streak() === 1 ? '' : 's' }} streak
             </div>
           } @else {
-            <div
-              class="streak-badge streak-zero"
-              style="color: var(--color-text-subtle); background: rgb(var(--n-700) / .25); border-color: var(--color-border);"
-            >
-              <i class="ti ti-flame" style="font-size:14px"></i>
+            <div class="streak-badge streak-badge--zero">
+              <i class="ti ti-flame"></i>
               Start your streak today
             </div>
           }
@@ -44,26 +43,27 @@ type ViewState = 'setup' | 'session';
         <!-- ── SETUP VIEW ────────────────────────────────────────────────── -->
         @if (view() === 'setup') {
           <!-- Track toggle (Foundations / Angular / Node.js) -->
-          <div style="margin-bottom: 24px; display: flex; align-items: center; gap: 8px;">
-            <span class="mode-section-label" style="margin-bottom: 0">Learning Track:</span>
-            <div style="display:flex; align-items:center; gap:6px;">
+          <div class="track-row">
+            <span class="mode-section-label track-row-label" id="track-label">Learning Track:</span>
+            <tui-segmented
+              size="s"
+              role="group"
+              aria-labelledby="track-label"
+              class="track-switch"
+              [activeItemIndex]="trackIndex()"
+            >
               @for (t of tracks; track t.id) {
                 <button
-                  (click)="setAppMode(t.id)"
-                  class="topic-chip"
-                  [class.topic-chip--active]="appMode() === t.id"
-                  style="border-radius: var(--radius-md);"
+                  type="button"
+                  [attr.aria-pressed]="appMode() === t.id"
                   [title]="t.id === 'foundations' ? 'JavaScript, TypeScript & the web' : t.label"
+                  (click)="setAppMode(t.id)"
                 >
-                  <i
-                    [class]="'ti ' + t.icon"
-                    style="font-size:13px"
-                    [style.color]="trackColor[t.id]"
-                  ></i>
+                  <i [class]="'ti ' + t.icon" [style.color]="trackColor[t.id]"></i>
                   {{ t.label }}
                 </button>
               }
-            </div>
+            </tui-segmented>
           </div>
 
           <!-- Mode picker -->
@@ -143,16 +143,18 @@ type ViewState = 'setup' | 'session';
               <div class="topic-chips">
                 @for (cat of modeCategories(); track cat.id) {
                   <button
+                    tuiChip
+                    type="button"
+                    size="s"
                     class="topic-chip"
-                    [class.topic-chip--active]="isTopicSelected(cat.id)"
-                    (click)="toggleTopic(cat.id)"
+                    [appearance]="isTopicSelected(cat.id) ? 'info' : 'outline-grayscale'"
+                    [attr.aria-pressed]="isTopicSelected(cat.id)"
                     [id]="'topic-' + cat.id"
+                    (click)="toggleTopic(cat.id)"
                   >
                     <span class="topic-chip-dot" [style.background]="cat.color"></span>
                     {{ cat.title }}
-                    <span style="font-size:0.6rem; color: var(--color-text-faint)"
-                      >({{ cat.questions.length }})</span
-                    >
+                    <span class="topic-chip-count">({{ cat.questions.length }})</span>
                   </button>
                 }
               </div>
@@ -161,12 +163,15 @@ type ViewState = 'setup' | 'session';
 
           <!-- Generate CTA -->
           <button
-            class="btn-generate"
+            tuiButton
+            type="button"
+            size="m"
+            appearance="primary"
+            iconStart="@tui.sparkles"
+            id="btn-generate-session"
             [disabled]="!canGenerate()"
             (click)="generate()"
-            id="btn-generate-session"
           >
-            <i class="ti ti-sparkles"></i>
             Generate Today's Questions
           </button>
         }
@@ -181,14 +186,21 @@ type ViewState = 'setup' | 'session';
                 <span class="session-title"
                   >Today's {{ session()!.questions.length }} Questions</span
                 >
-                <span class="session-mode-tag">
+                <span tuiBadge appearance="info" class="session-mode-tag">
                   <i [class]="'ti ' + modeIcon()"></i>
                   {{ modeLabel() }}
                 </span>
               </div>
               <div class="session-actions">
-                <button class="btn-restart" (click)="restart()" id="btn-restart">
-                  <i class="ti ti-refresh"></i> Change Mode
+                <button
+                  tuiButton
+                  type="button"
+                  appearance="secondary-grayscale"
+                  iconStart="@tui.refresh-cw"
+                  id="btn-restart"
+                  (click)="restart()"
+                >
+                  Change Mode
                 </button>
               </div>
             </div>
@@ -201,9 +213,15 @@ type ViewState = 'setup' | 'session';
                   >{{ completedCount() }} / {{ session()!.questions.length }}</span
                 >
               </div>
-              <div class="progress-track">
-                <div class="progress-fill" [style.width]="progress() + '%'"></div>
-              </div>
+              <progress
+                tuiProgressBar
+                size="s"
+                class="progress-track"
+                aria-label="Questions understood"
+                color="linear-gradient(90deg, #6366f1, #8b5cf6)"
+                [max]="100"
+                [value]="progress()"
+              ></progress>
             </div>
 
             <!-- Question cards -->
@@ -271,35 +289,30 @@ type ViewState = 'setup' | 'session';
                         </div>
                       }
 
-                      <button
-                        type="button"
-                        class="btn-reveal"
-                        (click)="toggleReveal(i)"
-                        [attr.aria-expanded]="revealed().has(i)"
-                      >
-                        <i
-                          class="ti"
-                          [class.ti-eye]="!revealed().has(i)"
-                          [class.ti-eye-off]="revealed().has(i)"
-                        ></i>
-                        {{ revealed().has(i) ? 'Hide Answer' : 'Reveal Answer' }}
-                      </button>
-                      <button
-                        class="btn-understood"
-                        [class.btn-understood--done]="session()!.completed[i]"
-                        [class.btn-understood--pending]="!session()!.completed[i]"
-                        (click)="markUnderstood(i)"
-                        [id]="'btn-understood-' + i"
-                      >
-                        <i
-                          class="ti"
-                          [class.ti-circle-check]="session()!.completed[i]"
-                          [class.ti-brain]="!session()!.completed[i]"
-                        ></i>
-                        {{
-                          session()!.completed[i] ? 'Mark as Pending' : 'Got it! Mark Understood'
-                        }}
-                      </button>
+                      <div class="q-actions">
+                        <button
+                          tuiButton
+                          type="button"
+                          appearance="secondary"
+                          [iconStart]="revealed().has(i) ? '@tui.eye-off' : '@tui.eye'"
+                          [attr.aria-expanded]="revealed().has(i)"
+                          (click)="toggleReveal(i)"
+                        >
+                          {{ revealed().has(i) ? 'Hide Answer' : 'Reveal Answer' }}
+                        </button>
+                        <button
+                          tuiButton
+                          type="button"
+                          [appearance]="session()!.completed[i] ? 'positive' : 'info'"
+                          [iconStart]="session()!.completed[i] ? '@tui.circle-check' : '@tui.brain'"
+                          [id]="'btn-understood-' + i"
+                          (click)="markUnderstood(i)"
+                        >
+                          {{
+                            session()!.completed[i] ? 'Mark as Pending' : 'Got it! Mark Understood'
+                          }}
+                        </button>
+                      </div>
                     </div>
                   }
                 </div>
@@ -338,6 +351,11 @@ export class DailyLearning implements OnInit {
   expandedIndex = signal<number | null>(null);
   appMode = signal<AppMode>('angular');
   readonly tracks = TRACKS;
+  /** Segmented control tracks the selection by position. */
+  protected readonly trackIndex = computed(() =>
+    this.tracks.findIndex((t) => t.id === this.appMode()),
+  );
+
   readonly trackColor: Record<Track, string> = {
     foundations: '#d97706',
     angular: '#f43f5e',

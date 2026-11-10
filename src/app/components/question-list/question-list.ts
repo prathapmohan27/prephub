@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import { TuiButton } from '@taiga-ui/core';
+import { TuiBadge } from '@taiga-ui/kit';
 import { Highlight } from '@pipes/highlight';
 import { CategoryModel } from '@services/question';
 
@@ -27,7 +29,7 @@ export const questionKey = (categoryId: string, questionId: string) =>
 @Component({
   selector: 'app-question-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Highlight],
+  imports: [Highlight, TuiBadge, TuiButton],
   template: `
     <nav class="glass-panel ql" aria-label="Questions">
       @for (g of groups(); track g.cat.id) {
@@ -62,19 +64,16 @@ export const questionKey = (categoryId: string, questionId: string) =>
                 [style.--ql-accent]="g.cat.color"
               >
                 <button
+                  tuiIconButton
                   type="button"
+                  size="xs"
+                  appearance="flat-grayscale"
                   class="ql-check"
+                  [iconStart]="preparedSet().has(it.id) ? '@tui.circle-check' : '@tui.circle'"
                   (click)="togglePrepared.emit(it.id)"
-                  [attr.aria-label]="
-                    preparedSet().has(it.id) ? 'Mark as unprepared' : 'Mark as mastered'
-                  "
                   [title]="preparedSet().has(it.id) ? 'Mark as unprepared' : 'Mark as mastered'"
                 >
-                  <i
-                    class="ti"
-                    [class.ti-circle-check]="preparedSet().has(it.id)"
-                    [class.ti-circle]="!preparedSet().has(it.id)"
-                  ></i>
+                  {{ preparedSet().has(it.id) ? 'Mark as unprepared' : 'Mark as mastered' }}
                 </button>
 
                 <button
@@ -87,7 +86,14 @@ export const questionKey = (categoryId: string, questionId: string) =>
                   <span class="ql-num">{{ it.num }}</span>
                   <span class="ql-text" [innerHTML]="label(it) | highlight: searchFilter()"></span>
                   @if (showLevel() && it.senior) {
-                    <span class="ql-level" title="Senior-level question">Senior</span>
+                    <span
+                      tuiBadge
+                      size="s"
+                      appearance="info"
+                      class="ql-level"
+                      title="Senior-level question"
+                      >Senior</span
+                    >
                   }
                 </button>
 

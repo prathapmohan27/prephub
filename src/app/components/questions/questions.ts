@@ -13,6 +13,8 @@ import {
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router, Scroll } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TuiButton, TuiDialog } from '@taiga-ui/core';
+import { TuiBadge, TuiChip, TuiProgress } from '@taiga-ui/kit';
 import { Header } from '@components/header';
 import { MockFocus, MockInterview, MockItem } from '../mock-interview/mock-interview';
 import { QGroup, QItem, QuestionList, questionKey } from '../question-list/question-list';
@@ -74,7 +76,17 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
 
 @Component({
   selector: 'app-questions',
-  imports: [Header, QuestionList, QuestionReader, MockInterview],
+  imports: [
+    Header,
+    QuestionList,
+    QuestionReader,
+    MockInterview,
+    TuiBadge,
+    TuiButton,
+    TuiChip,
+    TuiDialog,
+    TuiProgress,
+  ],
   host: {
     '(document:keydown)': 'onKeydown($event)',
     '(window:popstate)': 'onPopState()',
@@ -110,20 +122,21 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
                   }
                 </div>
                 <button
+                  tuiIconButton
                   type="button"
+                  size="xs"
+                  appearance="flat-grayscale"
                   class="sidebar-toggle"
+                  [iconStart]="
+                    sidebarCollapsed() ? '@tui.panel-left-open' : '@tui.panel-left-close'
+                  "
                   (click)="toggleSidebar()"
                   [attr.aria-expanded]="!sidebarCollapsed()"
                   [title]="
                     sidebarCollapsed() ? 'Show topic names' : 'Collapse topics (F for focus mode)'
                   "
-                  [attr.aria-label]="sidebarCollapsed() ? 'Expand topics' : 'Collapse topics'"
                 >
-                  <i
-                    class="ti"
-                    [class.ti-layout-sidebar-left-collapse]="!sidebarCollapsed()"
-                    [class.ti-layout-sidebar-left-expand]="sidebarCollapsed()"
-                  ></i>
+                  {{ sidebarCollapsed() ? 'Expand topics' : 'Collapse topics' }}
                 </button>
               </div>
 
@@ -141,6 +154,9 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
                   <span class="tab-text">All Topics</span>
                 </span>
                 <span
+                  tuiBadge
+                  size="s"
+                  appearance="neutral"
                   class="cat-badge"
                   [title]="
                     masteredInMode() +
@@ -152,16 +168,14 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
                   >{{ masteredInMode() }}/{{ totalDatabaseQuestions() }}</span
                 >
               </button>
-              <div
+              <progress
+                tuiProgressBar
+                size="xs"
                 class="overall-progress"
-                role="progressbar"
                 aria-label="Mastered"
-                [attr.aria-valuenow]="masteredInMode()"
-                aria-valuemin="0"
-                [attr.aria-valuemax]="totalDatabaseQuestions()"
-              >
-                <div class="overall-progress-fill" [style.width.%]="masteredPercent()"></div>
-              </div>
+                [max]="totalDatabaseQuestions() || 1"
+                [value]="masteredInMode()"
+              ></progress>
 
               <div class="divider-hz"></div>
 
@@ -190,8 +204,12 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
                       </span>
                       @let total = categoryTotal(cat);
                       <span
+                        tuiBadge
+                        size="s"
                         class="cat-badge shrink-0"
-                        [class.cat-badge--done]="total > 0 && categoryDone(cat) === total"
+                        [appearance]="
+                          total > 0 && categoryDone(cat) === total ? 'positive' : 'neutral'
+                        "
                         [class.cat-badge--empty]="total === 0"
                         [title]="categoryDone(cat) + ' of ' + total + levelSuffix() + ' mastered'"
                         >{{ categoryDone(cat) }}/{{ total }}</span
@@ -203,13 +221,16 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
 
               <!-- Expanded desktop sidebar: collapse lives here so the track switch gets the full width -->
               <button
+                tuiButton
                 type="button"
+                size="xs"
+                appearance="flat-grayscale"
+                iconStart="@tui.panel-left-close"
                 class="sidebar-collapse"
                 (click)="toggleSidebar()"
                 [attr.aria-expanded]="true"
                 title="Collapse topics (F)"
               >
-                <i class="ti ti-layout-sidebar-left-collapse"></i>
                 Collapse topics
                 <kbd>F</kbd>
               </button>
@@ -259,17 +280,28 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
                 </span>
                 @for (f of appliedFilters(); track f.kind) {
                   <button
+                    tuiChip
                     type="button"
+                    size="xs"
+                    appearance="accent"
+                    iconEnd="@tui.x"
                     class="filter-bar-chip"
                     (click)="clearFilter(f.kind)"
                     [attr.aria-label]="'Remove filter: ' + f.label"
                     [title]="'Remove filter: ' + f.label"
                   >
-                    {{ f.label }} <i class="ti ti-x"></i>
+                    {{ f.label }}
                   </button>
                 }
                 @if (appliedFilters().length > 1) {
-                  <button type="button" class="filter-bar-clear" (click)="clearAllFilters()">
+                  <button
+                    tuiButton
+                    type="button"
+                    size="xs"
+                    appearance="flat-grayscale"
+                    class="filter-bar-clear"
+                    (click)="clearAllFilters()"
+                  >
                     Clear all
                   </button>
                 }
@@ -339,47 +371,23 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
         </div>
       </div>
 
-      @if (shortcutsOpen()) {
-        <div class="kbd-overlay">
-          <button
-            type="button"
-            class="kbd-backdrop"
-            tabindex="-1"
-            aria-label="Close shortcuts"
-            (click)="shortcutsOpen.set(false)"
-          ></button>
-          <div
-            class="glass-panel kbd-dialog animate-fade-in"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="kbd-title"
-          >
-            <div class="flex-between">
-              <h2 id="kbd-title" class="kbd-title">Keyboard shortcuts</h2>
-              <button
-                type="button"
-                class="btn-icon-small kbd-close"
-                (click)="shortcutsOpen.set(false)"
-                aria-label="Close"
-              >
-                <i class="ti ti-x"></i>
-              </button>
+      <ng-template
+        [tuiDialogOptions]="{ label: 'Keyboard shortcuts', size: 's' }"
+        [(tuiDialog)]="shortcutsOpen"
+      >
+        <dl class="kbd-list">
+          @for (s of shortcuts; track s.label) {
+            <div class="kbd-row">
+              <dt>
+                @for (k of s.keys; track k) {
+                  <kbd>{{ k }}</kbd>
+                }
+              </dt>
+              <dd>{{ s.label }}</dd>
             </div>
-            <dl class="kbd-list">
-              @for (s of shortcuts; track s.label) {
-                <div class="kbd-row">
-                  <dt>
-                    @for (k of s.keys; track k) {
-                      <kbd>{{ k }}</kbd>
-                    }
-                  </dt>
-                  <dd>{{ s.label }}</dd>
-                </div>
-              }
-            </dl>
-          </div>
-        </div>
-      }
+          }
+        </dl>
+      </ng-template>
     </div>
   `,
   styleUrl: './questions.css',
@@ -595,11 +603,6 @@ export class Questions implements OnInit {
       (n, c) => n + this.atLevel(c).filter((q) => prepared.has(q.id)).length,
       0,
     );
-  });
-
-  masteredPercent = computed(() => {
-    const total = this.totalDatabaseQuestions();
-    return total ? Math.round((this.masteredInMode() / total) * 100) : 0;
   });
 
   /**
@@ -880,11 +883,8 @@ export class Questions implements OnInit {
   }
 
   openShortcuts() {
+    // TuiDialog moves focus into the dialog and restores it on close
     this.shortcutsOpen.set(true);
-    afterNextRender(
-      () => this.host.nativeElement.querySelector<HTMLElement>('.kbd-close')?.focus(),
-      { injector: this.injector },
-    );
   }
 
   /** Moves to the previous (-1) or next (+1) question in the visible list. */
@@ -1073,7 +1073,4 @@ export class Questions implements OnInit {
     this.starredSet.set(updated);
     localStorage.setItem('prep_starred', JSON.stringify(Array.from(updated)));
   }
-
-  /** Close icon button for spotlight */
-  readonly btn_icon_small_classes = 'btn-icon-small';
 }

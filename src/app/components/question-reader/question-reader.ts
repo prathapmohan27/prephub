@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import { TuiButton } from '@taiga-ui/core';
+import { TuiBadge } from '@taiga-ui/kit';
 import { Highlight } from '@pipes/highlight';
 import { Answer } from '../answer/answer';
 import { QItem } from '../question-list/question-list';
@@ -9,12 +11,19 @@ import { RATINGS, ReviewRating } from '@services/reviews';
 @Component({
   selector: 'app-question-reader',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Highlight, Answer],
+  imports: [Highlight, Answer, TuiBadge, TuiButton],
   template: `
     <article class="glass-panel reader" [style.--reader-accent]="item().cat.color">
       <div class="reader-top">
-        <button type="button" class="btn-ghost reader-back" (click)="back.emit()">
-          <i class="ti ti-arrow-left"></i> Questions
+        <button
+          tuiButton
+          type="button"
+          appearance="secondary-grayscale"
+          iconStart="@tui.arrow-left"
+          class="reader-back"
+          (click)="back.emit()"
+        >
+          Questions
         </button>
         <span
           class="reader-cat"
@@ -25,14 +34,22 @@ import { RATINGS, ReviewRating } from '@services/reviews';
           {{ item().cat.title }}
         </span>
         @if (senior()) {
-          <span class="reader-level" title="Internals, trade-offs, design or production scenario"
+          <span
+            tuiBadge
+            appearance="info"
+            class="reader-level"
+            title="Internals, trade-offs, design or production scenario"
             >Senior</span
           >
         }
         <button
+          tuiButton
           type="button"
+          size="xs"
+          appearance="outline-grayscale"
           class="reader-practice"
-          [class.reader-practice--on]="practice()"
+          [iconStart]="practice() ? '@tui.eye-off' : '@tui.eye'"
+          [tuiAppearanceMode]="practice() ? 'checked' : null"
           [attr.aria-pressed]="practice()"
           (click)="togglePractice.emit()"
           [title]="
@@ -41,7 +58,6 @@ import { RATINGS, ReviewRating } from '@services/reviews';
               : 'Practice mode: hide answers until you reveal them (P)'
           "
         >
-          <i class="ti" [class.ti-eye-off]="practice()" [class.ti-eye]="!practice()"></i>
           <span class="reader-practice-label">Practice</span>
         </button>
         <span class="reader-pos">{{ position() }} / {{ total() }}</span>
@@ -52,14 +68,16 @@ import { RATINGS, ReviewRating } from '@services/reviews';
           <span [innerHTML]="item().q | highlight: ''"></span>
         </h2>
         <button
+          tuiIconButton
           type="button"
           class="reader-star"
-          [class.reader-star--on]="starred()"
+          [appearance]="starred() ? 'warning' : 'outline-grayscale'"
+          [iconStart]="starred() ? '@tui.star-filled' : '@tui.star'"
           (click)="toggleStarred.emit()"
           [title]="starred() ? 'Remove star (S)' : 'Star question (S)'"
           [attr.aria-pressed]="starred()"
         >
-          <i class="ti" [class.ti-star-filled]="starred()" [class.ti-star]="!starred()"></i>
+          {{ starred() ? 'Remove star' : 'Star question' }}
         </button>
       </div>
 
@@ -72,8 +90,14 @@ import { RATINGS, ReviewRating } from '@services/reviews';
               Say your quick answer, then the details you would add. Reveal the model answer to
               compare.
             </p>
-            <button type="button" class="reader-recall-btn" (click)="reveal.emit()">
-              <i class="ti ti-eye"></i> Reveal answer <kbd>Space</kbd>
+            <button
+              tuiButton
+              type="button"
+              appearance="primary"
+              iconStart="@tui.eye"
+              (click)="reveal.emit()"
+            >
+              Reveal answer <kbd>Space</kbd>
             </button>
           </div>
         } @else {
@@ -82,37 +106,59 @@ import { RATINGS, ReviewRating } from '@services/reviews';
       </div>
 
       <div class="reader-links">
-        <button type="button" (click)="copyQuestion()" class="btn-ghost">
-          <i class="ti" [class.ti-copy]="!copied()" [class.ti-check]="copied()"></i>
+        <button
+          tuiButton
+          type="button"
+          appearance="secondary-grayscale"
+          [iconStart]="copied() ? '@tui.check' : '@tui.copy'"
+          (click)="copyQuestion()"
+        >
           {{ copied() ? 'Copied!' : 'Copy question' }}
         </button>
-        <a [href]="docsLink()" target="_blank" rel="noopener" class="btn-ghost action-link">
-          <i class="ti ti-external-link"></i>
+        <a
+          tuiButton
+          appearance="secondary-grayscale"
+          iconStart="@tui.external-link"
+          target="_blank"
+          rel="noopener"
+          [href]="docsLink()"
+        >
           {{ track().docsLabel }}
         </a>
-        <a [href]="googleLink()" target="_blank" rel="noopener" class="btn-ghost action-link">
-          <i class="ti ti-brand-google"></i> Google
+        <a
+          tuiButton
+          appearance="secondary-grayscale"
+          iconStart="@tui.search"
+          target="_blank"
+          rel="noopener"
+          [href]="googleLink()"
+        >
+          Google
         </a>
         <button
+          tuiButton
           type="button"
-          class="btn-ghost reader-shortcuts"
+          appearance="secondary-grayscale"
+          iconStart="@tui.keyboard"
+          class="reader-shortcuts"
           (click)="showShortcuts.emit()"
           title="Keyboard shortcuts (?)"
         >
-          <i class="ti ti-keyboard"></i> Shortcuts <kbd>?</kbd>
+          Shortcuts <kbd>?</kbd>
         </button>
       </div>
 
       <!-- Sticky footer: move through questions without scrolling back up -->
       <div class="reader-nav">
         <button
+          tuiButton
           type="button"
-          class="reader-nav-btn"
+          appearance="secondary-grayscale"
+          iconStart="@tui.chevron-left"
           [disabled]="position() <= 1"
           (click)="prev.emit()"
           title="Previous question (K or ←)"
         >
-          <i class="ti ti-chevron-left"></i>
           <span class="reader-nav-label">Prev</span>
           <kbd>K</kbd>
         </button>
@@ -120,10 +166,9 @@ import { RATINGS, ReviewRating } from '@services/reviews';
         <div class="reader-rate" role="group" aria-label="How well did you know it?">
           @for (r of ratings; track r.value) {
             <button
+              tuiButton
               type="button"
-              class="reader-rate-btn"
-              [class]="'reader-rate-btn reader-rate-btn--' + r.value"
-              [class.reader-rate-btn--on]="rating() === r.value"
+              [appearance]="rating() === r.value ? rateAppearance[r.value] : 'outline-grayscale'"
               [attr.aria-pressed]="rating() === r.value"
               [title]="r.label + ' (' + r.key + ')' + rateHint[r.value]"
               (click)="rate.emit(r.value)"
@@ -136,15 +181,16 @@ import { RATINGS, ReviewRating } from '@services/reviews';
         </div>
 
         <button
+          tuiButton
           type="button"
-          class="reader-nav-btn reader-nav-btn--next"
+          appearance="secondary-grayscale"
+          iconEnd="@tui.chevron-right"
           [disabled]="position() >= total()"
           (click)="next.emit()"
           title="Next question (J or →)"
         >
           <kbd>J</kbd>
           <span class="reader-nav-label">Next</span>
-          <i class="ti ti-chevron-right"></i>
         </button>
       </div>
     </article>
@@ -176,6 +222,12 @@ export class QuestionReader {
     nailed: ': marks it mastered',
     shaky: ': comes back sooner in Mock Me',
     blanked: ': un-marks it and brings it back first',
+  };
+  /** Taiga status appearance for the selected rating (same colours as Mock Me). */
+  protected readonly rateAppearance: Record<ReviewRating, string> = {
+    nailed: 'positive',
+    shaky: 'warning',
+    blanked: 'negative',
   };
   readonly togglePractice = output<void>();
 

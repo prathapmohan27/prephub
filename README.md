@@ -58,9 +58,10 @@ All progress (mastered, starred, ratings, streaks, preferences) is saved in your
 ## Tech stack
 
 - **Angular 22**: standalone components, signals, built-in control flow, lazy-loaded routes
-- **Tailwind CSS 4** plus hand-written component CSS
+- **Taiga UI 5** as the component library (buttons, inputs, select, segmented controls, chips, badges, switches, progress, dialogs). See [UI components](#ui-components-taiga-ui)
+- **Tailwind CSS 4** plus hand-written layout CSS
 - **Mermaid** and **highlight.js** for diagrams and code samples
-- **Tabler Icons**, **Inter** and **Plus Jakarta Sans**
+- **Taiga UI icons** (`@tui.*`, Lucide) inside Taiga components; **Tabler Icons** for content icons (topics, sections); **Inter** and **Plus Jakarta Sans**
 - **ESLint** (angular-eslint), **Prettier**, **Husky** + **lint-staged** + **commitlint** (Conventional Commits)
 - **Vitest** via `ng test`
 - **GitHub Pages** via `angular-cli-ghpages`
@@ -99,7 +100,8 @@ npx ng deploy
 ```
 src/
 ├── index.html                  # Fonts, icon font, favicons
-├── styles.css                  # Design tokens, shared panels and buttons
+├── styles.css                  # Design tokens (colours, radii, fonts), shared panels
+├── taiga-theme.css             # Maps Taiga UI's --tui-* variables onto the tokens above
 └── app/
     ├── app.routes.ts           # Home, Q&A, Daily, Core Concepts, System Design
     ├── components/
@@ -115,14 +117,51 @@ src/
     │   ├── core-concepts/
     │   ├── system-design/
     │   ├── content-blocks/     # Renders rich content (text, lists, code, callouts, flows)
-    │   └── flow-diagram/
+    │   ├── flow-diagram/
+    │   └── shared/             # Small helpers shared by pages (e.g. difficulty badge colours)
     └── services/
         ├── question.ts         # Topics and questions for both tracks
         ├── answers/            # One file of model answers per topic
         ├── core-concepts/      # One file per concept
         ├── system-design/      # One file per design
-        └── daily-learning.ts
+        ├── daily-learning.ts
+        └── theme.service.ts    # Light / dark; also drives Taiga UI's dark mode
 ```
+
+## UI components (Taiga UI)
+
+[Taiga UI](https://taiga-ui.dev) is the standard component library. Use its components for every control instead of writing new button or input CSS. The full docs are in `.agents/skills/taiga-ui/llms-full.txt`; check the import map at the top of that file, since importing from the wrong package is the most common mistake.
+
+**Setup (already done):** `provideTaiga()` and `provideAppTheme()` in `app.config.ts`, `<tui-root>` in `app.ts`, the theme stylesheet and icon assets in `angular.json`.
+
+**Which component for what:**
+
+| Need                             | Use                                                                                                           | Package |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------- |
+| Button / link styled as a button | `<button tuiButton appearance="…">`, `<a tuiButton>`                                                          | core    |
+| Icon-only button                 | `<button tuiIconButton iconStart="@tui.x">Label for screen readers</button>`                                  | core    |
+| On/off toggle button             | `appearance="outline-grayscale"` + `[tuiAppearanceMode]="on ? 'checked' : null"`                              | core    |
+| Text input                       | `<tui-textfield><input tuiInput [(ngModel)] /></tui-textfield>`                                               | core    |
+| Dropdown select                  | `<tui-textfield tuiChevron><input tuiSelect /><tui-data-list-wrapper *tuiDropdown [items] /></tui-textfield>` | kit     |
+| One-of-N choice                  | `<tui-segmented [activeItemIndex]>` with `<button>` children                                                  | kit     |
+| Removable / selectable pill      | `<button tuiChip>`                                                                                            | kit     |
+| Status label                     | `<span tuiBadge appearance="positive \| warning \| negative \| info \| neutral">`                             | kit     |
+| Switch                           | `<input tuiSwitch type="checkbox">`                                                                           | kit     |
+| Progress                         | `<progress tuiProgressBar>`, `<tui-progress-circle>`                                                          | kit     |
+| Modal                            | `<ng-template [(tuiDialog)]="open">`, or `TuiDialogService`                                                   | core    |
+| Confirm                          | `TuiDialogService.open(TUI_CONFIRM, …)`                                                                       | kit     |
+| Spinner                          | `<tui-loader>`                                                                                                | core    |
+
+**Conventions:**
+
+- **Appearances:** `primary` for the main action (violet), `secondary-grayscale` for ordinary buttons, `flat-grayscale` for quiet ones, and status appearances (`positive` / `warning` / `negative` / `info`) for ratings and states. `info` is the app's violet.
+- **Sizes:** buttons default to `s` and textfields to `m` (set in `app.config.ts`). Pass `size` only to deviate, such as `xs` in dense rows. Prefer `s` / `m`; larger sizes switch to Taiga's 16 px+ type.
+- **Icons:** inside Taiga components, use Taiga icons via `iconStart` / `iconEnd` (`@tui.<lucide-name>`; browse `node_modules/@taiga-ui/icons/src`). Data-driven icons (topic and section icons in `services/`) stay Tabler `<i class="ti …">`.
+- **Colours and type:** don't hard-code colours on Taiga components. Change the token in `styles.css`, or the mapping in `src/taiga-theme.css`, and every component follows. Light / dark is set by `ThemeService` only; it feeds Taiga's `TUI_DARK_MODE`, so don't inject and set `TUI_DARK_MODE` directly.
+- **Always-dark areas** (code blocks, diagrams) put `tuiTheme: 'dark'` on their host so the Taiga controls inside them use the dark palette.
+- **No wrappers:** use Taiga components directly in templates. Shared defaults belong in providers (`tui*OptionsProvider`) or in `taiga-theme.css`, not in wrapper components.
+
+**Upgrading Taiga UI:** keep all `@taiga-ui/*` packages on the same version, then run `ng update @taiga-ui/cdk`, which runs Taiga's migrations. Review the `// TODO: (Taiga UI migration)` comments it leaves. This repo uses `legacy-peer-deps`, so after an upgrade, check that every Taiga peer dependency is still installed (see "Troubleshooting" in the docs file). If `ng serve` then shows `NG0201: No provider found for TuiTextfieldComponent` or similar while `ng build` works, delete `.angular/cache` and restart. It's a stale pre-bundled dependency cache.
 
 ## Adding content
 

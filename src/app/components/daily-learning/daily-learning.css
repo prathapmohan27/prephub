@@ -53,10 +53,28 @@
 .streak-badge .streak-fire {
   font-size: 14px;
 }
-.streak-badge .streak-zero {
+.streak-badge--zero {
   color: var(--color-text-subtle);
-  background: rgb(var(--n-700) / 0.3);
+  background: rgb(var(--n-700) / 0.25);
   border-color: var(--color-border);
+}
+.streak-badge .ti {
+  font-size: 14px;
+}
+
+/* Learning track switch */
+.track-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.track-row-label {
+  margin-bottom: 0;
+}
+.track-switch .ti {
+  font-size: 13px;
 }
 
 /* ─── Page header ─────────────────────────────────────────────────────────── */
@@ -213,62 +231,15 @@
   gap: 8px;
 }
 
-.topic-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--color-border);
-  background: rgb(var(--n-900) / 0.6);
-  color: var(--color-text-muted);
-  font: 600 0.72rem var(--font-sans);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.topic-chip:hover {
-  border-color: var(--color-border-strong);
-  color: var(--color-text-primary);
-}
-.topic-chip--active {
-  border-color: rgba(99, 102, 241, 0.4) !important;
-  background: rgba(99, 102, 241, 0.1) !important;
-  color: var(--t-indigo-200) !important;
+.topic-chip-count {
+  font-size: 0.6rem;
+  color: var(--color-text-faint);
 }
 .topic-chip-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
-}
-
-/* ─── CTA button ─────────────────────────────────────────────────────────── */
-.btn-generate {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 28px;
-  border-radius: var(--radius-md);
-  border: none;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  color: #fff;
-  font: 700 0.85rem var(--font-display);
-  cursor: pointer;
-  transition:
-    opacity 0.15s,
-    transform 0.15s,
-    box-shadow 0.15s;
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
-  letter-spacing: -0.01em;
-}
-.btn-generate:hover:not(:disabled) {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 22px rgba(99, 102, 241, 0.38);
-}
-.btn-generate:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
 }
 
 /* ─── Session view ────────────────────────────────────────────────────────── */
@@ -301,39 +272,13 @@
 }
 
 .session-mode-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
-  border-radius: var(--radius-pill);
-  font: 600 0.65rem var(--font-sans);
-  background: rgba(99, 102, 241, 0.1);
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  color: var(--t-indigo-300);
+  align-self: flex-start;
 }
 
 .session-actions {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.btn-restart {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-strong);
-  background: rgb(var(--n-800) / 0.5);
-  color: var(--color-text-muted);
-  font: 600 0.72rem var(--font-sans);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.btn-restart:hover {
-  background: rgb(var(--n-700) / 0.6);
-  color: var(--color-text-primary);
 }
 
 /* ─── Progress bar ────────────────────────────────────────────────────────── */
@@ -359,18 +304,7 @@
 }
 
 .progress-track {
-  height: 6px;
-  border-radius: var(--radius-pill);
-  background: rgb(var(--n-700) / 0.5);
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: var(--radius-pill);
-  background: linear-gradient(90deg, #6366f1, #8b5cf6, var(--t-violet-400));
-  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+  width: 100%;
 }
 
 /* ─── Question cards ─────────────────────────────────────────────────────── */
@@ -489,34 +423,12 @@
   color: var(--color-text-subtle);
 }
 
-.btn-understood {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 9px 18px;
-  border-radius: var(--radius-md);
-  font: 600 0.75rem var(--font-sans);
-  cursor: pointer;
-  transition: all 0.15s;
-  border: 1px solid;
+.q-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
 }
-.btn-understood--pending {
-  background: rgba(99, 102, 241, 0.1);
-  border-color: rgba(99, 102, 241, 0.25);
-  color: var(--t-indigo-300);
-}
-.btn-understood--pending:hover {
-  background: rgba(99, 102, 241, 0.18);
-}
-.btn-understood--done {
-  background: var(--color-success-bg);
-  border-color: var(--color-success-border);
-  color: var(--color-success-light);
-}
-.btn-understood--done:hover {
-  background: rgba(16, 185, 129, 0.15);
-}
-
 /* ─── Completion banner ──────────────────────────────────────────────────── */
 .completion-banner {
   padding: 28px 24px;
@@ -574,26 +486,4 @@
 /* ─── Model answer ────────────────────────────────────────────────────────── */
 .q-answer {
   margin: 14px 0;
-}
-
-.btn-reveal {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  margin: 12px 8px 0 0;
-  padding: 9px 16px;
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(99, 102, 241, 0.35);
-  background: rgba(99, 102, 241, 0.1);
-  color: var(--t-indigo-200);
-  font: 600 0.78rem var(--font-sans);
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.btn-reveal:hover {
-  background: rgba(99, 102, 241, 0.2);
-}
-.btn-reveal:focus-visible {
-  outline: 2px solid var(--t-indigo-400);
-  outline-offset: 2px;
 }

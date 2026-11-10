@@ -1,5 +1,8 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TuiButton, TuiDialogService } from '@taiga-ui/core';
+import { TUI_CONFIRM, TuiProgress, type TuiConfirmData } from '@taiga-ui/kit';
+import { firstValueFrom } from 'rxjs';
 import { CategoryModel, Question, TRACKS, Track, isTrack, trackOf } from '@services/question';
 import { DailyLearningService } from '@services/daily-learning';
 import { exportProgress, importProgress } from '@services/progress-backup';
@@ -95,7 +98,7 @@ const TRACK_ACCENT: Record<Track, string> = {
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink],
+  imports: [RouterLink, TuiButton, TuiProgress],
   template: `
     <div class="home">
       <div class="home-glow"></div>
@@ -130,14 +133,26 @@ const TRACK_ACCENT: Record<Track, string> = {
             <h2 id="today-title" class="today-title">Today’s questions</h2>
             @if (todayTotal() > 0) {
               <p class="today-text">{{ todayDone() }} of {{ todayTotal() }} done</p>
-              <div class="bar" aria-hidden="true">
-                <span class="bar-fill bar-fill--violet" [style.width.%]="todayPercent()"></span>
-              </div>
+              <progress
+                tuiProgressBar
+                size="s"
+                class="bar"
+                aria-hidden="true"
+                color="linear-gradient(90deg, #6366f1, #8b5cf6)"
+                [max]="100"
+                [value]="todayPercent()"
+              ></progress>
             } @else {
               <p class="today-text">10 fresh questions a day keep your streak alive.</p>
             }
           </div>
-          <a routerLink="/daily" class="btn-cta">
+          <a
+            tuiButton
+            appearance="primary"
+            iconEnd="@tui.arrow-right"
+            routerLink="/daily"
+            class="btn-cta"
+          >
             @if (todayTotal() === 0) {
               Start today
             } @else if (todayDone() < todayTotal()) {
@@ -145,7 +160,6 @@ const TRACK_ACCENT: Record<Track, string> = {
             } @else {
               Review
             }
-            <i class="ti ti-arrow-right"></i>
           </a>
         </section>
 
@@ -169,9 +183,14 @@ const TRACK_ACCENT: Record<Track, string> = {
                 <span class="next-title">{{ step.title }}</span>
                 <span class="next-meta">{{ step.meta }}</span>
                 @if (step.started && step.kind !== 'qa') {
-                  <span class="bar" aria-hidden="true">
-                    <span class="bar-fill" [style.width.%]="step.percent"></span>
-                  </span>
+                  <progress
+                    tuiProgressBar
+                    size="s"
+                    class="bar"
+                    aria-hidden="true"
+                    [max]="100"
+                    [value]="step.percent"
+                  ></progress>
                 }
                 <span class="next-go">
                   {{ step.started ? 'Continue' : 'Start' }} <i class="ti ti-arrow-right"></i>
@@ -192,9 +211,14 @@ const TRACK_ACCENT: Record<Track, string> = {
                   {{ s.label }}
                 </span>
                 <span class="stat-value"> {{ s.progress.percent }}<small>%</small> </span>
-                <span class="bar" aria-hidden="true">
-                  <span class="bar-fill" [style.width.%]="s.progress.percent"></span>
-                </span>
+                <progress
+                  tuiProgressBar
+                  size="s"
+                  class="bar"
+                  aria-hidden="true"
+                  [max]="100"
+                  [value]="s.progress.percent"
+                ></progress>
                 <span class="stat-meta"
                   >{{ s.progress.read }} / {{ s.progress.total }} {{ s.unit }}</span
                 >
@@ -213,11 +237,23 @@ const TRACK_ACCENT: Record<Track, string> = {
               Progress is saved only in this browser. Keep a backup or move it to another device.
             </span>
             <span class="backup-actions">
-              <button type="button" class="btn-ghost" (click)="backup()">
-                <i class="ti ti-download"></i> Back up
+              <button
+                tuiButton
+                type="button"
+                appearance="secondary-grayscale"
+                iconStart="@tui.download"
+                (click)="backup()"
+              >
+                Back up
               </button>
-              <button type="button" class="btn-ghost" (click)="restoreInput.click()">
-                <i class="ti ti-upload"></i> Restore
+              <button
+                tuiButton
+                type="button"
+                appearance="secondary-grayscale"
+                iconStart="@tui.upload"
+                (click)="restoreInput.click()"
+              >
+                Restore
               </button>
               <input
                 #restoreInput
@@ -309,6 +345,19 @@ export class Home implements OnInit {
   ]);
 
   readonly backupMessage = signal('');
+  private readonly dialogs = inject(TuiDialogService);
+
+  private confirmRestore(): Promise<boolean> {
+    const data: TuiConfirmData = {
+      content: 'Restoring replaces your current progress in this browser.',
+      yes: 'Restore',
+      no: 'Cancel',
+    };
+    return firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, { label: 'Restore progress?', size: 's', data }),
+      { defaultValue: false },
+    );
+  }
 
   backup() {
     exportProgress();
@@ -319,7 +368,7 @@ export class Home implements OnInit {
     const file = input.files?.[0];
     input.value = '';
     if (!file) return;
-    if (!confirm('Restoring replaces your current progress in this browser. Continue?')) return;
+    if (!(await this.confirmRestore())) return;
     try {
       const count = await importProgress(file);
       this.backupMessage.set(`Restored ${count} saved items. Reloading…`);

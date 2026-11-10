@@ -55,29 +55,6 @@
 .ans-toc-chip {
   flex-shrink: 0;
   max-width: 24ch;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text-muted);
-  font: 500 0.72rem var(--font-sans);
-  cursor: pointer;
-  transition:
-    color 0.15s,
-    border-color 0.15s;
-}
-
-.ans-toc-chip:hover {
-  color: var(--color-text-primary);
-  border-color: var(--color-border-strong);
-}
-
-.ans-toc-chip--key {
-  color: var(--t-violet-300);
-  border-color: rgba(139, 92, 246, 0.4);
 }
 
 .ans-loading,
@@ -93,21 +70,7 @@
   color: var(--color-text-subtle);
 }
 
-.ans-spin {
-  animation: ans-spin 0.9s linear infinite;
-}
-@keyframes ans-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.ans-retry {
-  padding: 4px 10px;
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
-  background: rgb(var(--n-800) / 0.6);
-  color: var(--color-text-secondary);
-  font: 600 0.72rem var(--font-sans);
-  cursor: pointer;
+/* Keep the chips compact at every breakpoint (Taiga sizes chips up on mobile) */
+.ans-toc .ans-toc-chip {
+  font: 500 0.72rem var(--font-sans);
 }

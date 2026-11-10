@@ -7,6 +7,7 @@ import {
   viewChild,
   ChangeDetectionStrategy,
 } from '@angular/core';
+import { TuiButton, TuiLoader } from '@taiga-ui/core';
 
 type Mermaid = typeof import('mermaid').default;
 
@@ -86,6 +87,9 @@ function withClasses(code: string): string {
 @Component({
   selector: 'app-flow-diagram',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [TuiButton, TuiLoader],
+  // Diagrams stay dark in both themes, so Taiga components inside use the dark palette too
+  host: { tuiTheme: 'dark' },
   template: `
     <figure class="fd">
       <figcaption class="fd-head">
@@ -97,19 +101,25 @@ function withClasses(code: string): string {
         </div>
         @if (state() === 'ready') {
           <button
+            tuiButton
             type="button"
+            size="xs"
+            appearance="secondary-grayscale"
+            iconStart="@tui.maximize-2"
             class="fd-btn"
             (click)="openFullscreen()"
             aria-label="Expand diagram"
           >
-            <i class="ti ti-arrows-maximize"></i><span class="fd-btn-label">Expand</span>
+            <span class="fd-btn-label">Expand</span>
           </button>
         }
       </figcaption>
 
       <div class="fd-canvas" [class.fd-canvas--loading]="state() === 'loading'">
         @if (state() === 'loading') {
-          <div class="fd-skeleton"><i class="ti ti-loader-2 fd-spin"></i> Drawing diagram…</div>
+          <div class="fd-skeleton">
+            <tui-loader size="s" [inheritColor]="true" /> Drawing diagram…
+          </div>
         }
         @if (state() === 'error') {
           <pre class="fd-fallback"><code>{{ code() }}</code></pre>
@@ -127,8 +137,15 @@ function withClasses(code: string): string {
     <dialog #dialog class="fd-dialog" (click)="onDialogClick($event)">
       <div class="fd-dialog-head">
         <span class="fd-title">{{ title() || 'Diagram' }}</span>
-        <button type="button" class="fd-btn" (click)="dialog.close()" aria-label="Close">
-          <i class="ti ti-x"></i>
+        <button
+          tuiIconButton
+          type="button"
+          size="xs"
+          appearance="secondary-grayscale"
+          iconStart="@tui.x"
+          (click)="dialog.close()"
+        >
+          Close
         </button>
       </div>
       <div #dialogHost class="fd-dialog-body"></div>

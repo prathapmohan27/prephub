@@ -11,9 +11,13 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
   important: 'ti-flame',
 };
 
+import { TuiButton } from '@taiga-ui/core';
+import { TuiBadge, TuiProgress } from '@taiga-ui/kit';
+import { difficultyAppearance } from '../shared/difficulty';
+
 @Component({
   selector: 'app-system-design',
-  imports: [RouterLink, FlowDiagram],
+  imports: [RouterLink, FlowDiagram, TuiBadge, TuiButton, TuiProgress],
   template: `
     <div class="sd-shell">
       <div class="sd-glow"></div>
@@ -84,16 +88,16 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
 
                   <div class="sys-tags">
                     @for (tag of sys.tags.slice(0, 4); track tag) {
-                      <span class="sys-tag">{{ tag }}</span>
+                      <span tuiBadge size="s" appearance="neutral" class="sys-tag">{{ tag }}</span>
                     }
                   </div>
 
                   <div class="sys-footer">
                     <span
+                      tuiBadge
+                      size="m"
                       class="sys-difficulty"
-                      [class.diff-beginner]="sys.difficulty === 'Beginner'"
-                      [class.diff-intermediate]="sys.difficulty === 'Intermediate'"
-                      [class.diff-advanced]="sys.difficulty === 'Advanced'"
+                      [appearance]="difficultyAppearance(sys.difficulty)"
                       >{{ sys.difficulty }}</span
                     >
 
@@ -103,30 +107,14 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
                     </span>
 
                     <!-- Progress ring -->
-                    <div class="sys-progress-ring">
-                      <svg width="36" height="36" viewBox="0 0 36 36">
-                        <circle
-                          cx="18"
-                          cy="18"
-                          r="14"
-                          fill="none"
-                          style="stroke: rgb(var(--n-700) / 0.4)"
-                          stroke-width="3"
-                        />
-                        <circle
-                          cx="18"
-                          cy="18"
-                          r="14"
-                          fill="none"
-                          [attr.stroke]="sys.color"
-                          stroke-width="3"
-                          stroke-linecap="round"
-                          [attr.stroke-dasharray]="'87.96'"
-                          [attr.stroke-dashoffset]="progressOffset(sys.id)"
-                          style="transition: stroke-dashoffset 0.5s ease;"
-                        />
-                      </svg>
-                      <span class="sys-progress-label"> {{ systemProgressPct(sys.id) }}% </span>
+                    <div class="sys-progress-ring" aria-hidden="true">
+                      <span class="sys-progress-label">{{ systemProgressPct(sys.id) }}%</span>
+                      <tui-progress-circle
+                        size="s"
+                        [color]="sys.color"
+                        [max]="100"
+                        [value]="systemProgressPct(sys.id)"
+                      />
                     </div>
                   </div>
                 </button>
@@ -142,10 +130,14 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
             <div class="detail-header">
               <div class="detail-breadcrumb">
                 <a
+                  tuiButton
+                  size="xs"
+                  appearance="flat-grayscale"
+                  iconStart="@tui.chevron-left"
                   routerLink="/system-design"
-                  style="color:inherit;font:inherit;display:flex;align-items:center;gap:5px;text-decoration:none;"
+                  class="btn-breadcrumb-back"
                 >
-                  <i class="ti ti-chevron-left" style="font-size:10px"></i> All Systems
+                  All Systems
                 </a>
                 <i class="ti ti-slash" style="font-size:9px"></i>
                 <span [style.color]="activeSystem()!.color">{{ activeSystem()!.title }}</span>
@@ -155,10 +147,10 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
 
               <div class="detail-meta">
                 <span
+                  tuiBadge
+                  size="m"
                   class="sys-difficulty"
-                  [class.diff-beginner]="activeSystem()!.difficulty === 'Beginner'"
-                  [class.diff-intermediate]="activeSystem()!.difficulty === 'Intermediate'"
-                  [class.diff-advanced]="activeSystem()!.difficulty === 'Advanced'"
+                  [appearance]="difficultyAppearance(activeSystem()!.difficulty)"
                   >{{ activeSystem()!.difficulty }}</span
                 >
 
@@ -189,12 +181,14 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
                     <span class="sidebar-sys-title">Sections</span>
                   </div>
 
-                  <div class="sidebar-progress-bar">
-                    <div
-                      class="sidebar-progress-fill"
-                      [style.width]="systemProgress().percent + '%'"
-                    ></div>
-                  </div>
+                  <progress
+                    tuiProgressBar
+                    size="xs"
+                    class="sidebar-progress-bar"
+                    aria-label="Sections read"
+                    [max]="100"
+                    [value]="systemProgress().percent"
+                  ></progress>
 
                   <nav class="section-nav-list">
                     @for (sec of activeSystem()!.sections; track sec.id; let i = $index) {
@@ -223,12 +217,15 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
 
                 <!-- Mark all read -->
                 <button
-                  class="btn-back"
-                  style="width:100%;justify-content:center;"
-                  (click)="markAllRead()"
+                  tuiButton
+                  type="button"
+                  appearance="secondary-grayscale"
+                  iconStart="@tui.check-check"
+                  class="btn-mark-all"
                   id="btn-mark-all-read"
+                  (click)="markAllRead()"
                 >
-                  <i class="ti ti-checks"></i> Mark All Read
+                  Mark All Read
                 </button>
               </aside>
 
@@ -250,17 +247,16 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
 
                       <div class="section-actions">
                         <button
-                          class="btn-read-toggle"
-                          [class.btn-read-toggle--read]="isSectionRead(sec.id)"
-                          [class.btn-read-toggle--unread]="!isSectionRead(sec.id)"
-                          (click)="toggleRead(sec.id)"
+                          tuiButton
+                          type="button"
+                          [appearance]="isSectionRead(sec.id) ? 'positive' : 'secondary-grayscale'"
+                          [iconStart]="
+                            isSectionRead(sec.id) ? '@tui.circle-check' : '@tui.book-open'
+                          "
+                          [attr.aria-pressed]="isSectionRead(sec.id)"
                           [id]="'btn-toggle-' + sec.id"
+                          (click)="toggleRead(sec.id)"
                         >
-                          <i
-                            class="ti"
-                            [class.ti-circle-check]="isSectionRead(sec.id)"
-                            [class.ti-book]="!isSectionRead(sec.id)"
-                          ></i>
                           {{ isSectionRead(sec.id) ? 'Marked as Read' : 'Mark as Read' }}
                         </button>
                       </div>
@@ -338,12 +334,15 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
                     <!-- Prev / Next navigation -->
                     <div class="section-nav-row">
                       <button
-                        class="btn-section-nav"
+                        tuiButton
+                        type="button"
+                        appearance="secondary-grayscale"
+                        iconStart="@tui.chevron-left"
                         [disabled]="activeSectionIdx() === 0"
                         (click)="prevSection()"
                         id="btn-prev-section"
                       >
-                        <i class="ti ti-chevron-left"></i> Previous
+                        Previous
                       </button>
 
                       <span class="section-nav-center">
@@ -351,12 +350,15 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
                       </span>
 
                       <button
-                        class="btn-section-nav"
+                        tuiButton
+                        type="button"
+                        appearance="secondary-grayscale"
+                        iconEnd="@tui.chevron-right"
                         [disabled]="activeSectionIdx() === activeSystem()!.sections.length - 1"
                         (click)="nextSection()"
                         id="btn-next-section"
                       >
-                        Next <i class="ti ti-chevron-right"></i>
+                        Next
                       </button>
                     </div>
                   </div>
@@ -371,6 +373,8 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
   styleUrl: './system-design.css',
 })
 export class SystemDesign {
+  protected readonly difficultyAppearance = difficultyAppearance;
+
   protected sdService = inject(SystemDesignService);
 
   // ── Signals ──────────────────────────────────────────────────────────────
@@ -490,10 +494,6 @@ export class SystemDesign {
   }
 
   /** SVG circle circumference = 2π × 14 ≈ 87.96; offset controls filled arc */
-  progressOffset(systemId: string): number {
-    const pct = this.sdService.systemProgress(systemId).percent;
-    return 87.96 * (1 - pct / 100);
-  }
 
   isMilestoneComplete(index: number): boolean {
     const sys = this.sdService.systems[index];

@@ -99,17 +99,8 @@
 
 .ql-check {
   flex-shrink: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 9px 4px 9px 10px;
-  font-size: 16px;
-  line-height: 1;
+  margin: 6px 0 0 6px;
   color: var(--color-text-faint);
-}
-
-.ql-check:hover {
-  color: var(--color-text-muted);
 }
 
 .ql-row--done .ql-check {
@@ -176,10 +167,4 @@
   flex-shrink: 0;
   align-self: flex-start;
   margin: 1px 0 0 auto;
-  padding: 1px 6px;
-  border-radius: var(--radius-sm);
-  font: 600 0.6rem var(--font-sans);
-  letter-spacing: 0.02em;
-  color: var(--t-violet-300);
-  background: rgba(139, 92, 246, 0.12);
 }

@@ -12,9 +12,13 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
   important: 'ti-flame',
 };
 
+import { TuiButton } from '@taiga-ui/core';
+import { TuiBadge, TuiProgress } from '@taiga-ui/kit';
+import { difficultyAppearance } from '../shared/difficulty';
+
 @Component({
   selector: 'app-core-concepts',
-  imports: [RouterLink, FlowDiagram],
+  imports: [RouterLink, FlowDiagram, TuiBadge, TuiButton, TuiProgress],
   template: `
     <div class="cc-shell">
       <div class="cc-glow"></div>
@@ -91,16 +95,18 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
 
                   <div class="concept-tags">
                     @for (tag of concept.tags.slice(0, 4); track tag) {
-                      <span class="concept-tag">{{ tag }}</span>
+                      <span tuiBadge size="s" appearance="neutral" class="concept-tag">{{
+                        tag
+                      }}</span>
                     }
                   </div>
 
                   <div class="concept-footer">
                     <span
+                      tuiBadge
+                      size="m"
                       class="concept-difficulty"
-                      [class.diff-beginner]="concept.difficulty === 'Beginner'"
-                      [class.diff-foundational]="concept.difficulty === 'Foundational'"
-                      [class.diff-intermediate]="concept.difficulty === 'Intermediate'"
+                      [appearance]="difficultyAppearance(concept.difficulty)"
                       >{{ concept.difficulty }}</span
                     >
 
@@ -110,32 +116,16 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
                     </span>
 
                     <!-- Progress ring -->
-                    <div class="concept-progress-ring">
-                      <svg width="36" height="36" viewBox="0 0 36 36">
-                        <circle
-                          cx="18"
-                          cy="18"
-                          r="14"
-                          fill="none"
-                          style="stroke: rgb(var(--n-700) / 0.4)"
-                          stroke-width="3"
-                        />
-                        <circle
-                          cx="18"
-                          cy="18"
-                          r="14"
-                          fill="none"
-                          [attr.stroke]="concept.color"
-                          stroke-width="3"
-                          stroke-linecap="round"
-                          [attr.stroke-dasharray]="'87.96'"
-                          [attr.stroke-dashoffset]="progressOffset(concept.id)"
-                          style="transition: stroke-dashoffset 0.5s ease;"
-                        />
-                      </svg>
-                      <span class="concept-progress-label">
-                        {{ conceptProgressPct(concept.id) }}%
-                      </span>
+                    <div class="concept-progress-ring" aria-hidden="true">
+                      <span class="concept-progress-label"
+                        >{{ conceptProgressPct(concept.id) }}%</span
+                      >
+                      <tui-progress-circle
+                        size="s"
+                        [color]="concept.color"
+                        [max]="100"
+                        [value]="conceptProgressPct(concept.id)"
+                      />
                     </div>
                   </div>
                 </button>
@@ -150,8 +140,15 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
             <!-- Detail header -->
             <div class="detail-header">
               <div class="detail-breadcrumb">
-                <a routerLink="/core-concepts" class="btn-breadcrumb-back">
-                  <i class="ti ti-chevron-left" style="font-size:10px"></i> All Concepts
+                <a
+                  tuiButton
+                  size="xs"
+                  appearance="flat-grayscale"
+                  iconStart="@tui.chevron-left"
+                  routerLink="/core-concepts"
+                  class="btn-breadcrumb-back"
+                >
+                  All Concepts
                 </a>
                 <i class="ti ti-slash" style="font-size:9px"></i>
                 <span [style.color]="activeConcept()!.color">
@@ -165,10 +162,10 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
 
               <div class="detail-meta">
                 <span
+                  tuiBadge
+                  size="m"
                   class="concept-difficulty"
-                  [class.diff-beginner]="activeConcept()!.difficulty === 'Beginner'"
-                  [class.diff-foundational]="activeConcept()!.difficulty === 'Foundational'"
-                  [class.diff-intermediate]="activeConcept()!.difficulty === 'Intermediate'"
+                  [appearance]="difficultyAppearance(activeConcept()!.difficulty)"
                   >{{ activeConcept()!.difficulty }}</span
                 >
 
@@ -199,12 +196,14 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
                     <span class="sidebar-concept-title">Sections</span>
                   </div>
 
-                  <div class="sidebar-progress-bar">
-                    <div
-                      class="sidebar-progress-fill"
-                      [style.width]="conceptProgress().percent + '%'"
-                    ></div>
-                  </div>
+                  <progress
+                    tuiProgressBar
+                    size="xs"
+                    class="sidebar-progress-bar"
+                    aria-label="Sections read"
+                    [max]="100"
+                    [value]="conceptProgress().percent"
+                  ></progress>
 
                   <nav class="section-nav-list">
                     @for (sec of activeConcept()!.sections; track sec.id; let i = $index) {
@@ -229,12 +228,15 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
 
                 <!-- Mark all read -->
                 <button
-                  class="btn-back"
-                  style="width:100%;justify-content:center;"
-                  (click)="markAllRead()"
+                  tuiButton
+                  type="button"
+                  appearance="secondary-grayscale"
+                  iconStart="@tui.check-check"
+                  class="btn-mark-all"
                   id="btn-mark-all-read"
+                  (click)="markAllRead()"
                 >
-                  <i class="ti ti-checks"></i> Mark All Read
+                  Mark All Read
                 </button>
               </aside>
 
@@ -256,17 +258,16 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
 
                       <div class="section-actions">
                         <button
-                          class="btn-read-toggle"
-                          [class.btn-read-toggle--read]="isSectionRead(sec.id)"
-                          [class.btn-read-toggle--unread]="!isSectionRead(sec.id)"
-                          (click)="toggleRead(sec.id)"
+                          tuiButton
+                          type="button"
+                          [appearance]="isSectionRead(sec.id) ? 'positive' : 'secondary-grayscale'"
+                          [iconStart]="
+                            isSectionRead(sec.id) ? '@tui.circle-check' : '@tui.book-open'
+                          "
+                          [attr.aria-pressed]="isSectionRead(sec.id)"
                           [id]="'btn-toggle-' + sec.id"
+                          (click)="toggleRead(sec.id)"
                         >
-                          <i
-                            class="ti"
-                            [class.ti-circle-check]="isSectionRead(sec.id)"
-                            [class.ti-book]="!isSectionRead(sec.id)"
-                          ></i>
                           {{ isSectionRead(sec.id) ? 'Marked as Read' : 'Mark as Read' }}
                         </button>
                       </div>
@@ -355,16 +356,17 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
                                 </div>
                                 @if (d.rawSpec) {
                                   <button
+                                    tuiButton
                                     type="button"
-                                    class="btn-spec-toggle"
-                                    (click)="toggleRawSpec(d.id)"
+                                    size="xs"
+                                    appearance="secondary-grayscale"
+                                    [iconStart]="
+                                      isRawSpecExpanded(d.id) ? '@tui.layout-grid' : '@tui.terminal'
+                                    "
+                                    [attr.aria-expanded]="isRawSpecExpanded(d.id)"
                                     [id]="'btn-spec-' + d.id"
+                                    (click)="toggleRawSpec(d.id)"
                                   >
-                                    <i
-                                      class="ti"
-                                      [class.ti-terminal-2]="!isRawSpecExpanded(d.id)"
-                                      [class.ti-layout-grid]="isRawSpecExpanded(d.id)"
-                                    ></i>
                                     {{
                                       isRawSpecExpanded(d.id)
                                         ? 'Hide ASCII Spec'
@@ -469,12 +471,15 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
                     <!-- Prev / Next navigation -->
                     <div class="section-nav-row">
                       <button
-                        class="btn-section-nav"
+                        tuiButton
+                        type="button"
+                        appearance="secondary-grayscale"
+                        iconStart="@tui.chevron-left"
                         [disabled]="activeSectionIdx() === 0"
                         (click)="prevSection()"
                         id="btn-prev-section"
                       >
-                        <i class="ti ti-chevron-left"></i> Previous
+                        Previous
                       </button>
 
                       <span class="section-nav-center">
@@ -482,12 +487,15 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
                       </span>
 
                       <button
-                        class="btn-section-nav"
+                        tuiButton
+                        type="button"
+                        appearance="secondary-grayscale"
+                        iconEnd="@tui.chevron-right"
                         [disabled]="activeSectionIdx() === activeConcept()!.sections.length - 1"
                         (click)="nextSection()"
                         id="btn-next-section"
                       >
-                        Next <i class="ti ti-chevron-right"></i>
+                        Next
                       </button>
                     </div>
                   </div>
@@ -502,6 +510,8 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
   styleUrl: './core-concepts.css',
 })
 export class CoreConcepts {
+  protected readonly difficultyAppearance = difficultyAppearance;
+
   protected ccService = inject(CoreConceptsService);
 
   // ── Signals ──────────────────────────────────────────────────────────────
@@ -627,10 +637,6 @@ export class CoreConcepts {
   }
 
   /** SVG circle circumference = 2π × 14 ≈ 87.96; offset controls filled arc */
-  progressOffset(conceptId: string): number {
-    const pct = this.ccService.conceptProgress(conceptId).percent;
-    return 87.96 * (1 - pct / 100);
-  }
 
   isMilestoneComplete(index: number): boolean {
     const concept = this.ccService.concepts[index];

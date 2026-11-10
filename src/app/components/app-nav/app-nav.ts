@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { IsActiveMatchOptions, RouterLink, RouterLinkActive } from '@angular/router';
+import { TuiButton } from '@taiga-ui/core';
 import { ThemeService } from '@services/theme.service';
 
 interface NavItem {
@@ -12,7 +13,7 @@ interface NavItem {
 
 @Component({
   selector: 'app-nav',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, TuiButton],
   template: `
     <a class="skip-link" href="#main">Skip to content</a>
 
@@ -41,19 +42,15 @@ interface NavItem {
           </nav>
 
           <button
+            tuiIconButton
             type="button"
+            appearance="outline-grayscale"
             class="theme-toggle"
+            [iconStart]="theme.theme() === 'dark' ? '@tui.sun' : '@tui.moon'"
             (click)="theme.toggle()"
-            [attr.aria-label]="
-              theme.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
-            "
             [title]="theme.theme() === 'dark' ? 'Light theme' : 'Dark theme'"
           >
-            <i
-              class="ti"
-              [class.ti-sun]="theme.theme() === 'dark'"
-              [class.ti-moon]="theme.theme() === 'light'"
-            ></i>
+            {{ theme.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme' }}
           </button>
         </div>
       </div>

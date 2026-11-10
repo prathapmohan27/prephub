@@ -41,25 +41,6 @@
   gap: 12px;
 }
 
-.btn-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 8px 16px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-strong);
-  background: rgb(var(--n-800) / 0.5);
-  color: var(--color-text-muted);
-  font: 600 0.75rem var(--font-sans);
-  cursor: pointer;
-  transition: all 0.15s;
-  text-decoration: none;
-}
-.btn-back:hover {
-  background: rgb(var(--n-700) / 0.6);
-  color: var(--color-text-primary);
-}
-
 .overall-badge {
   display: flex;
   align-items: center;
@@ -250,12 +231,7 @@
 }
 
 .concept-tag {
-  font: 600 0.6rem var(--font-mono);
-  padding: 2px 8px;
-  border-radius: var(--radius-pill);
-  background: rgb(var(--n-800) / 0.7);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-subtle);
+  font-family: var(--font-mono);
 }
 
 .concept-footer {
@@ -265,28 +241,6 @@
   margin-top: auto;
   padding-top: 12px;
   border-top: 1px solid var(--color-border-muted);
-}
-
-.concept-difficulty {
-  font: 700 0.65rem var(--font-sans);
-  padding: 3px 10px;
-  border-radius: var(--radius-pill);
-  border: 1px solid;
-}
-.diff-beginner {
-  color: var(--t-green-400);
-  background: rgba(74, 222, 128, 0.08);
-  border-color: rgba(74, 222, 128, 0.2);
-}
-.diff-foundational {
-  color: var(--t-sky-400);
-  background: rgba(56, 189, 248, 0.08);
-  border-color: rgba(56, 189, 248, 0.2);
-}
-.diff-intermediate {
-  color: var(--t-amber-400);
-  background: rgba(251, 191, 36, 0.08);
-  border-color: rgba(251, 191, 36, 0.2);
 }
 
 .concept-time {
@@ -301,12 +255,6 @@
 .concept-progress-ring {
   position: relative;
   flex-shrink: 0;
-}
-.concept-progress-ring svg {
-  transform: rotate(-90deg);
-}
-.concept-progress-ring circle {
-  transition: stroke-dashoffset 0.5s ease;
 }
 .concept-progress-label {
   position: absolute;
@@ -370,17 +318,8 @@
 }
 
 .sidebar-progress-bar {
-  height: 4px;
-  background: rgb(var(--n-700) / 0.5);
-  border-radius: var(--radius-pill);
-  overflow: hidden;
-  margin-bottom: 14px;
-}
-.sidebar-progress-fill {
-  height: 100%;
-  border-radius: var(--radius-pill);
-  background: linear-gradient(90deg, #f59e0b, var(--t-amber-400));
-  transition: width 0.4s ease;
+  width: 100%;
+  margin-bottom: 12px;
 }
 
 .section-nav-list {
@@ -458,24 +397,6 @@
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.btn-breadcrumb-back {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: inherit;
-  font: inherit;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0;
-  text-transform: inherit;
-  letter-spacing: inherit;
-  text-decoration: none;
-}
-.btn-breadcrumb-back:hover {
-  color: var(--color-text-primary);
 }
 
 .detail-title-row {
@@ -561,31 +482,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.btn-read-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: var(--radius-md);
-  font: 600 0.72rem var(--font-sans);
-  cursor: pointer;
-  transition: all 0.15s;
-  border: 1px solid;
-}
-.btn-read-toggle--unread {
-  background: rgba(245, 158, 11, 0.1);
-  border-color: rgba(245, 158, 11, 0.25);
-  color: var(--t-amber-400);
-}
-.btn-read-toggle--unread:hover {
-  background: rgba(245, 158, 11, 0.18);
-}
-.btn-read-toggle--read {
-  background: rgba(16, 185, 129, 0.1);
-  border-color: rgba(16, 185, 129, 0.25);
-  color: var(--color-success-light);
 }
 
 /* ── Content blocks ──────────────────────────────────────────────────── */
@@ -727,28 +623,6 @@
   background: rgb(var(--n-950) / 0.3);
 }
 
-.btn-section-nav {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-strong);
-  background: rgb(var(--n-800) / 0.5);
-  color: var(--color-text-muted);
-  font: 600 0.72rem var(--font-sans);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.btn-section-nav:hover:not(:disabled) {
-  background: rgb(var(--n-700) / 0.6);
-  color: var(--color-text-primary);
-}
-.btn-section-nav:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
 .section-nav-center {
   font: 700 0.7rem var(--font-mono);
   color: var(--color-text-faint);
@@ -816,25 +690,6 @@
   font-size: 0.78rem;
   color: var(--color-text-subtle);
   line-height: 1.5;
-}
-
-.btn-spec-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: var(--radius-pill);
-  font: 600 0.7rem var(--font-sans);
-  background: rgb(var(--n-800) / 0.6);
-  border: 1px solid var(--color-border-strong);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-spec-toggle:hover {
-  background: rgb(var(--n-700) / 0.8);
-  color: var(--color-text-primary);
-  border-color: rgba(245, 158, 11, 0.4);
 }
 
 .diagram-flow {
@@ -1212,4 +1067,15 @@
   .path-arrow {
     flex-shrink: 0;
   }
+}
+
+.btn-mark-all {
+  width: 100%;
+}
+
+/* Back link is a Taiga button but keeps the breadcrumb's small caps text */
+.detail-breadcrumb .btn-breadcrumb-back {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
 }

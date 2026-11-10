@@ -1,0 +1,1 @@
+import{c as v,s as m}from"./chunk-C7ely3a4.js";export{v as createInfoServices};

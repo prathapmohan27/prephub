@@ -1,1 +1,0 @@
-import{t as K}from"./chunk-BFPiSbUW2.js";export{K as SYSTEM_DESIGN_SYSTEMS};

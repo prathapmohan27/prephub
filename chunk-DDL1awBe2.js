@@ -1,1 +1,0 @@
-import{c as v,s as m}from"./chunk-VMzAVBc2.js";export{v as createInfoServices};

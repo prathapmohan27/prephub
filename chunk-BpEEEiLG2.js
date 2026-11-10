@@ -1,1 +1,0 @@
-import{C,w as v}from"./chunk-VMzAVBc2.js";export{v as createArchitectureServices};

@@ -3,7 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { FlowDiagram } from '@shared/ui/flow-diagram/flow-diagram';
 import { SystemDesignService } from '@features/system-design/system-design.service';
 import { CalloutVariant } from '@shared/models/content-model';
-import { SystemDesignSystem } from '@features/system-design/system-design-data';
+import { SystemDesignSystem, SYSTEM_PATH_LABELS } from '@features/system-design/system-design-data';
 
 const CALLOUT_ICONS: Record<CalloutVariant, string> = {
   info: 'ti-info-circle',
@@ -52,8 +52,8 @@ import { difficultyAppearance } from '@shared/utils/difficulty';
 
             <!-- Learning path -->
             <div class="learning-path">
-              @for (step of learningPath; track step.label; let i = $index) {
-                <span class="path-step" [class.path-step--done]="isMilestoneComplete(i)">{{
+              @for (step of learningPath; track step.id; let i = $index) {
+                <span class="path-step" [class.path-step--done]="isMilestoneComplete(step.id)">{{
                   step.label
                 }}</span>
                 @if (i < learningPath.length - 1) {
@@ -302,11 +302,15 @@ import { difficultyAppearance } from '@shared/utils/difficulty';
                           }
 
                           @if (block.type === 'flow' && block.code) {
-                            <app-flow-diagram
-                              [code]="block.code"
-                              [title]="block.title"
-                              [caption]="block.text"
-                            />
+                            @defer (on viewport; prefetch on idle) {
+                              <app-flow-diagram
+                                [code]="block.code"
+                                [title]="block.title"
+                                [caption]="block.text"
+                              />
+                            } @placeholder {
+                              <div class="defer-diagram" aria-hidden="true"></div>
+                            }
                           }
 
                           @if (block.type === 'divider') {
@@ -425,25 +429,11 @@ export class SystemDesign {
   });
 
   // ── Static data ───────────────────────────────────────────────────────────
-  learningPath = [
-    { label: 'Fundamentals' },
-    { label: 'Rate Limiting' },
-    { label: 'Unique IDs' },
-    { label: 'Load Balancing' },
-    { label: 'Caching' },
-    { label: 'Search' },
-    { label: 'Real-time' },
-    { label: 'Async' },
-    { label: 'Storage' },
-    { label: 'Social Scale' },
-    { label: 'Streaming' },
-    { label: 'Distributed' },
-    { label: 'Flash Sales' },
-    { label: 'Production-Grade' },
-    { label: 'AI Chat' },
-    { label: 'RAG' },
-    { label: 'AI Agents' },
-  ];
+  /** One step per lesson, in lesson order. */
+  learningPath = this.sdService.systems.map((l) => ({
+    id: l.id,
+    label: SYSTEM_PATH_LABELS[l.id] ?? l.title,
+  }));
 
   calloutIconMap = CALLOUT_ICONS;
 
@@ -496,9 +486,8 @@ export class SystemDesign {
 
   /** SVG circle circumference = 2π × 14 ≈ 87.96; offset controls filled arc */
 
-  isMilestoneComplete(index: number): boolean {
-    const sys = this.sdService.systems[index];
-    return sys ? this.sdService.systemProgress(sys.id).percent === 100 : false;
+  isMilestoneComplete(id: string): boolean {
+    return this.sdService.systemProgress(id).percent === 100;
   }
 
   calloutIcon(variant: CalloutVariant | undefined): string {

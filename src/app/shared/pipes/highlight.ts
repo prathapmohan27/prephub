@@ -38,7 +38,11 @@ export class Highlight implements PipeTransform {
     const filterText = filter?.trim() ?? '';
     const parts = text.split('`');
     // An unmatched trailing backtick is kept as a literal character
-    if (parts.length % 2 === 0) parts.push(`\`${parts.pop()}`);
+    // (merged into the plain-text part before it, so it isn't rendered as code)
+    if (parts.length % 2 === 0) {
+      const tail = parts.pop();
+      parts[parts.length - 1] += `\`${tail}`;
+    }
     // Odd indexes are the parts that were inside backticks
     const html = parts
       .map((part, i) =>

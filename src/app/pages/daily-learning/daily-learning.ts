@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, computed, inject, injectAsync } from '@angular/core';
-import { TuiButton } from '@taiga-ui/core';
+import { TuiButton, TuiLoader } from '@taiga-ui/core';
 import { TuiBadge, TuiChip, TuiProgress, TuiSegmented } from '@taiga-ui/kit';
 import {
   DailyLearningService,
@@ -8,13 +8,14 @@ import {
 import { CategoryModel, TRACKS, Track, isTrack, trackOf } from '@features/questions/question';
 import { Answer } from '@features/questions/components/answer/answer';
 import { RichText } from '@shared/ui/content-blocks/rich-text';
+import { readString } from '@core/storage/storage';
 
 type AppMode = Track;
 type ViewState = 'setup' | 'session';
 
 @Component({
   selector: 'app-daily-learning',
-  imports: [Answer, RichText, TuiBadge, TuiButton, TuiChip, TuiProgress, TuiSegmented],
+  imports: [Answer, RichText, TuiBadge, TuiButton, TuiChip, TuiLoader, TuiProgress, TuiSegmented],
   template: `
     <div class="dl-shell">
       <div class="dl-glow"></div>
@@ -177,6 +178,21 @@ type ViewState = 'setup' | 'session';
           >
             Generate Today's Questions
           </button>
+          @if (bankError()) {
+            <p class="bank-error" role="alert">
+              <i class="ti ti-wifi-off"></i> Couldn't load the question bank.
+              <button
+                tuiButton
+                type="button"
+                size="xs"
+                appearance="secondary-grayscale"
+                iconStart="@tui.refresh-cw"
+                (click)="reload()"
+              >
+                Reload
+              </button>
+            </p>
+          }
         }
 
         <!-- ── SESSION VIEW ───────────────────────────────────────────────── -->
@@ -288,7 +304,14 @@ type ViewState = 'setup' | 'session';
 
                       @if (revealed().has(i)) {
                         <div class="q-answer">
-                          <app-answer [categoryId]="q.categoryId" [questionId]="q.id ?? ''" />
+                          <!-- The answer renderer is its own chunk, fetched on the first reveal -->
+                          @defer (on immediate) {
+                            <app-answer [categoryId]="q.categoryId" [questionId]="q.id ?? ''" />
+                          } @loading (after 150ms; minimum 300ms) {
+                            <div class="defer-loading" aria-live="polite">
+                              <tui-loader size="s" [inheritColor]="true" /> Loading answer…
+                            </div>
+                          }
                         </div>
                       }
 
@@ -394,11 +417,14 @@ export class DailyLearning implements OnInit {
   });
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
+  /** The question bank chunk failed to load (offline, or a deploy replaced it). */
+  bankError = signal(false);
+
   ngOnInit() {
-    this.questionBank().then((bank) => this.allCategories.set(bank.getCategories()));
+    this.loadBank();
     this.dailyService.refreshStreak();
 
-    const savedMode = localStorage.getItem('prep_mode');
+    const savedMode = readString('prep_mode');
     if (isTrack(savedMode)) {
       this.appMode.set(savedMode);
     }
@@ -410,6 +436,17 @@ export class DailyLearning implements OnInit {
       this.selectedTopics.set(existing.topicIds);
       this.view.set('session');
     }
+  }
+
+  private loadBank() {
+    this.questionBank()
+      .then((bank) => this.allCategories.set(bank.getCategories()))
+      .catch(() => this.bankError.set(true));
+  }
+
+  /** injectAsync caches a failed load, and a stale deploy needs fresh chunk names: reload. */
+  reload() {
+    location.reload();
   }
 
   // ── Mode / topic selection ────────────────────────────────────────────────
@@ -486,8 +523,10 @@ export class DailyLearning implements OnInit {
   }
 
   // ── Display helpers ───────────────────────────────────────────────────────
+  /** The session's own date, so a tab left open past midnight doesn't relabel yesterday's set. */
   formattedDate(): string {
-    return new Date().toLocaleDateString('en-US', {
+    const [y, m, d] = (this.session()?.date ?? this.dailyService.today()).split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',

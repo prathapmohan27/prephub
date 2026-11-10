@@ -253,11 +253,15 @@ export class QuestionReader {
 
   copyQuestion() {
     const key = this.item().key;
-    navigator.clipboard.writeText(this.item().q).then(() => {
-      this.copiedKey.set(key);
-      setTimeout(() => {
-        if (this.copiedKey() === key) this.copiedKey.set(null);
-      }, 2000);
-    });
+    // Clipboard is missing on insecure origins and rejects without permission or focus
+    navigator.clipboard
+      ?.writeText(this.item().q)
+      .then(() => {
+        this.copiedKey.set(key);
+        setTimeout(() => {
+          if (this.copiedKey() === key) this.copiedKey.set(null);
+        }, 2000);
+      })
+      .catch(() => undefined);
   }
 }

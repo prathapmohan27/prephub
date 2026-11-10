@@ -60,3 +60,24 @@ export const SYSTEM_DESIGN_SYSTEMS: SystemDesignSystem[] = [
   ragKnowledgeBase,
   aiAgentPlatform,
 ];
+
+/** Short labels for the learning path, by system id (a missing one falls back to the title). */
+export const SYSTEM_PATH_LABELS: Record<string, string> = {
+  'url-shortener': 'Fundamentals',
+  'rate-limiter': 'Rate Limiting',
+  'unique-id-generator': 'Unique IDs',
+  'load-balancer': 'Load Balancing',
+  'distributed-cache': 'Caching',
+  'search-autocomplete': 'Search',
+  'chat-system': 'Real-time',
+  'notification-system': 'Async',
+  'file-storage': 'Storage',
+  'news-feed': 'Social Scale',
+  'video-streaming': 'Streaming',
+  'ride-sharing': 'Distributed',
+  'ticket-booking': 'Flash Sales',
+  'payment-system': 'Production-Grade',
+  'ai-chat-assistant': 'AI Chat',
+  'rag-knowledge-base': 'RAG',
+  'ai-agent-platform': 'AI Agents',
+};

@@ -62,9 +62,13 @@ export class CodeBlock {
   }
 
   protected copy() {
-    navigator.clipboard.writeText(this.code()).then(() => {
-      this.copied.set(true);
-      setTimeout(() => this.copied.set(false), 2000);
-    });
+    // Clipboard is missing on insecure origins and rejects without permission or focus
+    navigator.clipboard
+      ?.writeText(this.code())
+      .then(() => {
+        this.copied.set(true);
+        setTimeout(() => this.copied.set(false), 2000);
+      })
+      .catch(() => undefined);
   }
 }

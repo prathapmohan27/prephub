@@ -98,7 +98,7 @@ export const questionKey = (categoryId: string, questionId: string) =>
                 </button>
 
                 @if (starredSet().has(it.id)) {
-                  <i class="ti ti-star-filled ql-star" aria-label="Starred"></i>
+                  <i class="ti ti-star-filled ql-star" role="img" aria-label="Starred"></i>
                 }
               </li>
             }

@@ -1,81 +1,39 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable } from '@angular/core';
+import { LessonProgressStore, Progress } from '@core/progress/lesson-progress';
 import { CORE_CONCEPTS, CoreConcept } from './core-concepts-data';
 
-const PROGRESS_KEY = 'core_concepts_progress'; // { [conceptId]: { [sectionId]: true } }
+const PROGRESS_KEY = 'core_concepts_progress';
 
 @Injectable({ providedIn: 'root' })
 export class CoreConceptsService {
-  private _progress = signal<Record<string, Record<string, boolean>>>(this.loadProgress());
-
   readonly concepts = CORE_CONCEPTS;
+  private readonly store = new LessonProgressStore(PROGRESS_KEY, this.concepts);
 
-  readonly overallRead = computed(() => {
-    let total = 0,
-      read = 0;
-    for (const concept of this.concepts) {
-      const p = this._progress()[concept.id] ?? {};
-      total += concept.sections.length;
-      read += Object.values(p).filter(Boolean).length;
-    }
-    return { total, read, percent: total ? Math.round((read / total) * 100) : 0 };
-  });
+  readonly overallRead = this.store.overall;
 
   getConcept(id: string): CoreConcept | undefined {
     return this.concepts.find((c) => c.id === id);
   }
 
-  conceptProgress(conceptId: string): { total: number; read: number; percent: number } {
+  conceptProgress(conceptId: string): Progress {
     const concept = this.getConcept(conceptId);
-    if (!concept) return { total: 0, read: 0, percent: 0 };
-    const p = this._progress()[conceptId] ?? {};
-    const total = concept.sections.length;
-    const read = Object.values(p).filter(Boolean).length;
-    return { total, read, percent: total ? Math.round((read / total) * 100) : 0 };
+    return concept ? this.store.of(concept) : { total: 0, read: 0, percent: 0 };
   }
 
   isSectionRead(conceptId: string, sectionId: string): boolean {
-    return this._progress()[conceptId]?.[sectionId] === true;
+    return this.store.isRead(conceptId, sectionId);
   }
 
   toggleSection(conceptId: string, sectionId: string) {
-    const current = this._progress();
-    const conceptProgress = { ...(current[conceptId] ?? {}) };
-    conceptProgress[sectionId] = !conceptProgress[sectionId];
-    const updated = { ...current, [conceptId]: conceptProgress };
-    this._progress.set(updated);
-    this.saveProgress(updated);
+    this.store.toggle(conceptId, sectionId);
   }
 
   markAllRead(conceptId: string) {
     const concept = this.getConcept(conceptId);
-    if (!concept) return;
-    const conceptProgress: Record<string, boolean> = {};
-    concept.sections.forEach((s) => (conceptProgress[s.id] = true));
-    const updated = { ...this._progress(), [conceptId]: conceptProgress };
-    this._progress.set(updated);
-    this.saveProgress(updated);
+    if (concept) this.store.markAllRead(concept);
   }
 
   resetConcept(conceptId: string) {
-    const updated = { ...this._progress() };
-    delete updated[conceptId];
-    this._progress.set(updated);
-    this.saveProgress(updated);
-  }
-
-  private loadProgress(): Record<string, Record<string, boolean>> {
-    try {
-      return JSON.parse(localStorage.getItem(PROGRESS_KEY) ?? '{}');
-    } catch {
-      return {};
-    }
-  }
-
-  private saveProgress(p: Record<string, Record<string, boolean>>) {
-    try {
-      localStorage.setItem(PROGRESS_KEY, JSON.stringify(p));
-    } catch {
-      return;
-    }
+    this.store.reset(conceptId);
   }
 }

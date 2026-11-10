@@ -487,3 +487,13 @@
 .q-answer {
   margin: 14px 0;
 }
+
+.bank-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--color-text-subtle);
+  font-size: 0.85rem;
+}

@@ -58,7 +58,15 @@ const CALLOUT_ICONS: Record<CalloutVariant, string> = {
           }
           @case ('flow') {
             @if (block.code) {
-              <app-flow-diagram [code]="block.code" [title]="block.title" [caption]="block.text" />
+              @defer (on viewport; prefetch on idle) {
+                <app-flow-diagram
+                  [code]="block.code"
+                  [title]="block.title"
+                  [caption]="block.text"
+                />
+              } @placeholder {
+                <div class="defer-diagram" aria-hidden="true"></div>
+              }
             }
           }
           @case ('divider') {

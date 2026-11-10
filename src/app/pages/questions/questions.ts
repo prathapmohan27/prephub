@@ -13,10 +13,11 @@ import {
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router, Scroll } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TuiButton, TuiDialog } from '@taiga-ui/core';
+import { TuiButton, TuiDialog, TuiLoader } from '@taiga-ui/core';
 import { TuiBadge, TuiChip, TuiProgress } from '@taiga-ui/kit';
 import { Header } from './components/header/header';
-import { MockFocus, MockInterview, MockItem } from './components/mock-interview/mock-interview';
+import { MockInterview } from './components/mock-interview/mock-interview';
+import type { MockFocus, MockItem } from './components/mock-interview/mock-interview';
 import { QGroup, QItem, QuestionList, questionKey } from './components/question-list/question-list';
 import { QuestionReader } from './components/question-reader/question-reader';
 import {
@@ -40,6 +41,13 @@ import {
   readReviews,
   recordReview,
 } from '@features/questions/reviews';
+import {
+  readJson,
+  readString,
+  readStringList,
+  writeJson,
+  writeString,
+} from '@core/storage/storage';
 
 type AppMode = Track;
 
@@ -52,30 +60,16 @@ interface LastViewed {
 const lastViewedKey = (mode: AppMode) => `prep_last_${mode}`;
 
 function readFlag(key: string, fallback: boolean): boolean {
-  try {
-    const v = localStorage.getItem(key);
-    return v === null ? fallback : v === '1';
-  } catch {
-    return fallback;
-  }
+  const v = readString(key);
+  return v === null ? fallback : v === '1';
 }
 
 function readLevel(): 'all' | Level {
-  try {
-    const v = localStorage.getItem('prep_level');
-    return v === 'core' || v === 'senior' ? v : 'all';
-  } catch {
-    return 'all';
-  }
+  const v = readString('prep_level');
+  return v === 'core' || v === 'senior' ? v : 'all';
 }
 
-function writeFlag(key: string, value: boolean) {
-  try {
-    localStorage.setItem(key, value ? '1' : '0');
-  } catch {
-    // Layout preference only; ignore blocked storage
-  }
-}
+const writeFlag = (key: string, value: boolean) => writeString(key, value ? '1' : '0');
 
 /** Below this width the list and reader share one pane (see questions.css). */
 const SINGLE_PANE_QUERY = '(max-width: 760px)';
@@ -91,6 +85,7 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
     TuiButton,
     TuiChip,
     TuiDialog,
+    TuiLoader,
     TuiProgress,
   ],
   host: {
@@ -258,24 +253,32 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
 
             <!-- Mock Me -->
             @if (mockOpen()) {
-              <app-mock-interview
-                [pool]="mockPool()"
-                [prepared]="preparedSet()"
-                [starred]="starredSet()"
-                [mode]="mode()"
-                [scopeLabel]="mockScopeLabel()"
-                [topics]="modeCategories()"
-                [topicId]="selectedCategory()?.id ?? null"
-                [level]="levelFilter()"
-                [focus]="mockFocus()"
-                [search]="searchFilter().trim()"
-                (topicChange)="selectTopicById($event)"
-                (levelChange)="setLevel($event)"
-                (focusChange)="onFilterChange($event)"
-                (preparedChange)="setPrepared($event.id, $event.prepared)"
-                (starQuestions)="starAll($event)"
-                (closed)="closeMock()"
-              />
+              <!-- Mock Me is its own chunk, fetched the first time it's opened -->
+              @defer (on immediate) {
+                <app-mock-interview
+                  #mockCard
+                  [pool]="mockPool()"
+                  [prepared]="preparedSet()"
+                  [starred]="starredSet()"
+                  [mode]="mode()"
+                  [scopeLabel]="mockScopeLabel()"
+                  [topics]="modeCategories()"
+                  [topicId]="selectedCategory()?.id ?? null"
+                  [level]="levelFilter()"
+                  [focus]="mockFocus()"
+                  [search]="searchFilter().trim()"
+                  (topicChange)="selectTopicById($event)"
+                  (levelChange)="setLevel($event)"
+                  (focusChange)="onFilterChange($event)"
+                  (preparedChange)="setPrepared($event.id, $event.prepared)"
+                  (starQuestions)="starAll($event)"
+                  (closed)="closeMock()"
+                />
+              } @loading (after 150ms; minimum 300ms) {
+                <div class="defer-loading" aria-live="polite">
+                  <tui-loader size="s" [inheritColor]="true" /> Loading Mock Me…
+                </div>
+              }
             }
 
             <!-- Which filters are on, with a way to remove each one -->
@@ -421,7 +424,8 @@ export class Questions implements OnInit {
   reviews = signal<Record<string, Review>>(readReviews());
 
   mockOpen = signal(false);
-  private mockCard = viewChild(MockInterview);
+  // Queried by template ref (not class) so MockInterview stays out of this chunk (@defer)
+  private mockCard = viewChild<MockInterview>('mockCard');
 
   /** Question the user explicitly picked; null means "first in the list". */
   selectedKey = signal<string | null>(null);
@@ -501,11 +505,7 @@ export class Questions implements OnInit {
       const key = this.selectedKey();
       if (!key || this.active()?.key !== key) return;
       const saved: LastViewed = { topic: this.selectedCategory()?.id ?? null, key };
-      try {
-        localStorage.setItem(lastViewedKey(this.mode()), JSON.stringify(saved));
-      } catch {
-        // Storage can be full or blocked; resuming is only a convenience
-      }
+      writeJson(lastViewedKey(this.mode()), saved);
     });
 
     // Start loading the neighbours' answers so prev/next feels instant
@@ -752,7 +752,7 @@ export class Questions implements OnInit {
     const qCat = found?.cat;
 
     const linked = topic ?? qCat;
-    const savedMode = localStorage.getItem('prep_mode');
+    const savedMode = readString('prep_mode');
     if (linked) {
       this.mode.set(trackOf(linked.id));
     } else if (isTrack(savedMode)) {
@@ -785,19 +785,19 @@ export class Questions implements OnInit {
 
   /** Re-selects the question the user last opened in the current mode. */
   private restoreLastViewed() {
-    let saved: LastViewed | null = null;
-    try {
-      saved = JSON.parse(localStorage.getItem(lastViewedKey(this.mode())) || 'null');
-    } catch {
-      return;
-    }
-    if (!saved?.key) return;
-    const sep = saved.key.indexOf('::');
-    const cat = this.modeCategories().find((c) => c.id === saved.key.slice(0, sep));
-    const q = saved.key.slice(sep + 2);
+    const saved = readJson<Partial<LastViewed> | null>(lastViewedKey(this.mode()), null);
+    const key = saved?.key;
+    if (typeof key !== 'string') return;
+    const sep = key.indexOf('::');
+    const catId = key.slice(0, sep);
+    const cat = this.modeCategories().find((c) => c.id === catId);
+    const q = key.slice(sep + 2);
     if (!cat || !cat.questions.some((it) => it.id === q)) return;
 
-    const topic = saved.topic ? this.modeCategories().find((c) => c.id === saved.topic) : null;
+    const topic =
+      typeof saved?.topic === 'string'
+        ? this.modeCategories().find((c) => c.id === saved?.topic)
+        : null;
     this.selectedCategory.set(topic ?? null);
     this.selectedKey.set(questionKey(cat.id, q));
     this.resumed.set(true);
@@ -809,7 +809,7 @@ export class Questions implements OnInit {
     this.searchFilter.set('');
     this.resetSelection();
     this.mockOpen.set(false);
-    localStorage.setItem('prep_mode', m);
+    writeString('prep_mode', m);
     this.restoreLastViewed();
     afterNextRender(() => this.revealActive(false), { injector: this.injector });
   }
@@ -879,12 +879,8 @@ export class Questions implements OnInit {
     this.urlSync.update((n) => n + 1);
   }
 
-  toggleSidebar() {
-    this.sidebarCollapsed.update((v) => !v);
-  }
-
   /** Focus mode: collapse topics and stats together, or bring both back. */
-  toggleFocus() {
+  toggleSidebar() {
     this.sidebarCollapsed.update((v) => !v);
   }
 
@@ -920,6 +916,11 @@ export class Questions implements OnInit {
   /** Keyboard shortcuts — the full list is in `shortcuts` and the "?" dialog. */
   onKeydown(e: KeyboardEvent) {
     if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+    // Esc must close Mock Me even while focus is in one of its inputs (topic select, timer switch)
+    if (this.mockOpen() && e.key === 'Escape') {
+      if (this.mockCard()?.handleKey(e)) e.preventDefault();
+      return;
+    }
     const t = e.target as HTMLElement | null;
     if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
 
@@ -948,7 +949,7 @@ export class Questions implements OnInit {
       return;
     }
     if (e.key === 'f') {
-      this.toggleFocus();
+      this.toggleSidebar();
       e.preventDefault();
       return;
     }
@@ -1027,15 +1028,9 @@ export class Questions implements OnInit {
   }
 
   private loadState() {
-    try {
-      const prepared = JSON.parse(localStorage.getItem('prep_prepared') || '[]');
-      const starred = JSON.parse(localStorage.getItem('prep_starred') || '[]');
-      // Question ids (saved text from older versions is converted at startup)
-      this.preparedSet.set(new Set<string>(Array.isArray(prepared) ? prepared : []));
-      this.starredSet.set(new Set<string>(Array.isArray(starred) ? starred : []));
-    } catch (e) {
-      console.error('Failed to load storage state', e);
-    }
+    // Question ids (saved text from older versions is converted at startup)
+    this.preparedSet.set(new Set(readStringList('prep_prepared')));
+    this.starredSet.set(new Set(readStringList('prep_starred')));
   }
 
   togglePrepared(id: string) {
@@ -1046,7 +1041,7 @@ export class Questions implements OnInit {
       updated.add(id);
     }
     this.preparedSet.set(updated);
-    localStorage.setItem('prep_prepared', JSON.stringify(Array.from(updated)));
+    writeJson('prep_prepared', [...updated]);
   }
 
   toggleStarred(id: string) {
@@ -1057,16 +1052,12 @@ export class Questions implements OnInit {
       updated.add(id);
     }
     this.starredSet.set(updated);
-    localStorage.setItem('prep_starred', JSON.stringify(Array.from(updated)));
+    writeJson('prep_starred', [...updated]);
   }
 
   setLevel(level: 'all' | Level) {
     this.levelFilter.set(level);
-    try {
-      localStorage.setItem('prep_level', level);
-    } catch {
-      // Preference only; ignore blocked storage
-    }
+    writeString('prep_level', level);
   }
 
   setPrepared(id: string, prepared: boolean) {
@@ -1077,6 +1068,6 @@ export class Questions implements OnInit {
     const updated = new Set(this.starredSet());
     ids.forEach((id) => updated.add(id));
     this.starredSet.set(updated);
-    localStorage.setItem('prep_starred', JSON.stringify(Array.from(updated)));
+    writeJson('prep_starred', [...updated]);
   }
 }

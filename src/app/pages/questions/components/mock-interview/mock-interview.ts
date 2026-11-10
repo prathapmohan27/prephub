@@ -28,6 +28,7 @@ import { CategoryModel, Level, Track, trackInfo } from '@features/questions/ques
 import { Answer } from '@features/questions/components/answer/answer';
 import { RichText } from '@shared/ui/content-blocks/rich-text';
 import { RATINGS, REVIEWS_KEY } from '@features/questions/reviews';
+import { readJson, writeJson } from '@core/storage/storage';
 
 export interface MockItem {
   /** Stable question id: mastered, starred and ratings are keyed by it. */
@@ -81,23 +82,6 @@ const RATING_LABEL: Record<Rating, string> = {
   blanked: 'Blanked',
   skipped: 'Skipped',
 };
-
-function readJson<T>(key: string, fallback: T): T {
-  try {
-    const v = localStorage.getItem(key);
-    return v === null ? fallback : (JSON.parse(v) as T);
-  } catch {
-    return fallback;
-  }
-}
-
-function writeJson(key: string, value: unknown) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // Practice history only; ignore blocked storage
-  }
-}
 
 /**
  * Weighted shuffle (Efraimidis–Spirakis): every item appears exactly once, but
@@ -586,10 +570,6 @@ export class MockInterview {
   /** Topic picker model ('' = all topics): follows `topicId`, reports edits through `topicChange`. */
   private readonly scopeModel = linkedSignal(() => ({ topic: this.topicId() ?? '' }));
   protected readonly scopeForm = form(this.scopeModel);
-  private readonly emitTopic = effect(() => {
-    const topic = this.scopeForm.topic().value() || null;
-    if (topic !== untracked(this.topicId)) this.topicChange.emit(topic);
-  });
   levelChange = output<'all' | Level>();
   focusChange = output<MockFocus>();
 
@@ -659,8 +639,20 @@ export class MockInterview {
 
   phase = signal<Phase>('setup');
   isSession = signal(false);
-  sessionSize = signal(readJson<number>(SIZE_KEY, SESSION_SIZES[0]));
-  effectiveSize = computed(() => Math.min(this.sessionSize(), this.pool().length));
+  sessionSize = signal(
+    readJson<number>(
+      SIZE_KEY,
+      SESSION_SIZES[0],
+      (v) => v === ALL || SESSION_SIZES.includes(v as number),
+    ),
+  );
+  effectiveSize = computed(() => {
+    const n = this.pool().length;
+    const size = this.sessionSize();
+    // "All" is only offered for small pools; on a larger one (another topic, another day) a
+    // saved "All" must not silently start a session with hundreds of questions
+    return Math.min(size === ALL && n > ALL_LIMIT ? SESSION_SIZES[0] : size, n);
+  });
 
   current = signal<MockItem | null>(null);
   revealed = signal(false);
@@ -710,12 +702,24 @@ export class MockInterview {
   });
 
   constructor() {
+    // Report topic picks back to the page (a no-op when the change came from `topicId` itself)
+    effect(() => {
+      const topic = this.scopeForm.topic().value() || null;
+      if (topic !== untracked(this.topicId)) this.topicChange.emit(topic);
+    });
+
     // Modal over the whole app: freeze the page behind, take keyboard focus, and
     // hand focus back to whatever opened it (the Mock Me button) on close.
     const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
     const opener = document.activeElement as HTMLElement | null;
     const bodyOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    // Keep Tab and screen readers out of the covered page. Only the page content is made inert:
+    // Taiga's dropdown portals (Topic select) also live under <tui-root> and must stay usable.
+    const background = [...document.querySelectorAll<HTMLElement>('app-nav, #main')].filter(
+      (el) => !el.inert,
+    );
+    background.forEach((el) => (el.inert = true));
     afterNextRender(() => {
       // Move to <body> so page wrappers (z-index layers, fade-in transforms)
       // can't trap the fixed overlay under the nav or pin it to the top.
@@ -726,6 +730,7 @@ export class MockInterview {
     inject(DestroyRef).onDestroy(() => {
       this.stopTimer();
       host.remove();
+      background.forEach((el) => (el.inert = false));
       document.body.style.overflow = bodyOverflow;
       opener?.focus?.();
     });
@@ -819,6 +824,8 @@ export class MockInterview {
 
   /** Keyboard shortcuts while the card is open. Returns true if the key was handled. */
   handleKey(e: KeyboardEvent): boolean {
+    // A held key would auto-repeat through skips and ratings; act on the first press only
+    if (e.repeat) return e.key === ' ' || e.key === 'Enter';
     const onControl = !!(e.target as HTMLElement | null)?.closest('button, a');
     const phase = this.phase();
 

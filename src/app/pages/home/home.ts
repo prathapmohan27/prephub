@@ -6,12 +6,14 @@ import { firstValueFrom } from 'rxjs';
 import { CategoryModel, TRACKS, Track, isTrack, trackOf } from '@features/questions/question';
 import { DailyLearningService } from '@features/daily-learning/daily-learning.service';
 import { exportProgress, importProgress } from '@core/progress/progress-backup';
-
-interface Progress {
-  read: number;
-  total: number;
-  percent: number;
-}
+import {
+  Progress,
+  SectionProgress,
+  lessonProgress,
+  percentOf,
+  readSectionProgress,
+} from '@core/progress/lesson-progress';
+import { readJson, readString, readStringList } from '@core/storage/storage';
 
 /** A "continue" card: where to go next in one section of the app. */
 interface NextStep {
@@ -37,8 +39,6 @@ interface LessonLite {
   sectionIds: string[];
 }
 
-type SectionProgress = Record<string, Record<string, boolean>>;
-
 const toLite = (
   l: Omit<LessonLite, 'sectionIds'> & { sections: { id: string }[] },
 ): LessonLite => ({
@@ -50,43 +50,22 @@ const toLite = (
   sectionIds: l.sections.map((s) => s.id),
 });
 
-function readProgress(key: string): SectionProgress {
-  try {
-    return JSON.parse(localStorage.getItem(key) || '{}') ?? {};
-  } catch {
-    return {};
-  }
-}
-
 /** Same counting rule as CoreConceptsService / SystemDesignService. */
-function lessonProgress(lesson: LessonLite, progress: SectionProgress): Progress {
-  const total = lesson.sectionIds.length;
-  const read = Object.values(progress[lesson.id] ?? {}).filter(Boolean).length;
-  return { read, total, percent: pct(read, total) };
-}
+const progressOf = (lesson: LessonLite, progress: SectionProgress): Progress =>
+  lessonProgress(lesson.sectionIds, progress[lesson.id]);
 
 function overall(lessons: LessonLite[] | null, progress: SectionProgress): Progress {
   let read = 0,
     total = 0;
   for (const l of lessons ?? []) {
-    const p = lessonProgress(l, progress);
+    const p = progressOf(l, progress);
     read += p.read;
     total += p.total;
   }
   return { read, total, percent: pct(read, total) };
 }
 
-const pct = (read: number, total: number) => (total ? Math.round((read / total) * 100) : 0);
-
-function readList(key: string): string[] {
-  try {
-    const list = JSON.parse(localStorage.getItem(key) || '[]');
-    // Question ids (saved text from older versions is converted at startup)
-    return Array.isArray(list) ? list : [];
-  } catch {
-    return [];
-  }
-}
+const pct = percentOf;
 
 /** Landing page: overall progress, today's questions, and where to continue in each section. */
 
@@ -284,13 +263,13 @@ export class Home implements OnInit {
   // Lesson lists load after first paint so ~800 KB of lesson content stays out of the initial bundle
   private readonly conceptList = signal<LessonLite[] | null>(null);
   private readonly systemList = signal<LessonLite[] | null>(null);
-  private readonly conceptProgress = readProgress('core_concepts_progress');
-  private readonly systemProgress = readProgress('sd_progress');
+  private readonly conceptProgress = readSectionProgress('core_concepts_progress');
+  private readonly systemProgress = readSectionProgress('sd_progress');
   private daily = inject(DailyLearningService);
 
   private readonly categories = signal<CategoryModel[]>([]);
-  private readonly prepared = new Set(readList('prep_prepared'));
-  readonly starredCount = computed(() => readList('prep_starred').length);
+  private readonly prepared = new Set(readStringList('prep_prepared'));
+  readonly starredCount = signal(readStringList('prep_starred').length).asReadonly();
 
   readonly streak = this.daily.streak;
   readonly todayDone = this.daily.completedCount;
@@ -391,21 +370,20 @@ export class Home implements OnInit {
 
   /** Last question opened in Interview Q&A (saved per mode by the Q&A page). */
   private readonly lastQuestion = computed(() => {
-    const savedMode = localStorage.getItem('prep_mode');
+    const savedMode = readString('prep_mode');
     const saved: Track = isTrack(savedMode) ? savedMode : 'angular';
     // The track used last first, then the others
     for (const mode of [saved, ...TRACKS.map((t) => t.id).filter((t) => t !== saved)]) {
-      try {
-        const last = JSON.parse(localStorage.getItem(`prep_last_${mode}`) || 'null');
-        if (!last?.key) continue;
-        const sep = last.key.indexOf('::');
-        const id: string = last.key.slice(sep + 2);
-        const cat = this.categories().find((c) => c.id === last.key.slice(0, sep));
-        const question = cat?.questions.find((q) => q.id === id);
-        if (cat && question) return { question, cat, topic: last.topic as string | null };
-      } catch {
-        // ignore corrupt entries
-      }
+      const last = readJson<{ key?: unknown; topic?: unknown } | null>(`prep_last_${mode}`, null);
+      const key = last?.key;
+      if (typeof key !== 'string') continue;
+      const sep = key.indexOf('::');
+      const id = key.slice(sep + 2);
+      const catId = key.slice(0, sep);
+      const cat = this.categories().find((c) => c.id === catId);
+      const question = cat?.questions.find((q) => q.id === id);
+      if (cat && question)
+        return { question, cat, topic: typeof last?.topic === 'string' ? last.topic : null };
     }
     return null;
   });
@@ -484,7 +462,7 @@ export class Home implements OnInit {
   private pickNext(items: LessonLite[] | null, progress: SectionProgress) {
     const withProgress = (items ?? []).map((item) => ({
       item,
-      progress: lessonProgress(item, progress),
+      progress: progressOf(item, progress),
     }));
     const inProgress = withProgress.find(
       (x) => x.progress.read > 0 && x.progress.read < x.progress.total,

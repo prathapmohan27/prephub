@@ -21,6 +21,19 @@ export interface DailySession {
   completed: boolean[]; // per-question completion flags
 }
 
+/** Guards against a corrupt or hand-edited saved session breaking the page. */
+function isSession(value: unknown): value is DailySession {
+  const s = value as Partial<DailySession> | null;
+  return (
+    !!s &&
+    typeof s.date === 'string' &&
+    Array.isArray(s.questions) &&
+    Array.isArray(s.completed) &&
+    Array.isArray(s.topicIds) &&
+    (s.mode === 'single' || s.mode === 'mixed' || s.mode === 'random')
+  );
+}
+
 const STORAGE_KEY_PREFIX = 'daily_session_';
 const STREAK_KEY = 'daily_streak';
 const QUESTIONS_PER_DAY = 10;
@@ -66,7 +79,8 @@ export class DailyLearningService {
       const key = STORAGE_KEY_PREFIX + this.today();
       const raw = localStorage.getItem(key);
       if (!raw) return null;
-      const session: DailySession = JSON.parse(raw);
+      const session: unknown = JSON.parse(raw);
+      if (!isSession(session)) return null;
       this._session.set(session);
       this._streak.set(this.computeStreak());
       return session;
@@ -192,14 +206,16 @@ export class DailyLearningService {
     };
   }
 
-  /** Simple seeded shuffle using mulberry32 PRNG */
+  /** Seeded Fisher–Yates shuffle using an xorshift32 PRNG (same seed → same order). */
   private seededShuffle<T>(arr: T[], seed: string): T[] {
     let h = this.hashSeed(seed);
     const rand = () => {
       h ^= h << 13;
       h ^= h >> 17;
       h ^= h << 5;
-      return (h >>> 0) / 0xffffffff;
+      // Divide by 2^32 so the result stays below 1; dividing by 0xffffffff could return
+      // exactly 1 and index one past the end of the array
+      return (h >>> 0) / 0x100000000;
     };
     const out = [...arr];
     for (let i = out.length - 1; i > 0; i--) {

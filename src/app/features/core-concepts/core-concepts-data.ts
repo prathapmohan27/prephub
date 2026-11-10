@@ -80,3 +80,30 @@ export const CORE_CONCEPTS: CoreConcept[] = [
   howAiEvalsAndObservabilityWork,
   howAiSecurityAndGuardrailsWork,
 ];
+
+/** Short labels for the learning path, by concept id (a missing one falls back to the title). */
+export const CONCEPT_PATH_LABELS: Record<string, string> = {
+  'how-internet-works': 'Internet',
+  'how-dns-works': 'DNS',
+  'how-browser-works': 'Browser',
+  'how-http-works': 'HTTP',
+  'how-https-works': 'HTTPS',
+  'how-load-balancers-work': 'Load Balancer',
+  'how-website-is-served': 'Web Server',
+  'how-apis-work': 'APIs',
+  'how-backend-works': 'Backend',
+  'how-databases-work': 'Database',
+  'how-files-work': 'Storage',
+  'how-caching-works': 'Caching',
+  'how-scaling-works': 'Scaling',
+  'how-message-queues-work': 'Queues',
+  'back-of-the-envelope-estimation': 'Estimation',
+  'how-llms-work': 'LLMs',
+  'how-prompt-engineering-works': 'Prompts',
+  'how-vector-databases-work': 'Vectors',
+  'how-rag-works': 'RAG',
+  'how-ai-agents-and-mcp-work': 'Agents & MCP',
+  'how-agentic-workflows-work': 'Agentic Apps',
+  'how-ai-evals-and-observability-work': 'Evals',
+  'how-ai-security-and-guardrails-work': 'AI Security',
+};

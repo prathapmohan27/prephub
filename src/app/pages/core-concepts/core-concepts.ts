@@ -2,7 +2,7 @@ import { Component, signal, computed, inject, input, effect } from '@angular/cor
 import { Router, RouterLink } from '@angular/router';
 import { FlowDiagram } from '@shared/ui/flow-diagram/flow-diagram';
 import { CoreConceptsService } from '@features/core-concepts/core-concepts.service';
-import { CoreConcept } from '@features/core-concepts/core-concepts-data';
+import { CoreConcept, CONCEPT_PATH_LABELS } from '@features/core-concepts/core-concepts-data';
 import { CalloutVariant } from '@shared/models/content-model';
 
 const CALLOUT_ICONS: Record<CalloutVariant, string> = {
@@ -57,8 +57,8 @@ import { difficultyAppearance } from '@shared/utils/difficulty';
                 <span>Complete Mental Model Flow</span>
               </div>
               <div class="learning-path">
-                @for (step of learningPath; track step.label; let i = $index) {
-                  <span class="path-step" [class.path-step--done]="isMilestoneComplete(i)">{{
+                @for (step of learningPath; track step.id; let i = $index) {
+                  <span class="path-step" [class.path-step--done]="isMilestoneComplete(step.id)">{{
                     step.label
                   }}</span>
                   @if (i < learningPath.length - 1) {
@@ -312,11 +312,15 @@ import { difficultyAppearance } from '@shared/utils/difficulty';
                           }
 
                           @if (block.type === 'flow' && block.code) {
-                            <app-flow-diagram
-                              [code]="block.code"
-                              [title]="block.title"
-                              [caption]="block.text"
-                            />
+                            @defer (on viewport; prefetch on idle) {
+                              <app-flow-diagram
+                                [code]="block.code"
+                                [title]="block.title"
+                                [caption]="block.text"
+                              />
+                            } @placeholder {
+                              <div class="defer-diagram" aria-hidden="true"></div>
+                            }
                           }
 
                           @if (block.type === 'divider') {
@@ -561,31 +565,11 @@ export class CoreConcepts {
   });
 
   // ── Mental Model Learning Path ────────────────────────────────────────────
-  learningPath = [
-    { label: 'Internet' },
-    { label: 'DNS' },
-    { label: 'Browser' },
-    { label: 'HTTP' },
-    { label: 'HTTPS' },
-    { label: 'Load Balancer' },
-    { label: 'Web Server' },
-    { label: 'APIs' },
-    { label: 'Backend' },
-    { label: 'Database' },
-    { label: 'Storage' },
-    { label: 'Caching' },
-    { label: 'Scaling' },
-    { label: 'Queues' },
-    { label: 'Estimation' },
-    { label: 'LLMs' },
-    { label: 'Prompts' },
-    { label: 'Vectors' },
-    { label: 'RAG' },
-    { label: 'Agents & MCP' },
-    { label: 'Agentic Apps' },
-    { label: 'Evals' },
-    { label: 'AI Security' },
-  ];
+  /** One step per lesson, in lesson order. */
+  learningPath = this.ccService.concepts.map((l) => ({
+    id: l.id,
+    label: CONCEPT_PATH_LABELS[l.id] ?? l.title,
+  }));
 
   calloutIconMap = CALLOUT_ICONS;
 
@@ -638,9 +622,8 @@ export class CoreConcepts {
 
   /** SVG circle circumference = 2π × 14 ≈ 87.96; offset controls filled arc */
 
-  isMilestoneComplete(index: number): boolean {
-    const concept = this.ccService.concepts[index];
-    return concept ? this.ccService.conceptProgress(concept.id).percent === 100 : false;
+  isMilestoneComplete(id: string): boolean {
+    return this.ccService.conceptProgress(id).percent === 100;
   }
 
   calloutIcon(variant: CalloutVariant | undefined): string {

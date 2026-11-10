@@ -38,30 +38,52 @@
   scrollbar-width: none;
 }
 
+/* Unselected options recede; the selected one reads at full strength (same weight, so no width jump) */
 .filter-strip > button {
   flex-shrink: 0;
-  gap: 5px;
+  gap: 6px;
   white-space: nowrap;
-  font-weight: 600;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.filter-strip > button:hover,
+.filter-strip > button.tui-segmented_active {
+  color: var(--color-text-primary);
 }
 
 .filter-icon {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
+/* Count as a small pill so it reads as a number badge, not stray text */
 .filter-count {
-  font: 500 0.65rem var(--font-mono);
-  color: var(--color-text-faint);
+  min-width: 1.25rem;
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  background: rgb(var(--n-700) / 0.45);
+  font: 600 0.6875rem/1.125rem var(--font-sans);
   font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--color-text-subtle);
+}
+
+.filter-strip > button.tui-segmented_active .filter-count {
+  background: rgb(var(--n-600) / 0.45);
+  color: var(--color-text-secondary);
 }
 
 /* A non-default filter is on: tint the selected segment so it reads as "filtered", not just selected */
 .filter-strip--applied {
-  color: rgba(139, 92, 246, 0.22);
+  color: rgb(var(--c-violet) / 0.22);
 }
 
-.filter-strip--applied > button[aria-pressed='true'],
-.filter-strip--applied > button[aria-pressed='true'] .filter-count {
+.filter-strip--applied > button.tui-segmented_active {
+  color: var(--t-violet-300);
+}
+
+.filter-strip--applied > button.tui-segmented_active .filter-count {
+  background: rgb(var(--c-violet) / 0.25);
   color: var(--t-violet-300);
 }
 

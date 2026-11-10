@@ -20,7 +20,6 @@ import { MockFocus, MockInterview, MockItem } from '../mock-interview/mock-inter
 import { QGroup, QItem, QuestionList, questionKey } from '../question-list/question-list';
 import { QuestionReader } from '../question-reader/question-reader';
 import {
-  Question,
   CategoryModel,
   QuestionModel,
   Level,
@@ -31,6 +30,7 @@ import {
   levelOf,
   trackOf,
 } from '@services/question';
+import { Question } from '@services/question-bank';
 import { AnswerService } from '@services/answer.service';
 import { legacyQuestionId } from '@services/progress-migration';
 import { RATINGS, Review, ReviewRating, readReviews, recordReview } from '@services/reviews';

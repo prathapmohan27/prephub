@@ -5,12 +5,15 @@ import {
   ElementRef,
   afterNextRender,
   computed,
+  effect,
   inject,
   input,
+  linkedSignal,
   output,
   signal,
+  untracked,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormField, form } from '@angular/forms/signals';
 import { TuiButton, TuiDropdown, TuiInput, TuiLink } from '@taiga-ui/core';
 import {
   TuiBadge,
@@ -121,7 +124,7 @@ function formatClock(totalSeconds: number): string {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     Answer,
-    FormsModule,
+    FormField,
     RichText,
     TuiBadge,
     TuiButton,
@@ -211,12 +214,7 @@ function formatClock(totalSeconds: number): string {
                       [stringify]="topicName"
                       [tuiTextfieldCleaner]="false"
                     >
-                      <input
-                        id="mock-topic"
-                        tuiSelect
-                        [ngModel]="topicId() ?? ''"
-                        (ngModelChange)="topicChange.emit($event || null)"
-                      />
+                      <input id="mock-topic" tuiSelect [formField]="scopeForm.topic" />
                       <tui-data-list-wrapper *tuiDropdown [items]="topicIds()" />
                     </tui-textfield>
                   </div>
@@ -584,6 +582,14 @@ export class MockInterview {
   protected readonly trackLabel = computed(() => trackInfo(this.mode()).label);
 
   topicChange = output<string | null>();
+
+  /** Topic picker model ('' = all topics): follows `topicId`, reports edits through `topicChange`. */
+  private readonly scopeModel = linkedSignal(() => ({ topic: this.topicId() ?? '' }));
+  protected readonly scopeForm = form(this.scopeModel);
+  private readonly emitTopic = effect(() => {
+    const topic = this.scopeForm.topic().value() || null;
+    if (topic !== untracked(this.topicId)) this.topicChange.emit(topic);
+  });
   levelChange = output<'all' | Level>();
   focusChange = output<MockFocus>();
 

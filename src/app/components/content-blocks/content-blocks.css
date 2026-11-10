@@ -83,23 +83,23 @@
   font-size: 15px;
 }
 .cbk-callout[data-variant='info'] {
-  background: rgba(59, 130, 246, 0.07);
-  border-color: rgba(59, 130, 246, 0.45);
+  background: rgb(var(--c-blue) / 0.07);
+  border-color: rgb(var(--c-blue) / 0.45);
   color: var(--t-blue-200);
 }
 .cbk-callout[data-variant='tip'] {
-  background: rgba(20, 184, 166, 0.07);
-  border-color: rgba(20, 184, 166, 0.45);
+  background: rgb(var(--c-teal) / 0.07);
+  border-color: rgb(var(--c-teal) / 0.45);
   color: var(--t-teal-200);
 }
 .cbk-callout[data-variant='warning'] {
-  background: rgba(245, 158, 11, 0.07);
-  border-color: rgba(245, 158, 11, 0.45);
+  background: rgb(var(--c-amber) / 0.07);
+  border-color: rgb(var(--c-amber) / 0.45);
   color: var(--t-amber-200);
 }
 .cbk-callout[data-variant='important'] {
-  background: rgba(244, 63, 94, 0.07);
-  border-color: rgba(244, 63, 94, 0.45);
+  background: rgb(var(--c-rose) / 0.07);
+  border-color: rgb(var(--c-rose) / 0.45);
   color: var(--t-rose-200);
 }
 

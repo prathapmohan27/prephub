@@ -105,8 +105,8 @@
 [tuiButton][data-appearance='primary'] kbd {
   margin-left: 4px;
   color: inherit;
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgb(var(--c-white) / 0.18);
+  border-color: rgb(var(--c-white) / 0.3);
 }
 
 .reader-shortcuts {

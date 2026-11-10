@@ -1,8 +1,8 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, injectAsync } from '@angular/core';
 import { TuiButton } from '@taiga-ui/core';
 import { TuiBadge, TuiChip, TuiProgress, TuiSegmented } from '@taiga-ui/kit';
 import { DailyLearningService, LearningMode } from '@services/daily-learning';
-import { Question, CategoryModel, TRACKS, Track, isTrack, trackOf } from '@services/question';
+import { CategoryModel, TRACKS, Track, isTrack, trackOf } from '@services/question';
 import { Answer } from '../answer/answer';
 import { RichText } from '../content-blocks/rich-text';
 
@@ -218,7 +218,7 @@ type ViewState = 'setup' | 'session';
                 size="s"
                 class="progress-track"
                 aria-label="Questions understood"
-                color="linear-gradient(90deg, #6366f1, #8b5cf6)"
+                color="var(--gradient-brand-bar)"
                 [max]="100"
                 [value]="progress()"
               ></progress>
@@ -342,7 +342,10 @@ type ViewState = 'setup' | 'session';
 })
 export class DailyLearning implements OnInit {
   private dailyService = inject(DailyLearningService);
-  private questionService = inject(Question);
+  // Only the setup screen needs the question bank; a saved session renders without it
+  private readonly questionBank = injectAsync(() =>
+    import('@services/question-bank').then((m) => m.Question),
+  );
 
   // ── Signals ──────────────────────────────────────────────────────────────
   view = signal<ViewState>('setup');
@@ -357,9 +360,9 @@ export class DailyLearning implements OnInit {
   );
 
   readonly trackColor: Record<Track, string> = {
-    foundations: '#d97706',
-    angular: '#f43f5e',
-    nodejs: '#16a34a',
+    foundations: 'rgb(var(--c-amber-600))',
+    angular: 'var(--color-track-angular)',
+    nodejs: 'var(--color-node)',
   };
 
   session = this.dailyService.session;
@@ -377,6 +380,7 @@ export class DailyLearning implements OnInit {
 
   canGenerate = computed(() => {
     const mode = this.selectedMode();
+    if (!this.allCategories().length) return false; // question bank still loading
     if (mode === 'random') return true;
     if (mode === 'single') return this.selectedTopics().length === 1;
     if (mode === 'mixed') {
@@ -388,7 +392,7 @@ export class DailyLearning implements OnInit {
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
   ngOnInit() {
-    this.allCategories.set(this.questionService.getCategories());
+    this.questionBank().then((bank) => this.allCategories.set(bank.getCategories()));
     this.dailyService.refreshStreak();
 
     const savedMode = localStorage.getItem('prep_mode');

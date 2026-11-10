@@ -477,17 +477,17 @@ export async function tracedChat(req: ChatRequest, feature: string): Promise<Cha
         {
           type: 'code',
           lang: 'typescript',
-          code: `// answer-feedback.component.ts — standalone, signals, HttpClient
+          code: `// answer-feedback.component.ts — standalone, signals, signal forms, HttpClient
 import { Component, inject, input, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { FormsModule } from '@angular/forms';
+import { FormField, form, maxLength } from '@angular/forms/signals';
 
 type Rating = 'up' | 'down';
 
 @Component({
   selector: 'app-answer-feedback',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormField],
   template: \`
     @if (!sent()) {
       <div class="feedback">
@@ -498,7 +498,7 @@ type Rating = 'up' | 'down';
           <i class="ti ti-thumb-down"></i>
         </button>
         @if (rating() === 'down') {
-          <textarea [(ngModel)]="comment" maxlength="500" placeholder="What was wrong? (optional)"></textarea>
+          <textarea [formField]="feedbackForm.comment" placeholder="What was wrong? (optional)"></textarea>
           <button type="button" (click)="submit()" [disabled]="busy()">Send</button>
         }
       </div>
@@ -514,7 +514,8 @@ export class AnswerFeedbackComponent {
   rating = signal<Rating | null>(null);
   busy = signal(false);
   sent = signal(false);
-  comment = '';
+  feedback = signal({ comment: '' });
+  feedbackForm = form(this.feedback, (f) => maxLength(f.comment, 500));
 
   rate(r: Rating) {
     this.rating.set(r);
@@ -525,7 +526,7 @@ export class AnswerFeedbackComponent {
     if (!this.rating()) return;
     this.busy.set(true);
     this.http
-      .post('/api/feedback', { traceId: this.traceId(), rating: this.rating(), comment: this.comment || undefined })
+      .post('/api/feedback', { traceId: this.traceId(), rating: this.rating(), comment: this.feedback().comment || undefined })
       .subscribe({
         next: () => this.sent.set(true),
         error: () => this.busy.set(false),   // let the user retry; never block the chat

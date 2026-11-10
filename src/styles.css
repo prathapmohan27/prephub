@@ -31,6 +31,70 @@
   --n-600: 82 82 91;
   --n-400: 161 161 170;
 
+  /* ---- Fixed palette as RGB channels, used as rgb(var(--c-indigo) / 0.15) ----
+     Same in both themes: tints, glows and accents that read on either background. */
+  --c-black: 0 0 0;
+  --c-white: 255 255 255;
+  --c-zinc: 113 113 122;
+  --c-slate: 100 116 139;
+  --c-indigo: 99 102 241; /* indigo-500 */
+  --c-indigo-600: 79 70 229;
+  --c-indigo-700: 67 56 202;
+  --c-indigo-400: 129 140 248;
+  --c-indigo-300: 165 180 252;
+  --c-violet: 139 92 246; /* violet-500 */
+  --c-violet-600: 124 58 237;
+  --c-violet-700: 109 40 217;
+  --c-purple: 168 85 247; /* purple-500 */
+  --c-pink: 236 72 153; /* pink-500 */
+  --c-rose: 244 63 94; /* rose-500 */
+  --c-rose-deep: 120 10 30;
+  --c-orange: 249 115 22; /* orange-500 */
+  --c-orange-400: 251 146 60;
+  --c-amber: 245 158 11; /* amber-500 */
+  --c-amber-400: 251 191 36;
+  --c-amber-600: 217 119 6;
+  --c-green: 34 197 94; /* green-500 */
+  --c-green-600: 22 163 74;
+  --c-emerald: 16 185 129; /* emerald-500 */
+  --c-teal: 20 184 166; /* teal-500 */
+  --c-cyan: 6 182 212; /* cyan-500 */
+  --c-cyan-400: 34 211 238;
+  --c-sky-400: 56 189 248;
+  --c-blue: 59 130 246; /* blue-500 */
+
+  /* ---- Brand (indigo → violet) ---- */
+  --color-brand: rgb(var(--c-indigo));
+  --color-brand-hover: rgb(var(--c-indigo-600));
+  --color-brand-pressed: rgb(var(--c-indigo-700));
+  --color-brand-2: rgb(var(--c-violet));
+  --color-brand-2-hover: rgb(var(--c-violet-600));
+  --color-brand-2-pressed: rgb(var(--c-violet-700));
+  --color-on-brand: rgb(var(--c-white));
+  --gradient-brand: linear-gradient(135deg, var(--color-brand), var(--color-brand-2));
+  --gradient-brand-bar: linear-gradient(90deg, var(--color-brand), var(--color-brand-2));
+
+  /* ---- Track accents ---- */
+  --color-track-foundations: rgb(var(--c-amber));
+  --color-track-angular: rgb(var(--c-rose));
+  --color-track-nodejs: rgb(var(--c-green));
+  --color-track-system-design: rgb(var(--c-teal));
+
+  /* ---- Code blocks and diagrams (always dark) ---- */
+  --color-code-bg: #0b0b0e;
+  --color-diagram-bg: #111114;
+  --color-diagram-fullscreen-bg: #0c0c0f;
+  --syntax-text: #e4e4e7;
+  --syntax-keyword: #c4b5fd;
+  --syntax-string: #86efac;
+  --syntax-number: #fdba74;
+  --syntax-comment: #8b8b94;
+  --syntax-title: #7dd3fc;
+  --syntax-type: #fcd34d;
+  --syntax-property: #93c5fd;
+  --syntax-tag: #f9a8d4;
+  --syntax-meta: #f472b6;
+
   /* ---- Base Surfaces ---- */
   --color-page-bg: rgb(var(--n-950));
   --color-surface-1: rgb(var(--n-900));
@@ -50,31 +114,31 @@
   --color-border-strong: rgb(var(--n-700) / 0.5);
 
   /* ---- Angular accent (rose) ---- */
-  --color-angular: #f43f5e;
+  --color-angular: rgb(var(--c-rose));
   --color-angular-dark: #e11d48;
   --color-angular-text: #fb7185;
-  --color-angular-glow: rgba(244, 63, 94, 0.2);
-  --color-angular-ring: rgba(244, 63, 94, 0.3);
+  --color-angular-glow: rgb(var(--c-rose) / 0.2);
+  --color-angular-ring: rgb(var(--c-rose) / 0.3);
 
   /* ---- Node.js accent (green) ---- */
-  --color-node: #16a34a;
+  --color-node: rgb(var(--c-green-600));
   --color-node-dark: #15803d;
   --color-node-text: #4ade80;
-  --color-node-glow: rgba(22, 163, 74, 0.18);
-  --color-node-ring: rgba(22, 163, 74, 0.3);
+  --color-node-glow: rgb(var(--c-green-600) / 0.18);
+  --color-node-ring: rgb(var(--c-green-600) / 0.3);
 
   /* ---- Semantic: success ---- */
-  --color-success: #10b981;
+  --color-success: rgb(var(--c-emerald));
   --color-success-light: #34d399;
-  --color-success-bg: rgba(16, 185, 129, 0.1);
-  --color-success-border: rgba(16, 185, 129, 0.2);
-  --color-success-glow: rgba(16, 185, 129, 0.3);
+  --color-success-bg: rgb(var(--c-emerald) / 0.1);
+  --color-success-border: rgb(var(--c-emerald) / 0.2);
+  --color-success-glow: rgb(var(--c-emerald) / 0.3);
 
   /* ---- Semantic: warning ---- */
-  --color-warning: #f59e0b;
+  --color-warning: rgb(var(--c-amber));
   --color-warning-light: #fbbf24;
-  --color-warning-bg: rgba(245, 158, 11, 0.1);
-  --color-warning-border: rgba(245, 158, 11, 0.15);
+  --color-warning-bg: rgb(var(--c-amber) / 0.1);
+  --color-warning-border: rgb(var(--c-amber) / 0.15);
 
   /* ---- Semantic: danger ---- */
   --color-danger-text: #fb7185;
@@ -121,9 +185,9 @@
   --radius-pill: 999px;
 
   /* ---- Shadows ---- */
-  --shadow-logo: 0 4px 16px rgba(0, 0, 0, 0.25);
-  --shadow-btn-danger: 0 4px 14px rgba(244, 63, 94, 0.2);
-  --shadow-success-glow: 0 0 8px rgba(16, 185, 129, 0.3);
+  --shadow-logo: 0 4px 16px rgb(var(--c-black) / 0.25);
+  --shadow-btn-danger: 0 4px 14px rgb(var(--c-rose) / 0.2);
+  --shadow-success-glow: 0 0 8px rgb(var(--c-emerald) / 0.3);
 }
 
 /* ---- Light theme ---- */
@@ -148,15 +212,15 @@
   --color-border-strong: rgb(24 24 27 / 0.16);
 
   --color-angular-text: #e11d48;
-  --color-angular-glow: rgba(244, 63, 94, 0.12);
+  --color-angular-glow: rgb(var(--c-rose) / 0.12);
   --color-node-text: #15803d;
-  --color-node-glow: rgba(22, 163, 74, 0.12);
+  --color-node-glow: rgb(var(--c-green-600) / 0.12);
   --color-success-light: #047857;
-  --color-success-bg: rgba(16, 185, 129, 0.12);
-  --color-success-border: rgba(16, 185, 129, 0.3);
+  --color-success-bg: rgb(var(--c-emerald) / 0.12);
+  --color-success-border: rgb(var(--c-emerald) / 0.3);
   --color-warning-light: #b45309;
-  --color-warning-bg: rgba(245, 158, 11, 0.12);
-  --color-warning-border: rgba(245, 158, 11, 0.3);
+  --color-warning-bg: rgb(var(--c-amber) / 0.12);
+  --color-warning-border: rgb(var(--c-amber) / 0.3);
   --color-danger-text: #e11d48;
 
   --t-amber-100: #78350f;
@@ -190,7 +254,7 @@
   --t-red-400: #b91c1c;
   --t-pink-400: #be185d;
 
-  --shadow-logo: 0 4px 16px rgba(24, 24, 27, 0.12);
+  --shadow-logo: 0 4px 16px rgb(var(--n-900) / 0.12);
 }
 
 /* Code samples and diagrams stay dark in both themes (syntax colours and the
@@ -215,7 +279,7 @@
 
 /* Its canvas is translucent (made for the dark page); give it a solid dark base */
 :root[data-theme='light'] app-flow-diagram .fd {
-  background-color: #111114;
+  background-color: var(--color-diagram-bg);
 }
 
 /* Smooth switch between themes, without animating every page load */
@@ -228,11 +292,11 @@ html.theme-switching * {
 }
 
 ::selection {
-  background: rgba(244, 63, 94, 0.3);
+  background: rgb(var(--c-rose) / 0.3);
 }
 
 :root[data-theme='light'] ::selection {
-  background: rgba(244, 63, 94, 0.2);
+  background: rgb(var(--c-rose) / 0.2);
 }
 
 /* ----------------------------------------
@@ -296,12 +360,12 @@ h6 {
    Search highlight
 ---------------------------------------- */
 mark {
-  background: rgba(251, 191, 36, 0.18);
+  background: rgb(var(--c-amber-400) / 0.18);
   color: var(--t-amber-300);
   font-weight: 500;
   border-radius: 3px;
   padding: 0 4px;
-  border: 1px solid rgba(251, 191, 36, 0.28);
+  border: 1px solid rgb(var(--c-amber-400) / 0.28);
 }
 
 /* ----------------------------------------
@@ -327,8 +391,8 @@ mark {
 .radial-glow {
   background: radial-gradient(
     ellipse 80% 60% at 50% -10%,
-    rgba(244, 63, 94, 0.035) 0%,
-    rgba(99, 102, 241, 0.05) 50%,
+    rgb(var(--c-rose) / 0.035) 0%,
+    rgb(var(--c-indigo) / 0.05) 50%,
     transparent 100%
   );
   pointer-events: none;
@@ -460,8 +524,8 @@ mark {
 .spotlight-card {
   border-radius: var(--radius-2xl);
   padding: 24px;
-  border-color: rgba(244, 63, 94, 0.2);
-  background: rgba(120, 10, 30, 0.06);
+  border-color: rgb(var(--c-rose) / 0.2);
+  background: rgb(var(--c-rose-deep) / 0.06);
   display: flex;
   flex-direction: column;
   gap: 16px;

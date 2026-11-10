@@ -1,4 +1,4 @@
-// Checks that every question in question.ts has a valid, unique id and a model answer, that
+// Checks that every question in question-bank.ts has a valid, unique id and a model answer, that
 // answer files and short titles are keyed only by existing ids, and that the legacy map is intact.
 // Usage: node scripts/check-answers.mjs [category-id-filter]
 import fs from 'node:fs';
@@ -11,7 +11,7 @@ const load = async (file) => {
   return import('data:text/javascript;base64,' + Buffer.from(js).toString('base64'));
 };
 
-const src = fs.readFileSync('src/app/services/question.ts', 'utf8');
+const src = fs.readFileSync('src/app/services/question-bank.ts', 'utf8');
 const start = src.indexOf('[', src.indexOf('private categories'));
 const categories = eval(src.slice(start, src.indexOf('];\n\n  getCategories') + 1));
 const filter = process.argv[2] ?? '';

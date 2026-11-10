@@ -8,8 +8,8 @@
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-lg, 14px);
   background:
-    radial-gradient(circle at 1px 1px, rgba(113, 113, 122, 0.18) 1px, transparent 0) 0 0 / 18px 18px,
-    rgba(24, 24, 27, 0.6);
+    radial-gradient(circle at 1px 1px, rgb(var(--c-zinc) / 0.18) 1px, transparent 0) 0 0 / 18px 18px,
+    rgb(var(--n-900) / 0.6);
   overflow: hidden;
 }
 
@@ -20,7 +20,7 @@
   gap: 12px;
   padding: 12px 16px;
   border-bottom: 1px solid var(--color-border);
-  background: rgba(24, 24, 27, 0.85);
+  background: rgb(var(--n-900) / 0.85);
 }
 
 .fd-head-text {
@@ -34,7 +34,7 @@
   font: 700 0.62rem var(--font-mono);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #a5b4fc;
+  color: rgb(var(--c-indigo-300));
 }
 
 .fd-title {
@@ -84,7 +84,7 @@
   margin: 0;
   padding: 12px 16px;
   border-top: 1px solid var(--color-border);
-  background: rgba(24, 24, 27, 0.85);
+  background: rgb(var(--n-900) / 0.85);
   font: 0.82rem/1.6 var(--font-sans);
   color: var(--color-text-muted);
 }
@@ -98,11 +98,11 @@
   padding: 0;
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-lg, 14px);
-  background: #0c0c0f;
+  background: var(--color-diagram-fullscreen-bg);
   color: var(--color-text-primary);
 }
 .fd-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.7);
+  background: rgb(var(--c-black) / 0.7);
   backdrop-filter: blur(4px);
 }
 .fd-dialog[open] {

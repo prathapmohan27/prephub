@@ -1,9 +1,9 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, injectAsync, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TuiButton, TuiDialogService } from '@taiga-ui/core';
 import { TUI_CONFIRM, TuiProgress, type TuiConfirmData } from '@taiga-ui/kit';
 import { firstValueFrom } from 'rxjs';
-import { CategoryModel, Question, TRACKS, Track, isTrack, trackOf } from '@services/question';
+import { CategoryModel, TRACKS, Track, isTrack, trackOf } from '@services/question';
 import { DailyLearningService } from '@services/daily-learning';
 import { exportProgress, importProgress } from '@services/progress-backup';
 
@@ -91,9 +91,9 @@ function readList(key: string): string[] {
 /** Landing page: overall progress, today's questions, and where to continue in each section. */
 
 const TRACK_ACCENT: Record<Track, string> = {
-  foundations: '#f59e0b',
-  angular: '#f43f5e',
-  nodejs: '#22c55e',
+  foundations: 'var(--color-track-foundations)',
+  angular: 'var(--color-track-angular)',
+  nodejs: 'var(--color-track-nodejs)',
 };
 
 @Component({
@@ -138,7 +138,7 @@ const TRACK_ACCENT: Record<Track, string> = {
                 size="s"
                 class="bar"
                 aria-hidden="true"
-                color="linear-gradient(90deg, #6366f1, #8b5cf6)"
+                color="var(--gradient-brand-bar)"
                 [max]="100"
                 [value]="todayPercent()"
               ></progress>
@@ -276,7 +276,10 @@ const TRACK_ACCENT: Record<Track, string> = {
 export class Home implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private questions = inject(Question);
+  // The question bank (~110 KB) is fetched after first paint, like the lesson lists below
+  private readonly questionBank = injectAsync(() =>
+    import('@services/question-bank').then((m) => m.Question),
+  );
 
   // Lesson lists load after first paint so ~800 KB of lesson content stays out of the initial bundle
   private readonly conceptList = signal<LessonLite[] | null>(null);
@@ -285,7 +288,7 @@ export class Home implements OnInit {
   private readonly systemProgress = readProgress('sd_progress');
   private daily = inject(DailyLearningService);
 
-  private readonly categories: CategoryModel[] = this.questions.getCategories();
+  private readonly categories = signal<CategoryModel[]>([]);
   private readonly prepared = new Set(readList('prep_prepared'));
   readonly starredCount = computed(() => readList('prep_starred').length);
 
@@ -295,7 +298,7 @@ export class Home implements OnInit {
   readonly todayPercent = computed(() => pct(this.todayDone(), this.todayTotal()));
 
   private qaProgress(track: Track): Progress {
-    const cats = this.categories.filter((c) => trackOf(c.id) === track);
+    const cats = this.categories().filter((c) => trackOf(c.id) === track);
     const all = cats.flatMap((c) => c.questions);
     const read = all.filter((q) => this.prepared.has(q.id)).length;
     return { read, total: all.length, percent: pct(read, all.length) };
@@ -305,7 +308,7 @@ export class Home implements OnInit {
     {
       label: 'Foundations',
       icon: 'ti-brand-javascript',
-      accent: '#f59e0b',
+      accent: 'var(--color-track-foundations)',
       unit: 'mastered',
       link: '/questions',
       progress: this.qaProgress('foundations'),
@@ -313,7 +316,7 @@ export class Home implements OnInit {
     {
       label: 'Angular Q&A',
       icon: 'ti-brand-angular',
-      accent: '#f43f5e',
+      accent: 'var(--color-track-angular)',
       unit: 'mastered',
       link: '/questions',
       progress: this.qaProgress('angular'),
@@ -321,7 +324,7 @@ export class Home implements OnInit {
     {
       label: 'Node.js Q&A',
       icon: 'ti-brand-nodejs',
-      accent: '#22c55e',
+      accent: 'var(--color-track-nodejs)',
       unit: 'mastered',
       link: '/questions',
       progress: this.qaProgress('nodejs'),
@@ -329,7 +332,7 @@ export class Home implements OnInit {
     {
       label: 'Core Concepts',
       icon: 'ti-bulb',
-      accent: '#f59e0b',
+      accent: 'var(--color-track-foundations)',
       unit: 'sections read',
       link: '/core-concepts',
       progress: overall(this.conceptList(), this.conceptProgress),
@@ -337,7 +340,7 @@ export class Home implements OnInit {
     {
       label: 'System Design',
       icon: 'ti-topology-star',
-      accent: '#14b8a6',
+      accent: 'var(--color-track-system-design)',
       unit: 'sections read',
       link: '/system-design',
       progress: overall(this.systemList(), this.systemProgress),
@@ -397,7 +400,7 @@ export class Home implements OnInit {
         if (!last?.key) continue;
         const sep = last.key.indexOf('::');
         const id: string = last.key.slice(sep + 2);
-        const cat = this.categories.find((c) => c.id === last.key.slice(0, sep));
+        const cat = this.categories().find((c) => c.id === last.key.slice(0, sep));
         const question = cat?.questions.find((q) => q.id === id);
         if (cat && question) return { question, cat, topic: last.topic as string | null };
       } catch {
@@ -411,7 +414,7 @@ export class Home implements OnInit {
     const steps: NextStep[] = [];
 
     const last = this.lastQuestion();
-    const firstCat = this.categories[0];
+    const firstCat = this.categories()[0];
     steps.push(
       last
         ? {
@@ -430,13 +433,13 @@ export class Home implements OnInit {
             kind: 'qa',
             label: 'Interview Q&A',
             icon: 'ti-list-check',
-            accent: '#f43f5e',
-            title: firstCat.title,
-            meta: `${firstCat.questions.length} questions to start with`,
+            accent: 'var(--color-track-angular)',
+            title: firstCat?.title ?? 'Browse the question bank',
+            meta: firstCat ? `${firstCat.questions.length} questions to start with` : '',
             percent: 0,
             started: false,
             link: ['/questions'],
-            queryParams: { topic: firstCat.id },
+            queryParams: firstCat ? { topic: firstCat.id } : {},
           },
     );
 
@@ -500,6 +503,7 @@ export class Home implements OnInit {
     this.daily.loadTodaySession();
     this.daily.refreshStreak();
 
+    this.questionBank().then((bank) => this.categories.set(bank.getCategories()));
     import('@services/core-concepts-data').then((m) =>
       this.conceptList.set(m.CORE_CONCEPTS.map(toLite)),
     );

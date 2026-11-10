@@ -42,14 +42,14 @@
   --tui-background-neutral-1-pressed: rgb(var(--n-700) / 0.7);
 
   /* ---- Accent: the app's primary violet ---- */
-  --tui-background-accent-1: #6366f1;
-  --tui-background-accent-1-hover: #4f46e5;
-  --tui-background-accent-1-pressed: #4338ca;
-  --tui-text-primary-on-accent-1: #fff;
-  --tui-background-accent-2: #8b5cf6;
-  --tui-background-accent-2-hover: #7c3aed;
-  --tui-background-accent-2-pressed: #6d28d9;
-  --tui-text-primary-on-accent-2: #fff;
+  --tui-background-accent-1: var(--color-brand);
+  --tui-background-accent-1-hover: var(--color-brand-hover);
+  --tui-background-accent-1-pressed: var(--color-brand-pressed);
+  --tui-text-primary-on-accent-1: var(--color-on-brand);
+  --tui-background-accent-2: var(--color-brand-2);
+  --tui-background-accent-2-hover: var(--color-brand-2-hover);
+  --tui-background-accent-2-pressed: var(--color-brand-2-pressed);
+  --tui-text-primary-on-accent-2: var(--color-on-brand);
 
   /* ---- Text ---- */
   --tui-text-primary: var(--color-text-primary);
@@ -61,7 +61,7 @@
   /* ---- Borders & focus ---- */
   --tui-border-normal: var(--color-border-strong);
   --tui-border-hover: rgb(var(--n-600) / 0.6);
-  --tui-border-focus: #818cf8;
+  --tui-border-focus: rgb(var(--c-indigo-400));
 
   /* ---- Status (badges, chips, rating buttons) ---- */
   --tui-status-positive: var(--color-success);
@@ -72,14 +72,14 @@
   --tui-status-warning-pale: var(--color-warning-bg);
   --tui-status-warning-pale-hover: var(--color-warning-border);
   --tui-text-warning: var(--color-warning-light);
-  --tui-status-negative: #f43f5e;
-  --tui-status-negative-pale: rgba(244, 63, 94, 0.12);
-  --tui-status-negative-pale-hover: rgba(244, 63, 94, 0.2);
+  --tui-status-negative: var(--color-angular);
+  --tui-status-negative-pale: rgb(var(--c-rose) / 0.12);
+  --tui-status-negative-pale-hover: rgb(var(--c-rose) / 0.2);
   --tui-text-negative: var(--color-danger-text);
   /* "info" is the app's violet: Senior badges and other neutral highlights */
-  --tui-status-info: #8b5cf6;
-  --tui-status-info-pale: rgba(139, 92, 246, 0.14);
-  --tui-status-info-pale-hover: rgba(139, 92, 246, 0.22);
+  --tui-status-info: var(--color-brand-2);
+  --tui-status-info-pale: rgb(var(--c-violet) / 0.14);
+  --tui-status-info-pale-hover: rgb(var(--c-violet) / 0.22);
 }
 
 /* tui-root sets Taiga's 14px body font on the whole app; keep the app's own base

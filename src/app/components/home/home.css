@@ -15,7 +15,7 @@
   pointer-events: none;
   background: radial-gradient(
     ellipse 70% 45% at 50% -5%,
-    rgba(139, 92, 246, 0.12) 0%,
+    rgb(var(--c-violet) / 0.12) 0%,
     transparent 70%
   );
 }
@@ -75,8 +75,8 @@
 }
 
 .streak-pill--on {
-  border-color: rgba(249, 115, 22, 0.35);
-  background: rgba(249, 115, 22, 0.1);
+  border-color: rgb(var(--c-orange) / 0.35);
+  background: rgb(var(--c-orange) / 0.1);
   color: var(--t-orange-300);
 }
 
@@ -88,7 +88,7 @@
 .bar {
   display: block;
   width: 100%;
-  color: var(--accent, #8b5cf6);
+  color: var(--accent, var(--color-brand-2));
 }
 
 /* ── Today ────────────────────────────────────────────────────────── */
@@ -98,8 +98,8 @@
   gap: 18px;
   padding: 20px 22px;
   border-radius: var(--radius-2xl);
-  border-color: rgba(139, 92, 246, 0.25);
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgb(var(--n-900) / 0.75) 60%);
+  border-color: rgb(var(--c-violet) / 0.25);
+  background: linear-gradient(135deg, rgb(var(--c-indigo) / 0.12), rgb(var(--n-900) / 0.75) 60%);
 }
 
 .today-icon {
@@ -112,8 +112,8 @@
   justify-content: center;
   font-size: 22px;
   color: var(--t-violet-300);
-  background: rgba(139, 92, 246, 0.15);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: rgb(var(--c-violet) / 0.15);
+  border: 1px solid rgb(var(--c-violet) / 0.3);
 }
 
 .today-body {

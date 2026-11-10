@@ -3,9 +3,9 @@
 }
 
 .cb {
-  border: 1px solid rgba(63, 63, 70, 0.55);
+  border: 1px solid rgb(var(--n-700) / 0.55);
   border-radius: var(--radius-lg);
-  background: #0b0b0e;
+  background: var(--color-code-bg);
   overflow: hidden;
 }
 
@@ -14,8 +14,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 6px 8px 6px 14px;
-  border-bottom: 1px solid rgba(63, 63, 70, 0.4);
-  background: rgba(24, 24, 27, 0.8);
+  border-bottom: 1px solid rgb(var(--n-700) / 0.4);
+  background: rgb(var(--n-900) / 0.8);
 }
 
 .cb-lang {
@@ -35,7 +35,7 @@
 }
 .cb-pre code {
   font: 400 0.78rem/1.7 var(--font-mono);
-  color: #e4e4e7;
+  color: var(--syntax-text);
   white-space: pre;
 }
 
@@ -43,49 +43,49 @@
 .cb-pre ::ng-deep .hljs-keyword,
 .cb-pre ::ng-deep .hljs-selector-tag,
 .cb-pre ::ng-deep .hljs-built_in {
-  color: #c4b5fd;
+  color: var(--syntax-keyword);
 }
 .cb-pre ::ng-deep .hljs-string,
 .cb-pre ::ng-deep .hljs-attr-value,
 .cb-pre ::ng-deep .hljs-template-string,
 .cb-pre ::ng-deep .hljs-regexp {
-  color: #86efac;
+  color: var(--syntax-string);
 }
 .cb-pre ::ng-deep .hljs-number,
 .cb-pre ::ng-deep .hljs-literal {
-  color: #fdba74;
+  color: var(--syntax-number);
 }
 .cb-pre ::ng-deep .hljs-comment,
 .cb-pre ::ng-deep .hljs-quote {
-  color: #8b8b94;
+  color: var(--syntax-comment);
   font-style: italic;
 }
 .cb-pre ::ng-deep .hljs-title,
 .cb-pre ::ng-deep .hljs-title.function_,
 .cb-pre ::ng-deep .hljs-section {
-  color: #7dd3fc;
+  color: var(--syntax-title);
 }
 .cb-pre ::ng-deep .hljs-title.class_,
 .cb-pre ::ng-deep .hljs-type {
-  color: #fcd34d;
+  color: var(--syntax-type);
 }
 .cb-pre ::ng-deep .hljs-attr,
 .cb-pre ::ng-deep .hljs-attribute,
 .cb-pre ::ng-deep .hljs-property {
-  color: #93c5fd;
+  color: var(--syntax-property);
 }
 .cb-pre ::ng-deep .hljs-tag,
 .cb-pre ::ng-deep .hljs-name {
-  color: #f9a8d4;
+  color: var(--syntax-tag);
 }
 .cb-pre ::ng-deep .hljs-meta,
 .cb-pre ::ng-deep .hljs-decorator {
-  color: #f472b6;
+  color: var(--syntax-meta);
 }
 .cb-pre ::ng-deep .hljs-variable,
 .cb-pre ::ng-deep .hljs-params {
-  color: #e4e4e7;
+  color: var(--syntax-text);
 }
 .cb-pre ::ng-deep .hljs-subst {
-  color: #e4e4e7;
+  color: var(--syntax-text);
 }

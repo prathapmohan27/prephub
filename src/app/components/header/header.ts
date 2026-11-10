@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { TuiButton, TuiIcon, TuiInput } from '@taiga-ui/core';
 import { TuiSegmented } from '@taiga-ui/kit';
 import type { Level } from '@services/question';
@@ -14,19 +13,20 @@ export interface FilterCounts {
 @Component({
   selector: 'app-header',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TuiButton, TuiIcon, TuiInput, TuiSegmented],
+  imports: [TuiButton, TuiIcon, TuiInput, TuiSegmented],
   template: `
     <div class="hdr">
       <!-- Row 1: Search -->
       <tui-textfield iconStart="@tui.search" class="search-box" [tuiTextfieldCleaner]="false">
         <input
+          #search
           tuiInput
           type="search"
           class="search-input"
           placeholder="Search questions…"
           aria-label="Search questions"
-          [ngModel]="query()"
-          (ngModelChange)="searchChange.emit($event)"
+          [value]="query()"
+          (input)="searchChange.emit(search.value)"
         />
         <kbd class="search-kbd" aria-hidden="true">/</kbd>
       </tui-textfield>
@@ -83,6 +83,7 @@ export interface FilterCounts {
           tuiButton
           type="button"
           appearance="primary"
+          size="s"
           iconStart="@tui.dices"
           class="btn-mock"
           (click)="randomChallenge.emit()"

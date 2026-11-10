@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TuiRoot } from '@taiga-ui/core';
-import { AppNav } from './components/app-nav/app-nav';
+import { AppNav } from '@layout/app-nav/app-nav';
 
 @Component({
   selector: 'app-root',

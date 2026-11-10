@@ -103,30 +103,40 @@ src/
 ├── styles.css                  # Design tokens (colours, radii, fonts), shared panels
 ├── taiga-theme.css             # Maps Taiga UI's --tui-* variables onto the tokens above
 └── app/
-    ├── app.routes.ts           # Home, Q&A, Daily, Core Concepts, System Design
-    ├── components/
-    │   ├── app-nav/            # Top nav (bottom tab bar on phones)
-    │   ├── home/
-    │   ├── questions/          # Q&A page: topics sidebar, list + reader, shortcuts
-    │   ├── header/             # Search, filter tabs, Mock Me button
-    │   ├── question-list/
-    │   ├── question-reader/
-    │   ├── answer/             # Quick answer + detailed explanation
-    │   ├── mock-interview/     # Mock Me sessions, timer, rating, summary
-    │   ├── daily-learning/
-    │   ├── core-concepts/
-    │   ├── system-design/
-    │   ├── content-blocks/     # Renders rich content (text, lists, code, callouts, flows)
-    │   ├── flow-diagram/
-    │   └── shared/             # Small helpers shared by pages (e.g. difficulty badge colours)
-    └── services/
-        ├── question.ts         # Topics and questions for both tracks
-        ├── answers/            # One file of model answers per topic
-        ├── core-concepts/      # One file per concept
-        ├── system-design/      # One file per design
-        ├── daily-learning.ts
-        └── theme.service.ts    # Light / dark; also drives Taiga UI's dark mode
+    ├── app.routes.ts           # Home, Q&A, Daily, Core Concepts, System Design (lazy-loaded)
+    ├── core/                   # App-wide singletons and startup logic
+    │   ├── theme/              # Light / dark; also drives Taiga UI's dark mode
+    │   └── progress/           # localStorage migration, backup / restore
+    ├── layout/
+    │   └── app-nav/            # Top nav (bottom tab bar on phones)
+    ├── shared/                 # Domain-agnostic building blocks, safe to use anywhere
+    │   ├── models/             # Content model for lessons and answers
+    │   ├── ui/                 # content-blocks (text, lists, code, callouts), flow-diagram
+    │   ├── pipes/              # Search highlight
+    │   └── utils/              # Small helpers (e.g. difficulty badge colours)
+    ├── features/               # Domain logic, data and UI reused across pages
+    │   ├── questions/          # Topics & tracks (question.ts), ratings, AnswerService
+    │   │   ├── data/           # question-bank.ts, short-titles.ts, answers/ (one file per topic)
+    │   │   └── components/     # answer/ (quick answer + detailed explanation)
+    │   ├── daily-learning/     # Daily session service
+    │   ├── core-concepts/      # Catalog + service; data/ has one file per concept
+    │   └── system-design/      # Catalog + service; data/ has one file per design
+    └── pages/                  # One folder per route; components only that page uses live inside it
+        ├── home/
+        ├── questions/          # Q&A page: topics sidebar, list + reader, shortcuts
+        │   └── components/     # header (search, filters, Mock Me), question-list,
+        │                       # question-reader, mock-interview
+        ├── daily-learning/
+        ├── core-concepts/
+        └── system-design/
 ```
+
+**Where new code goes:**
+
+- A component used by one page only → `pages/<page>/components/`. Once a second page needs it, move it to `features/<feature>/components/` (domain-specific) or `shared/ui/` (domain-agnostic).
+- `shared/` must not import from `features/` or `pages/`, and `features/` must not import from `pages/`. Features may use `core/` and `shared/`.
+- Import across areas with the path aliases `@core/*`, `@layout/*`, `@shared/*`, `@features/*` and `@pages/*`; use relative imports inside a feature or page folder.
+- Keep large data behind dynamic `import()` (question bank, answers, lesson catalogs) so it stays out of the initial bundle.
 
 ## UI components (Taiga UI)
 
@@ -156,7 +166,7 @@ src/
 
 - **Appearances:** `primary` for the main action (violet), `secondary-grayscale` for ordinary buttons, `flat-grayscale` for quiet ones, and status appearances (`positive` / `warning` / `negative` / `info`) for ratings and states. `info` is the app's violet.
 - **Sizes:** buttons default to `s` and textfields to `m` (set in `app.config.ts`). Pass `size` only to deviate, such as `xs` in dense rows. Prefer `s` / `m`; larger sizes switch to Taiga's 16 px+ type.
-- **Icons:** inside Taiga components, use Taiga icons via `iconStart` / `iconEnd` (`@tui.<lucide-name>`; browse `node_modules/@taiga-ui/icons/src`). Data-driven icons (topic and section icons in `services/`) stay Tabler `<i class="ti …">`.
+- **Icons:** inside Taiga components, use Taiga icons via `iconStart` / `iconEnd` (`@tui.<lucide-name>`; browse `node_modules/@taiga-ui/icons/src`). Data-driven icons (topic and section icons in `features/`) stay Tabler `<i class="ti …">`.
 - **Colours and type:** don't hard-code colours on Taiga components. Change the token in `styles.css`, or the mapping in `src/taiga-theme.css`, and every component follows. Light / dark is set by `ThemeService` only; it feeds Taiga's `TUI_DARK_MODE`, so don't inject and set `TUI_DARK_MODE` directly.
 - **Always-dark areas** (code blocks, diagrams) put `tuiTheme: 'dark'` on their host so the Taiga controls inside them use the dark palette.
 - **No wrappers:** use Taiga components directly in templates. Shared defaults belong in providers (`tui*OptionsProvider`) or in `taiga-theme.css`, not in wrapper components.
@@ -165,9 +175,9 @@ src/
 
 ## Adding content
 
-- **A question:** add `{ id, text }` to its topic's `questions` array in `src/app/services/question.ts`. The `id` is a kebab-case name that is unique across all topics and **never changes**: progress, ratings, answers, short titles and shared links are keyed by it. Add `senior: true` for questions about internals, trade-offs, design or production scenarios. The track comes from `trackOf()` in the same file: topics listed in `FOUNDATION_TOPICS` are Foundations, topics whose `id` starts with `nodejs-` are Node.js, and the rest are Angular. New topics go into a section in `TOPIC_GROUPS` (otherwise they appear under "More").
-- **Its answer:** add an entry keyed by the question's `id` to that topic's file in `src/app/services/answers/`, with a `summary` (the quick answer) and `details` (content blocks such as paragraphs, headings, bullets and code).
-- **Its list title:** add a short title (48 characters or fewer) under the same `id` in `src/app/services/short-titles.ts`.
+- **A question:** add `{ id, text }` to its topic's `questions` array in `src/app/features/questions/data/question-bank.ts`. The `id` is a kebab-case name that is unique across all topics and **never changes**: progress, ratings, answers, short titles and shared links are keyed by it. Add `senior: true` for questions about internals, trade-offs, design or production scenarios. The track comes from `trackOf()` in `src/app/features/questions/question.ts`: topics listed in `FOUNDATION_TOPICS` are Foundations, topics whose `id` starts with `nodejs-` are Node.js, and the rest are Angular. New topics go into a section in `TOPIC_GROUPS` (otherwise they appear under "More").
+- **Its answer:** add an entry keyed by the question's `id` to that topic's file in `src/app/features/questions/data/answers/`, with a `summary` (the quick answer) and `details` (content blocks such as paragraphs, headings, bullets and code).
+- **Its list title:** add a short title (48 characters or fewer) under the same `id` in `src/app/features/questions/data/short-titles.ts`.
 - **Rewording a question:** just edit its `text`. The `id` stays, so nobody loses progress.
 - **Check your work:** `node scripts/check-answers.mjs` verifies ids, answers and short titles; `node scripts/check-diagrams.mjs` validates Mermaid diagrams.
 

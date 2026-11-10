@@ -12,8 +12,8 @@ import {
 } from '@taiga-ui/core';
 
 import { routes } from './app.routes';
-import { migrateProgressToIds } from './services/progress-migration';
-import { provideAppTheme } from './services/theme.service';
+import { migrateProgressToIds } from '@core/progress/progress-migration';
+import { provideAppTheme } from '@core/theme/theme.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [

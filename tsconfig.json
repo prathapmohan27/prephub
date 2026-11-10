@@ -14,11 +14,11 @@
     "target": "ES2022",
     "module": "preserve",
     "paths": {
-      "@components/header": ["./src/app/components/header/header"],
-      "@components/questions": ["./src/app/components/questions/questions"],
-      "@components/*": ["./src/app/components/*"],
-      "@services/*": ["./src/app/services/*"],
-      "@pipes/*": ["./src/app/pipes/*"]
+      "@core/*": ["./src/app/core/*"],
+      "@layout/*": ["./src/app/layout/*"],
+      "@shared/*": ["./src/app/shared/*"],
+      "@features/*": ["./src/app/features/*"],
+      "@pages/*": ["./src/app/pages/*"]
     }
   },
   "angularCompilerOptions": {

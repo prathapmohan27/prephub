@@ -11,7 +11,7 @@ const load = async (file) => {
   return import('data:text/javascript;base64,' + Buffer.from(js).toString('base64'));
 };
 
-const src = fs.readFileSync('src/app/services/question-bank.ts', 'utf8');
+const src = fs.readFileSync('src/app/features/questions/data/question-bank.ts', 'utf8');
 const start = src.indexOf('[', src.indexOf('private categories'));
 const categories = eval(src.slice(start, src.indexOf('];\n\n  getCategories') + 1));
 const filter = process.argv[2] ?? '';
@@ -30,7 +30,7 @@ for (const cat of categories) {
 }
 
 for (const cat of categories.filter((c) => c.id.includes(filter))) {
-  const { answers } = await load(`src/app/services/answers/${cat.id}.ts`);
+  const { answers } = await load(`src/app/features/questions/data/answers/${cat.id}.ts`);
   const keys = new Set(Object.keys(answers));
   const problems = [];
   for (const q of cat.questions) {
@@ -49,7 +49,7 @@ for (const cat of categories.filter((c) => c.id.includes(filter))) {
 }
 
 // Short list titles must point at real questions
-const { SHORT_TITLES } = await load('src/app/services/short-titles.ts');
+const { SHORT_TITLES } = await load('src/app/features/questions/data/short-titles.ts');
 const allIds = new Set(categories.flatMap((c) => c.questions.map((q) => q.id)));
 const staleTitles = filter ? [] : Object.keys(SHORT_TITLES).filter((id) => !allIds.has(id));
 const untitled = filter ? 0 : [...allIds].filter((id) => !(id in SHORT_TITLES)).length;
@@ -58,7 +58,7 @@ if (untitled) console.log(`  ${untitled} question(s) have no short title (the fu
 orphans += staleTitles.length;
 
 // The frozen legacy map may only point at ids that still exist
-const { LEGACY_QUESTION_IDS } = await load('src/app/services/legacy-question-ids.ts');
+const { LEGACY_QUESTION_IDS } = await load('src/app/core/progress/legacy-question-ids.ts');
 const deadLegacy = filter ? [] : [...new Set(Object.values(LEGACY_QUESTION_IDS))].filter((id) => !allIds.has(id));
 deadLegacy.forEach((id) => console.log(`  legacy map points at a removed id: ${id}`));
 orphans += deadLegacy.length;

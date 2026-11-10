@@ -1,12 +1,12 @@
 import { ActivatedRouteSnapshot, Routes } from '@angular/router';
-import { Home } from './components/home/home';
+import { Home } from '@pages/home/home';
 
 const APP_NAME = 'PrepHub';
 
 const loadSystemDesign = () =>
-  import('./components/system-design/system-design').then((m) => m.SystemDesign);
+  import('@pages/system-design/system-design').then((m) => m.SystemDesign);
 const loadCoreConcepts = () =>
-  import('./components/core-concepts/core-concepts').then((m) => m.CoreConcepts);
+  import('@pages/core-concepts/core-concepts').then((m) => m.CoreConcepts);
 
 export const routes: Routes = [
   { path: '', component: Home, title: APP_NAME },
@@ -14,13 +14,13 @@ export const routes: Routes = [
     path: 'questions',
     title: `Interview Q&A · ${APP_NAME}`,
     // Lazy like the other sections, so the Q&A page and Mock Me stay out of the first load
-    loadComponent: () => import('./components/questions/questions').then((m) => m.Questions),
+    loadComponent: () => import('@pages/questions/questions').then((m) => m.Questions),
   },
   {
     path: 'daily',
     title: `Daily Learning · ${APP_NAME}`,
     loadComponent: () =>
-      import('./components/daily-learning/daily-learning').then((m) => m.DailyLearning),
+      import('@pages/daily-learning/daily-learning').then((m) => m.DailyLearning),
   },
   {
     path: 'system-design',
@@ -31,7 +31,7 @@ export const routes: Routes = [
     path: 'system-design/:systemId',
     // Data is imported lazily so it stays out of the initial bundle
     title: async (route: ActivatedRouteSnapshot) => {
-      const { SYSTEM_DESIGN_SYSTEMS } = await import('@services/system-design-data');
+      const { SYSTEM_DESIGN_SYSTEMS } = await import('@features/system-design/system-design-data');
       const sys = SYSTEM_DESIGN_SYSTEMS.find((s) => s.id === route.paramMap.get('systemId'));
       return `${sys?.title ?? 'System Design'} · ${APP_NAME}`;
     },
@@ -45,7 +45,7 @@ export const routes: Routes = [
   {
     path: 'core-concepts/:conceptId',
     title: async (route: ActivatedRouteSnapshot) => {
-      const { CORE_CONCEPTS } = await import('@services/core-concepts-data');
+      const { CORE_CONCEPTS } = await import('@features/core-concepts/core-concepts-data');
       const concept = CORE_CONCEPTS.find((c) => c.id === route.paramMap.get('conceptId'));
       return `${concept?.title ?? 'Core Concepts'} · ${APP_NAME}`;
     },

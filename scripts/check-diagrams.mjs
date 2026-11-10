@@ -25,9 +25,9 @@ const { default: mermaid } = await import('mermaid');
 mermaid.initialize({ startOnLoad: false });
 
 const roots = [
-  'src/app/services/core-concepts',
-  'src/app/services/system-design',
-  'src/app/services/answers',
+  'src/app/features/core-concepts/data',
+  'src/app/features/system-design/data',
+  'src/app/features/questions/data/answers',
 ];
 const filter = process.argv[2] ?? '';
 const files = roots

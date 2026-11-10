@@ -1,0 +1,1 @@
+var e={Beginner:`positive`,Foundational:`info`,Intermediate:`warning`,Advanced:`negative`};function i(n){return e[n]??`neutral`}export{i as t};

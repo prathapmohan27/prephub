@@ -17,7 +17,6 @@ import { TuiButton, TuiDialog, TuiLoader } from '@taiga-ui/core';
 import { TuiBadge, TuiChip, TuiProgress } from '@taiga-ui/kit';
 import { Header } from './components/header/header';
 import { MockInterview } from './components/mock-interview/mock-interview';
-import type { MockFocus, MockItem } from './components/mock-interview/mock-interview';
 import { QGroup, QItem, QuestionList, questionKey } from './components/question-list/question-list';
 import { QuestionReader } from './components/question-reader/question-reader';
 import {
@@ -257,19 +256,10 @@ const SINGLE_PANE_QUERY = '(max-width: 760px)';
               @defer (on immediate) {
                 <app-mock-interview
                   #mockCard
-                  [pool]="mockPool()"
                   [prepared]="preparedSet()"
                   [starred]="starredSet()"
                   [mode]="mode()"
-                  [scopeLabel]="mockScopeLabel()"
                   [topics]="modeCategories()"
-                  [topicId]="selectedCategory()?.id ?? null"
-                  [level]="levelFilter()"
-                  [focus]="mockFocus()"
-                  [search]="searchFilter().trim()"
-                  (topicChange)="selectTopicById($event)"
-                  (levelChange)="setLevel($event)"
-                  (focusChange)="onFilterChange($event)"
                   (preparedChange)="setPrepared($event.id, $event.prepared)"
                   (starQuestions)="starAll($event)"
                   (closed)="closeMock()"
@@ -699,16 +689,6 @@ export class Questions implements OnInit {
     this.onSearch('');
   }
 
-  /** The status filter as Mock Me's "Focus"; "Mastered" has no Mock Me equivalent. */
-  mockFocus = computed<MockFocus>(() => {
-    const f = this.activeFilter();
-    return f === 'unprepared' || f === 'starred' ? f : 'all';
-  });
-
-  selectTopicById(id: string | null) {
-    this.selectCategory(this.modeCategories().find((c) => c.id === id) ?? null);
-  }
-
   closeMock() {
     this.mockOpen.set(false);
     this.reviews.set(readReviews()); // Mock Me may have added ratings
@@ -718,26 +698,6 @@ export class Questions implements OnInit {
     this.practice.update((v) => !v);
     this.revealedKey.set(null);
   }
-
-  /** Visible questions for Mock Me, paired with their original (unfiltered) category. */
-  mockPool = computed<MockItem[]>(() => {
-    const byId = new Map(this.modeCategories().map((c) => [c.id, c]));
-    return this.visibleCategories().flatMap((vc) => {
-      const cat = byId.get(vc.id);
-      return cat ? vc.questions.map((q) => ({ id: q.id, q: q.text, cat })) : [];
-    });
-  });
-
-  mockScopeLabel = computed(() => {
-    const parts = [this.selectedCategory()?.title ?? 'all topics'];
-    const filter = this.activeFilter();
-    if (filter !== 'all') parts.push(filter[0].toUpperCase() + filter.slice(1));
-    const level = this.levelFilter();
-    if (level !== 'all') parts.push(level === 'senior' ? 'Senior level' : 'Core level');
-    const search = this.searchFilter().trim();
-    if (search) parts.push(`"${search}"`);
-    return parts.join(' · ');
-  });
 
   ngOnInit() {
     const all = this.questionService.getCategories();

@@ -11,7 +11,6 @@ import {
   linkedSignal,
   output,
   signal,
-  untracked,
 } from '@angular/core';
 import { FormField, form } from '@angular/forms/signals';
 import { TuiButton, TuiDropdown, TuiInput, TuiLink } from '@taiga-ui/core';
@@ -24,11 +23,11 @@ import {
   TuiSelect,
   TuiSwitch,
 } from '@taiga-ui/kit';
-import { CategoryModel, Level, Track, trackInfo } from '@features/questions/question';
+import { CategoryModel, Level, Track, levelOf, trackInfo } from '@features/questions/question';
 import { Answer } from '@features/questions/components/answer/answer';
 import { RichText } from '@shared/ui/content-blocks/rich-text';
 import { RATINGS, REVIEWS_KEY } from '@features/questions/reviews';
-import { readJson, writeJson } from '@core/storage/storage';
+import { readJson, readString, writeJson, writeString } from '@core/storage/storage';
 
 export interface MockItem {
   /** Stable question id: mastered, starred and ratings are keyed by it. */
@@ -73,6 +72,15 @@ const ALL_LIMIT = 30;
 /** Which questions a session draws from; matches the page's status filter. */
 export type MockFocus = 'all' | 'unprepared' | 'starred';
 const SIZE_KEY = 'prep_mock_size';
+const LEVEL_KEY = 'prep_mock_level';
+const FOCUS_KEY = 'prep_mock_focus';
+const topicKey = (track: Track) => `prep_mock_topic_${track}`;
+
+/** The topic last used in Mock Me for this track, if it still exists ('' = all topics). */
+function readSavedTopic(track: Track, topics: CategoryModel[]): string {
+  const id = readString(topicKey(track)) ?? '';
+  return topics.some((t) => t.id === id) ? id : '';
+}
 const TIMER_KEY = 'prep_mock_timer';
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -185,123 +193,135 @@ function formatClock(totalSeconds: number): string {
         @switch (phase()) {
           <!-- Setup -->
           @case ('setup') {
-            @if (pool().length) {
-              <div class="mock-setup">
-                @if (scopeEditable()) {
-                  <!-- Scope: these change the page's own filters, so the list behind follows -->
-                  <div class="mock-field">
-                    <label class="mock-field-label" for="mock-topic">Topic</label>
-                    <tui-textfield
-                      tuiChevron
-                      tuiTextfieldSize="s"
-                      class="mock-select"
-                      [stringify]="topicName"
-                      [tuiTextfieldCleaner]="false"
-                    >
-                      <input id="mock-topic" tuiSelect [formField]="scopeForm.topic" />
-                      <tui-data-list-wrapper *tuiDropdown [items]="topicIds()" />
-                    </tui-textfield>
-                  </div>
+            <div class="mock-setup">
+              <p class="mock-intro">
+                Answer out loud, reveal the model answer, then rate yourself. Weak and unmastered
+                questions come up first.
+              </p>
 
-                  <div class="mock-field">
-                    <span class="mock-field-label">Level</span>
-                    <tui-segmented
-                      size="s"
-                      role="group"
-                      aria-label="Question level"
-                      [activeItemIndex]="levelIndex()"
-                    >
-                      @for (l of levelOptions; track l.id) {
-                        <button
-                          type="button"
-                          [attr.aria-pressed]="level() === l.id"
-                          (click)="levelChange.emit(l.id)"
-                        >
-                          {{ l.label }}
-                        </button>
-                      }
-                    </tui-segmented>
-                  </div>
-
-                  <div class="mock-field">
-                    <span class="mock-field-label">Focus</span>
-                    <tui-segmented
-                      size="s"
-                      role="group"
-                      aria-label="Which questions"
-                      [activeItemIndex]="focusIndex()"
-                    >
-                      @for (f of focusOptions; track f.id) {
-                        <button
-                          type="button"
-                          [attr.aria-pressed]="focus() === f.id"
-                          [title]="f.hint"
-                          (click)="focusChange.emit(f.id)"
-                        >
-                          {{ f.label }}
-                        </button>
-                      }
-                    </tui-segmented>
-                  </div>
-                }
-
-                <p class="mock-scope">
-                  <strong>{{ pool().length }}</strong>
-                  question{{ pool().length === 1 ? '' : 's' }} available
-                  @if (search()) {
-                    · matching "{{ search() }}"
-                  }
-                  @if (!scopeEditable()) {
-                    · {{ scopeLabel() }}
-                  }
-                </p>
+              <!-- Scope: Mock Me's own, separate from the Q&A list's filters -->
+              <section class="mock-group" aria-labelledby="mock-scope-title">
+                <h3 class="mock-group-title" id="mock-scope-title">Questions from</h3>
 
                 <div class="mock-field">
-                  <span class="mock-field-label">Questions</span>
+                  <label class="mock-field-label" for="mock-topic">Topic</label>
+                  <tui-textfield
+                    tuiChevron
+                    tuiTextfieldSize="s"
+                    class="mock-select"
+                    [stringify]="topicName"
+                    [tuiTextfieldCleaner]="false"
+                  >
+                    <input id="mock-topic" tuiSelect [formField]="scopeForm.topic" />
+                    <tui-data-list-wrapper *tuiDropdown [items]="topicIds()" />
+                  </tui-textfield>
+                </div>
+
+                <div class="mock-field">
+                  <span class="mock-field-label" id="mock-level-label">Level</span>
                   <tui-segmented
                     size="s"
                     role="group"
-                    aria-label="Number of questions"
-                    [activeItemIndex]="sizeIndex()"
+                    aria-labelledby="mock-level-label"
+                    [activeItemIndex]="levelIndex()"
                   >
-                    @for (c of sizeChips(); track c.value) {
+                    @for (l of levelOptions; track l.id) {
                       <button
                         type="button"
-                        [attr.aria-pressed]="effectiveSize() === c.count"
-                        (click)="setSize(c.value)"
+                        [attr.aria-pressed]="level() === l.id"
+                        (click)="setLevel(l.id)"
                       >
-                        {{ c.label }}
+                        {{ l.label }}
                       </button>
                     }
                   </tui-segmented>
                 </div>
 
                 <div class="mock-field">
-                  <span class="mock-field-label">Timer</span>
-                  <input
-                    tuiSwitch
-                    type="checkbox"
+                  <span class="mock-field-label" id="mock-focus-label">Focus</span>
+                  <tui-segmented
                     size="s"
-                    aria-label="Thinking timer"
-                    [showIcons]="false"
-                    [checked]="timerEnabled()"
-                    (change)="toggleTimer()"
-                  />
-                  <span class="mock-switch-text">
-                    {{ timerEnabled() ? 'Thinking timer on' : 'Thinking timer off' }}
-                    <span class="mock-switch-help">2 min per question · 5 for design & coding</span>
-                  </span>
+                    role="group"
+                    aria-labelledby="mock-focus-label"
+                    [activeItemIndex]="focusIndex()"
+                  >
+                    @for (f of focusOptions; track f.id) {
+                      <button
+                        type="button"
+                        [attr.aria-pressed]="focus() === f.id"
+                        [title]="f.hint"
+                        (click)="setFocus(f.id)"
+                      >
+                        {{ f.label }}
+                      </button>
+                    }
+                  </tui-segmented>
                 </div>
 
-                <p class="mock-hint">
-                  Answer out loud, reveal the model answer, then rate yourself. Weak and unmastered
-                  questions come up first.
+                <p class="mock-scope" aria-live="polite">
+                  @if (pool().length) {
+                    <strong>{{ pool().length }}</strong>
+                    question{{ pool().length === 1 ? '' : 's' }} in scope
+                  } @else {
+                    No questions match.
+                    @if (scopeNarrowed()) {
+                      <button tuiLink type="button" (click)="resetScope()">
+                        Use all {{ trackLabel() }} questions
+                      </button>
+                    }
+                  }
                 </p>
+              </section>
 
-                <div class="flex-wrap-gap">
+              @if (pool().length) {
+                <section class="mock-group" aria-labelledby="mock-session-title">
+                  <h3 class="mock-group-title" id="mock-session-title">Session</h3>
+
+                  <div class="mock-field">
+                    <span class="mock-field-label" id="mock-size-label">Length</span>
+                    <tui-segmented
+                      size="s"
+                      role="group"
+                      aria-labelledby="mock-size-label"
+                      [activeItemIndex]="sizeIndex()"
+                    >
+                      @for (c of sizeChips(); track c.value) {
+                        <button
+                          type="button"
+                          [attr.aria-pressed]="effectiveSize() === c.count"
+                          (click)="setSize(c.value)"
+                        >
+                          {{ c.label }}
+                        </button>
+                      }
+                    </tui-segmented>
+                  </div>
+
+                  <div class="mock-field">
+                    <span class="mock-field-label">Timer</span>
+                    <input
+                      tuiSwitch
+                      type="checkbox"
+                      size="s"
+                      aria-label="Thinking timer"
+                      [showIcons]="false"
+                      [checked]="timerEnabled()"
+                      (change)="toggleTimer()"
+                    />
+                    <span class="mock-switch-text">
+                      {{ timerEnabled() ? 'Thinking timer on' : 'Thinking timer off' }}
+                      <span class="mock-switch-help"
+                        >2 min per question · 5 for design & coding</span
+                      >
+                    </span>
+                  </div>
+                </section>
+
+                <div class="mock-actions">
                   <button
                     tuiButton
                     type="button"
+                    size="m"
                     appearance="primary"
                     iconStart="@tui.play"
                     (click)="startSession()"
@@ -312,6 +332,7 @@ function formatClock(totalSeconds: number): string {
                   <button
                     tuiButton
                     type="button"
+                    size="m"
                     appearance="secondary-grayscale"
                     iconStart="@tui.infinity"
                     (click)="startFree()"
@@ -319,19 +340,8 @@ function formatClock(totalSeconds: number): string {
                     Free practice
                   </button>
                 </div>
-              </div>
-            } @else {
-              <p class="mock-scope">
-                No questions match the current filters.
-                @if (scopeEditable() && (topicId() || level() !== 'all' || focus() !== 'all')) {
-                  <button tuiLink type="button" (click)="resetScope()">
-                    Show all {{ trackLabel() }} questions
-                  </button>
-                } @else {
-                  Clear the search or pick another filter, then try again.
-                }
-              </p>
-            }
+              }
+            </div>
           }
 
           <!-- Question -->
@@ -547,31 +557,70 @@ function formatClock(totalSeconds: number): string {
   styleUrl: './mock-interview.css',
 })
 export class MockInterview {
-  /** Questions currently visible (search, filter and topic applied). */
-  pool = input.required<MockItem[]>();
+  /** Every topic of the current track. Mock Me picks its own scope from these. */
+  topics = input.required<CategoryModel[]>();
   prepared = input.required<Set<string>>();
   starred = input.required<Set<string>>();
   mode = input<Track>('angular');
   protected readonly docsLabel = computed(() => trackInfo(this.mode()).docsLabel);
-  /** Human-readable description of the pool, e.g. "Signals · Unprepared". */
-  scopeLabel = input('all topics');
-
-  /** Scope controls. When `topics` is given, the dialog can change the page's filters. */
-  topics = input<{ id: string; title: string }[]>([]);
-  topicId = input<string | null>(null);
-  level = input<'all' | Level>('all');
-  focus = input<MockFocus>('all');
-  search = input('');
-  protected readonly scopeEditable = computed(() => this.topics().length > 0);
   protected readonly trackLabel = computed(() => trackInfo(this.mode()).label);
 
-  topicChange = output<string | null>();
-
-  /** Topic picker model ('' = all topics): follows `topicId`, reports edits through `topicChange`. */
-  private readonly scopeModel = linkedSignal(() => ({ topic: this.topicId() ?? '' }));
+  // Mock Me's own scope, independent of the Q&A page's filters and remembered between sessions
+  // (topic per track, since topic ids belong to one track)
+  /** Topic picker model ('' = all topics of the track). */
+  private readonly scopeModel = linkedSignal(() => ({
+    topic: readSavedTopic(this.mode(), this.topics()),
+  }));
   protected readonly scopeForm = form(this.scopeModel);
-  levelChange = output<'all' | Level>();
-  focusChange = output<MockFocus>();
+  protected readonly topicId = computed(() => this.scopeModel().topic || null);
+  protected readonly level = signal<'all' | Level>(
+    readJson<'all' | Level>(LEVEL_KEY, 'all', (v) => v === 'all' || v === 'core' || v === 'senior'),
+  );
+  protected readonly focus = signal<MockFocus>(
+    readJson<MockFocus>(
+      FOCUS_KEY,
+      'all',
+      (v) => v === 'all' || v === 'unprepared' || v === 'starred',
+    ),
+  );
+
+  /** Questions in Mock Me's scope: topic, level and focus applied. */
+  readonly pool = computed<MockItem[]>(() => {
+    const topic = this.topicId();
+    const level = this.level();
+    const focus = this.focus();
+    const prepared = this.prepared();
+    const starred = this.starred();
+    const cats = topic ? this.topics().filter((c) => c.id === topic) : this.topics();
+    return cats.flatMap((cat) =>
+      cat.questions
+        .filter(
+          (q) =>
+            (level === 'all' || levelOf(q) === level) &&
+            (focus === 'unprepared'
+              ? !prepared.has(q.id)
+              : focus === 'starred'
+                ? starred.has(q.id)
+                : true),
+        )
+        .map((q) => ({ id: q.id, q: q.text, cat })),
+    );
+  });
+
+  /** Scope differs from the defaults (all topics, all levels, everything). */
+  protected readonly scopeNarrowed = computed(
+    () => !!this.topicId() || this.level() !== 'all' || this.focus() !== 'all',
+  );
+
+  setLevel(level: 'all' | Level) {
+    this.level.set(level);
+    writeJson(LEVEL_KEY, level);
+  }
+
+  setFocus(focus: MockFocus) {
+    this.focus.set(focus);
+    writeJson(FOCUS_KEY, focus);
+  }
 
   protected readonly levelOptions: { id: 'all' | Level; label: string }[] = [
     { id: 'all', label: 'All levels' },
@@ -616,9 +665,9 @@ export class MockInterview {
   });
 
   resetScope() {
-    this.topicChange.emit(null);
-    this.levelChange.emit('all');
-    this.focusChange.emit('all');
+    this.scopeModel.set({ topic: '' });
+    this.setLevel('all');
+    this.setFocus('all');
   }
 
   preparedChange = output<{ id: string; prepared: boolean }>();
@@ -702,11 +751,8 @@ export class MockInterview {
   });
 
   constructor() {
-    // Report topic picks back to the page (a no-op when the change came from `topicId` itself)
-    effect(() => {
-      const topic = this.scopeForm.topic().value() || null;
-      if (topic !== untracked(this.topicId)) this.topicChange.emit(topic);
-    });
+    // Remember the topic for this track
+    effect(() => writeString(topicKey(this.mode()), this.scopeModel().topic));
 
     // Modal over the whole app: freeze the page behind, take keyboard focus, and
     // hand focus back to whatever opened it (the Mock Me button) on close.

@@ -90,10 +90,44 @@
 .mock-setup {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
+}
+
+.mock-intro {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+/* "Questions from" and "Session": each a quiet card of related controls */
+.mock-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-1);
+}
+
+.mock-group-title {
+  margin: 0 0 2px;
+  font: 700 0.85rem var(--font-display);
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+}
+
+.mock-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .mock-scope {
+  margin: 2px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
   font-size: 0.8rem;
   color: var(--color-text-muted);
 }
@@ -122,10 +156,8 @@
 }
 
 .mock-field-label {
-  min-width: 72px;
-  font: 600 0.68rem var(--font-sans);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  min-width: 64px;
+  font: 500 0.8rem var(--font-sans);
   color: var(--color-text-subtle);
 }
 
@@ -309,4 +341,16 @@
   background: rgb(var(--c-white) / 0.18);
   font: 0.62rem var(--font-mono);
   color: inherit;
+}
+
+/* Phones: every label above its control, so the rows line up */
+@media (max-width: 480px) {
+  .mock-group .mock-field {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .mock-group .mock-select {
+    width: 100%;
+  }
 }

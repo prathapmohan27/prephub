@@ -4,7 +4,12 @@ import {
   provideBrowserGlobalErrorListeners,
   signal,
 } from '@angular/core';
-import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
+import {
+  provideRouter,
+  withComponentInputBinding,
+  withInMemoryScrolling,
+  withNavigationErrorHandler,
+} from '@angular/router';
 import {
   provideTaiga,
   tuiButtonOptionsProvider,
@@ -14,6 +19,7 @@ import {
 import { routes } from './app.routes';
 import { migrateProgressToIds } from '@core/progress/progress-migration';
 import { provideAppTheme } from '@core/theme/theme.service';
+import { reloadOnChunkError } from '@core/router/chunk-reload';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -33,6 +39,8 @@ export const appConfig: ApplicationConfig = {
       withComponentInputBinding(),
       // Scroll to top on navigation, restore position on browser back/forward
       withInMemoryScrolling({ scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled' }),
+      // A page chunk from an older build can't load (tab open across a deploy): load it fresh
+      withNavigationErrorHandler(reloadOnChunkError),
     ),
   ],
 };

@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, computed, inject, injectAsync } from '@angular/core';
 import { TuiButton, TuiLoader } from '@taiga-ui/core';
-import { TuiBadge, TuiChip, TuiProgress, TuiSegmented } from '@taiga-ui/kit';
+import { TuiBadge, TuiChip, TuiProgress } from '@taiga-ui/kit';
 import {
   DailyLearningService,
   LearningMode,
@@ -8,14 +8,23 @@ import {
 import { CategoryModel, TRACKS, Track, isTrack, trackOf } from '@features/questions/question';
 import { Answer } from '@features/questions/components/answer/answer';
 import { RichText } from '@shared/ui/content-blocks/rich-text';
-import { readString } from '@core/storage/storage';
+import { readString, readStringList, writeJson } from '@core/storage/storage';
 
-type AppMode = Track;
+const TRACKS_KEY = 'daily_tracks';
+
+/** Saved track selection; first visit starts from the track last used in Interview Q&A. */
+function readSavedTracks(): Track[] {
+  const saved = readStringList(TRACKS_KEY).filter(isTrack);
+  if (saved.length) return TRACKS.map((t) => t.id).filter((id) => saved.includes(id));
+  const lastQa = readString('prep_mode');
+  return [isTrack(lastQa) ? lastQa : 'angular'];
+}
+
 type ViewState = 'setup' | 'session';
 
 @Component({
   selector: 'app-daily-learning',
-  imports: [Answer, RichText, TuiBadge, TuiButton, TuiChip, TuiLoader, TuiProgress, TuiSegmented],
+  imports: [Answer, RichText, TuiBadge, TuiButton, TuiChip, TuiLoader, TuiProgress],
   template: `
     <div class="dl-shell">
       <div class="dl-glow"></div>
@@ -46,32 +55,44 @@ type ViewState = 'setup' | 'session';
 
         <!-- ── SETUP VIEW ────────────────────────────────────────────────── -->
         @if (view() === 'setup') {
-          <!-- Track toggle (Foundations / Angular / Node.js) -->
-          <div class="track-row">
-            <span class="mode-section-label track-row-label" id="track-label">Learning Track:</span>
-            <tui-segmented
-              size="s"
-              role="group"
-              aria-labelledby="track-label"
-              class="track-switch"
-              [activeItemIndex]="trackIndex()"
-            >
+          <!-- Step 1: track. The first choice, so it gets cards rather than a small toggle -->
+          <section class="step" aria-labelledby="step-track">
+            <h2 class="step-head" id="step-track">
+              <span class="step-num" aria-hidden="true">1</span> Choose your tracks
+              <span class="step-hint">Pick one or more</span>
+            </h2>
+            <div class="track-cards" role="group" aria-labelledby="step-track">
               @for (t of tracks; track t.id) {
                 <button
                   type="button"
-                  [attr.aria-pressed]="appMode() === t.id"
-                  [title]="t.id === 'foundations' ? 'JavaScript, TypeScript & the web' : t.label"
-                  (click)="setAppMode(t.id)"
+                  role="checkbox"
+                  class="track-card"
+                  [class.track-card--active]="isTrackSelected(t.id)"
+                  [attr.aria-checked]="isTrackSelected(t.id)"
+                  [title]="isOnlyTrack(t.id) ? 'At least one track stays selected' : ''"
+                  [style.--track]="trackColor[t.id]"
+                  (click)="toggleTrack(t.id)"
                 >
-                  <i [class]="'ti ' + t.icon" [style.color]="trackColor[t.id]"></i>
-                  {{ t.label }}
+                  <span class="track-card-icon"><i [class]="'ti ' + t.icon"></i></span>
+                  <span class="track-card-text">
+                    <span class="track-card-title">{{ t.label }}</span>
+                    <span class="track-card-desc">{{ trackBlurb[t.id] }}</span>
+                  </span>
+                  @if (trackCounts()[t.id]; as n) {
+                    <span class="track-card-count">{{ n }} questions</span>
+                  }
+                  @if (isTrackSelected(t.id)) {
+                    <span class="mode-check" aria-hidden="true"><i class="ti ti-check"></i></span>
+                  }
                 </button>
               }
-            </tui-segmented>
-          </div>
+            </div>
+          </section>
 
-          <!-- Mode picker -->
-          <p class="mode-section-label">Choose your learning mode</p>
+          <!-- Step 2: mode -->
+          <h2 class="step-head" id="step-mode">
+            <span class="step-num" aria-hidden="true">2</span> Choose a learning mode
+          </h2>
           <div class="mode-cards animate-in">
             <!-- Single Topic -->
             <button
@@ -126,7 +147,7 @@ type ViewState = 'setup' | 'session';
               </div>
               <div class="mode-card-title">Random / All Topics</div>
               <div class="mode-card-desc">
-                Surprise selection from the entire question bank. Same set all day.
+                Surprise selection from every topic in your tracks. Same set all day.
               </div>
             </button>
           </div>
@@ -134,9 +155,10 @@ type ViewState = 'setup' | 'session';
           <!-- Topic selector (Single / Mixed) -->
           @if (selectedMode() === 'single' || selectedMode() === 'mixed') {
             <div class="topic-section">
-              <p class="mode-section-label">
+              <h2 class="step-head">
+                <span class="step-num" aria-hidden="true">3</span>
                 {{ selectedMode() === 'single' ? 'Pick a topic' : 'Pick 2–4 topics' }}
-              </p>
+              </h2>
               <p class="topic-hint">
                 {{
                   selectedMode() === 'single'
@@ -144,24 +166,32 @@ type ViewState = 'setup' | 'session';
                     : selectedTopics().length + ' selected — questions spread evenly.'
                 }}
               </p>
-              <div class="topic-chips">
-                @for (cat of modeCategories(); track cat.id) {
-                  <button
-                    tuiChip
-                    type="button"
-                    size="s"
-                    class="topic-chip"
-                    [appearance]="isTopicSelected(cat.id) ? 'info' : 'outline-grayscale'"
-                    [attr.aria-pressed]="isTopicSelected(cat.id)"
-                    [id]="'topic-' + cat.id"
-                    (click)="toggleTopic(cat.id)"
-                  >
-                    <span class="topic-chip-dot" [style.background]="cat.color"></span>
-                    {{ cat.title }}
-                    <span class="topic-chip-count">({{ cat.questions.length }})</span>
-                  </button>
+              @for (group of topicGroups(); track group.track.id) {
+                @if (topicGroups().length > 1) {
+                  <p class="topic-group-label" [style.--track]="trackColor[group.track.id]">
+                    <i [class]="'ti ' + group.track.icon" aria-hidden="true"></i>
+                    {{ group.track.label }}
+                  </p>
                 }
-              </div>
+                <div class="topic-chips">
+                  @for (cat of group.cats; track cat.id) {
+                    <button
+                      tuiChip
+                      type="button"
+                      size="s"
+                      class="topic-chip"
+                      [appearance]="isTopicSelected(cat.id) ? 'info' : 'outline-grayscale'"
+                      [attr.aria-pressed]="isTopicSelected(cat.id)"
+                      [id]="'topic-' + cat.id"
+                      (click)="toggleTopic(cat.id)"
+                    >
+                      <span class="topic-chip-dot" [style.background]="cat.color"></span>
+                      {{ cat.title }}
+                      <span class="topic-chip-count">({{ cat.questions.length }})</span>
+                    </button>
+                  }
+                </div>
+              }
             </div>
           }
 
@@ -378,17 +408,30 @@ export class DailyLearning implements OnInit {
   selectedMode = signal<LearningMode>('random');
   selectedTopics = signal<string[]>([]);
   expandedIndex = signal<number | null>(null);
-  appMode = signal<AppMode>('angular');
+  /** Tracks the day's questions come from; always at least one, kept in TRACKS order. */
+  selectedTracks = signal<Track[]>(readSavedTracks());
   readonly tracks = TRACKS;
-  /** Segmented control tracks the selection by position. */
-  protected readonly trackIndex = computed(() =>
-    this.tracks.findIndex((t) => t.id === this.appMode()),
-  );
+
+  readonly trackBlurb: Record<Track, string> = {
+    foundations: 'JavaScript, TypeScript, the web and interview rounds',
+    angular: 'Components, signals, RxJS, routing and architecture',
+    nodejs: 'Runtime, APIs, data, scaling and cloud',
+  };
+
+  /** Questions per track, shown on the track cards once the bank has loaded. */
+  protected readonly trackCounts = computed(() => {
+    const counts: Partial<Record<Track, number>> = {};
+    for (const c of this.allCategories()) {
+      const t = trackOf(c.id);
+      counts[t] = (counts[t] ?? 0) + c.questions.length;
+    }
+    return counts;
+  });
 
   readonly trackColor: Record<Track, string> = {
-    foundations: 'rgb(var(--c-amber-600))',
+    foundations: 'var(--color-track-foundations)',
     angular: 'var(--color-track-angular)',
-    nodejs: 'var(--color-node)',
+    nodejs: 'var(--color-track-nodejs)',
   };
 
   session = this.dailyService.session;
@@ -400,8 +443,8 @@ export class DailyLearning implements OnInit {
   allCategories = signal<CategoryModel[]>([]);
 
   modeCategories = computed(() => {
-    const m = this.appMode();
-    return this.allCategories().filter((c) => trackOf(c.id) === m);
+    const tracks = this.selectedTracks();
+    return this.allCategories().filter((c) => tracks.includes(trackOf(c.id)));
   });
 
   canGenerate = computed(() => {
@@ -424,11 +467,6 @@ export class DailyLearning implements OnInit {
     this.loadBank();
     this.dailyService.refreshStreak();
 
-    const savedMode = readString('prep_mode');
-    if (isTrack(savedMode)) {
-      this.appMode.set(savedMode);
-    }
-
     // Try to restore today's session
     const existing = this.dailyService.loadTodaySession();
     if (existing) {
@@ -450,9 +488,34 @@ export class DailyLearning implements OnInit {
   }
 
   // ── Mode / topic selection ────────────────────────────────────────────────
-  setAppMode(m: AppMode) {
-    this.appMode.set(m);
-    this.selectedTopics.set([]);
+  /** Topics of the selected tracks, grouped by track for the topic picker. */
+  protected readonly topicGroups = computed(() => {
+    const cats = this.modeCategories();
+    return this.tracks
+      .filter((t) => this.selectedTracks().includes(t.id))
+      .map((track) => ({ track, cats: cats.filter((c) => trackOf(c.id) === track.id) }));
+  });
+
+  isTrackSelected(track: Track): boolean {
+    return this.selectedTracks().includes(track);
+  }
+
+  isOnlyTrack(track: Track): boolean {
+    const tracks = this.selectedTracks();
+    return tracks.length === 1 && tracks[0] === track;
+  }
+
+  /** Adds or removes a track; the last selected track can't be removed. */
+  toggleTrack(track: Track) {
+    if (this.isOnlyTrack(track)) return;
+    const current = this.selectedTracks();
+    const next = TRACKS.map((t) => t.id).filter((id) =>
+      id === track ? !current.includes(id) : current.includes(id),
+    );
+    this.selectedTracks.set(next);
+    writeJson(TRACKS_KEY, next);
+    // Keep picked topics that still belong to a selected track
+    this.selectedTopics.update((ids) => ids.filter((id) => next.includes(trackOf(id))));
   }
 
   selectMode(m: LearningMode) {

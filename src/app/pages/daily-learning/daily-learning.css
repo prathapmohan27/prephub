@@ -62,19 +62,113 @@
   font-size: 14px;
 }
 
-/* Learning track switch */
-.track-row {
+/* Track colour as text: blended with the theme's text colour so it stays readable
+   (darker on the light theme, lighter on the dark one) */
+.track-card,
+.topic-group-label {
+  --track-text: color-mix(in srgb, var(--track) 70%, var(--color-text-primary));
+}
+
+/* ─── Setup steps ─────────────────────────────────────────────────────────── */
+.step-head {
   display: flex;
   align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+  font: 700 0.95rem var(--font-display);
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+}
+.step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgb(var(--c-indigo) / 0.15);
+  color: var(--t-indigo-300);
+  font: 700 0.72rem var(--font-sans);
+}
+.step {
+  margin-bottom: 32px;
+}
+
+/* Track cards: the first choice on the page, coloured by track */
+.track-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.track-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 24px;
+  /* Counts line up along the bottom even when descriptions wrap differently */
+  align-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  background: rgb(var(--n-900) / 0.7);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
 }
-.track-row-label {
-  margin-bottom: 0;
+.track-card:hover {
+  border-color: var(--color-border-strong);
+  background: rgb(var(--n-800) / 0.7);
+  transform: translateY(-2px);
 }
-.track-switch .ti {
-  font-size: 13px;
+.track-card:focus-visible {
+  outline: 2px solid var(--track);
+  outline-offset: 2px;
+}
+.track-card--active,
+.track-card--active:hover {
+  border-color: color-mix(in srgb, var(--track) 55%, transparent);
+  background: color-mix(in srgb, var(--track) 9%, transparent);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--track) 10%, transparent);
+}
+.track-card-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--track);
+  background: color-mix(in srgb, var(--track) 14%, transparent);
+}
+.track-card-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-right: 20px;
+}
+.track-card-title {
+  font: 700 0.95rem var(--font-display);
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+}
+.track-card-desc {
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--color-text-subtle);
+}
+.track-card-count {
+  flex-basis: 100%;
+  padding-left: 52px;
+  font: 600 0.7rem var(--font-sans);
+  color: var(--track-text);
 }
 
 /* ─── Page header ─────────────────────────────────────────────────────────── */
@@ -475,7 +569,8 @@
 
 /* ─── Responsive ─────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
-  .mode-cards {
+  .mode-cards,
+  .track-cards {
     grid-template-columns: 1fr;
   }
   .dl-wrapper {
@@ -510,4 +605,27 @@
     margin: 0;
     z-index: 1;
   }
+}
+
+.track-card .mode-check {
+  background: var(--track);
+  color: var(--color-on-brand);
+}
+
+.step-hint {
+  font: 500 0.75rem var(--font-sans);
+  color: var(--color-text-subtle);
+}
+
+/* Topic picker with several tracks: one labelled group per track */
+.topic-group-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 16px 0 8px;
+  font: 600 0.75rem var(--font-sans);
+  color: var(--track-text);
+}
+.topic-group-label:first-of-type {
+  margin-top: 4px;
 }

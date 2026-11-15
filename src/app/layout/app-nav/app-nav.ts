@@ -100,5 +100,12 @@ export class AppNav {
       icon: 'ti-topology-star',
       exact: false,
     },
+    {
+      path: '/roadmap',
+      label: 'Roadmap',
+      shortLabel: 'Roadmap',
+      icon: 'ti-route',
+      exact: false,
+    },
   ];
 }

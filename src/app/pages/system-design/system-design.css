@@ -8,7 +8,8 @@
   background: var(--color-page-bg);
   color: var(--color-text-primary);
   position: relative;
-  overflow-x: hidden;
+  /* clip (not hidden) so the shell is not a scroll container and the section sidebar can stay sticky */
+  overflow-x: clip;
 }
 
 .sd-glow {

@@ -51,5 +51,10 @@ export const routes: Routes = [
     },
     loadComponent: loadCoreConcepts,
   },
+  {
+    path: 'roadmap',
+    title: `System Design Roadmap · ${APP_NAME}`,
+    loadComponent: () => import('@pages/roadmap/roadmap').then((m) => m.Roadmap),
+  },
   { path: '**', redirectTo: '' },
 ];
